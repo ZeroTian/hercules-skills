@@ -1,0 +1,179 @@
+---
+name: hercules-collaborative-agent-workflow
+description: "Use when Hercules wants Hermes to orchestrate Claude Code and Codex CLI end-to-end: capability preflight, high/xhigh effort selection, Claude implementation, Codex review, verification, and task ledger updates."
+version: 1.0.0
+author: Hercules / Hermes Agent
+license: MIT
+metadata:
+  hermes:
+    tags: [hercules, orchestration, claude-code, codex, code-review, workflow]
+    related_skills: [hermes-collaborative-workflow, coding-agent-orchestration, cross-agent-review-loop, iterative-agent-code-review, hercules-agent-capability-preflight]
+---
+
+# Hercules Collaborative Agent Workflow
+
+## Overview
+
+Use this as the Hercules-specific entry skill for day-to-day collaborative development. It composes atom skills rather than migrating them into `hercules/`.
+
+Default loop:
+
+```text
+Hermes gathers context
+  -> capability preflight
+  -> Claude Code implements with SDD/TDD
+  -> Hermes verifies diff/tests/logs
+  -> Codex independently reviews
+  -> Hermes updates TASKS/CR records
+  -> repeat until PASS or real blocker
+```
+
+## When to Use
+
+Use when the user asks to:
+
+- continue project work with Hermes as orchestrator;
+- run a Claude implementation followed by Codex review;
+- process `TASKS.md` batches;
+- fix Codex CR findings through Claude and re-review;
+- do architecture/code/docs changes that require independent review;
+- avoid manual tool switching between Hermes, Claude Code, and Codex.
+
+Use `hercules-project-init-workflow` instead when the primary task is repository governance initialization or reinitialization.
+
+## Required Companion Skills
+
+Load as needed:
+
+1. `hermes-collaborative-workflow` — base actor selection and end-to-end loop.
+2. `hercules-agent-capability-preflight` — live capability scan and effort selection.
+3. `claude-code` — Claude Code launch patterns and caveats.
+4. `codex` — Codex launch patterns and sandbox caveats.
+5. `coding-agent-orchestration` — fix/review loop patterns.
+6. `cross-agent-review-loop` or `iterative-agent-code-review` — stricter multi-round review when quality risk is high.
+7. `test-driven-development` — RED/GREEN/REFACTOR discipline.
+8. `subagent-driven-development` — when using Hermes `delegate_task` or Claude subagents for vertical slices.
+9. `open-ended-research-orchestration` — for broad research before implementation.
+
+Keep these atom skills in their original categories. `hercules/` stores preference and assembly policy only.
+
+## Actor Policy
+
+- **Hermes** is the controller: gathers context, writes briefs, launches tools, monitors processes, verifies outputs, updates records, and reports state.
+- **Claude Code** is the implementation worker for substantial code/docs/refactor/test changes.
+- **Codex CLI** is the independent reviewer and closure authority for review-required work.
+- **Hermes direct work** is allowed for small, low-risk, local edits and bookkeeping.
+- **User** decides scope expansion, destructive operations, commits/pushes, and unresolved product choices.
+
+## Capability and Effort Policy
+
+Before meaningful Claude/Codex launches, use `hercules-agent-capability-preflight`.
+
+Minimum record for formal work:
+
+```text
+Capability preflight: Claude/Codex scanned or current-session cache reused.
+Relevant capabilities: <plugins/MCP/agents/features actually available>.
+Effort: high|xhigh because <reason>.
+```
+
+Effort defaults:
+
+- `high` for normal repo implementation/review.
+- `xhigh` for cross-subsystem, safety/gate, real external execution, failed-review, architecture, or deep debugging work.
+- Avoid `xhigh` for tiny edits where latency/cost does not buy much.
+
+## Execution Procedure
+
+1. **Read rules and state.** For repos with governance, read `HERMES.md`, `CLAUDE.md`, `AGENTS.md`, `TASKS.md`, relevant specs, and review records. Completion: current owner/status/next action are known.
+2. **Classify the work.** Decide Hermes direct vs Claude vs Codex vs user. Completion: actor and effort are justified.
+3. **Run capability preflight.** Scan or reuse current-session cache for Claude/Codex. Completion: brief mentions only real available capabilities.
+4. **Delegate implementation to Claude when needed.** Scope the brief tightly: task ID, files, acceptance criteria, prohibited actions, SDD/TDD requirements, verification commands, no commit/push/reset.
+5. **Verify Claude output.** Inspect exit code, logs, diff, task records, and run key tests yourself. Completion: self-report is backed by evidence.
+6. **Delegate review to Codex when needed.** Use read-only review unless explicitly allowing task/review record writes. Include exact criteria and update rules.
+7. **Verify Codex output.** Read modified records, check checkbox truth, and confirm PASS/FAIL evidence.
+8. **Loop or stop.** If Codex rejects, route original CR back to Claude. If PASS, close task records. If blocked, record blocker and next owner.
+
+## Brief Requirements
+
+Claude brief must include:
+
+- repo path and task/CR IDs;
+- required files to read first;
+- allowed files and forbidden actions;
+- SDD/TDD expectation and RED/GREEN/REFACTOR evidence requirements;
+- capability inventory and selected effort;
+- exact verification commands;
+- task ledger update requirements;
+- “Do not commit, push, reset, read secrets, or touch unrelated files.”
+
+Codex brief must include:
+
+- read-only boundary, unless task/review record writes are explicitly allowed;
+- task/CR IDs and acceptance criteria;
+- diff/files in scope;
+- verification commands to run or inspect;
+- PASS/FAIL update protocol;
+- “Do not commit, push, reset, or rewrite history.”
+
+## State Reporting
+
+Final or checkpoint reports should state:
+
+```text
+Hermes did: <direct actions>
+Claude Code: launched/not launched, effort, result
+Codex CLI: launched/not launched, effort, result
+Verification: <real command/log output summary>
+Task state: <status/current owner/next owner>
+Next action: <Hermes continues | user decision | none>
+```
+
+Never say a command/test/agent succeeded unless its output was actually observed.
+
+## Migration Pattern
+
+Copy only Hercules policy skills when moving machines:
+
+```text
+~/.hermes/skills/hercules/
+```
+
+Then install or sync atom dependencies separately:
+
+```text
+claude-code
+codex
+hermes-collaborative-workflow
+coding-agent-orchestration
+cross-agent-review-loop
+iterative-agent-code-review
+test-driven-development
+subagent-driven-development
+open-ended-research-orchestration
+```
+
+This prevents duplicate official skills while preserving Hercules-specific behavior.
+
+## Common Pitfalls
+
+1. **Migrating atom skills into `hercules/`.** Reference them; do not fork unless intentionally customizing.
+2. **Launching Claude/Codex without preflight.** The brief may request unavailable plugins/MCP.
+3. **Using the wrong effort.** Default high; use xhigh for complex/high-risk work only.
+4. **Trusting self-report.** Hermes must inspect actual diff, logs, records, and verification output.
+5. **Skipping Codex for review-required work.** Claude implementation is not independent review.
+6. **Creating duplicate CRs.** Update the original `CR-NNN` when rechecking.
+7. **Leaving the user to switch tools.** If Hermes can launch the CLI, Hermes should do it.
+
+## Verification Checklist
+
+- [ ] Relevant atom skills loaded or intentionally skipped
+- [ ] Rules/state/specs read before delegation
+- [ ] Capability preflight performed or fresh cache reused
+- [ ] Effort selected and justified
+- [ ] Claude brief is scoped, testable, and prohibits unsafe actions
+- [ ] Claude output verified by Hermes
+- [ ] Codex review is independent and scoped
+- [ ] Codex output verified by Hermes
+- [ ] TASKS/CR records reflect real state
+- [ ] Final report includes real verification evidence and next owner
