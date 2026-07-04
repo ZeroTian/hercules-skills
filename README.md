@@ -16,7 +16,7 @@ Skills are stored under:
 skills/hercules/
 ```
 
-Current skills:
+Current Hercules-owned skills:
 
 ```text
 coding-agent-orchestration
@@ -31,8 +31,6 @@ kanban-codex-lane
 kanban-orchestrator
 kanban-worker
 open-ended-research-orchestration
-subagent-driven-development
-writing-plans
 ```
 
 ## What is not included
@@ -46,7 +44,16 @@ hermes-agent
 opencode
 ```
 
-Other general-purpose skills are also intentionally not vendored unless they become part of the Hercules development workflow.
+Third-party or official hub skills are also intentionally not vendored here unless they become Hercules-owned custom workflow skills.
+
+Known external workflow dependencies:
+
+```text
+subagent-driven-development
+writing-plans
+```
+
+These two are Superpowers/official-hub style skills, not Hercules-owned custom skills. Install them separately on a target machine if the target Hermes installation does not already provide them.
 
 ## Install on another machine
 
@@ -68,6 +75,8 @@ Start a new Hermes session, then verify:
 ```bash
 hermes skills list | grep hercules
 ```
+
+If dependencies are missing, install them from the skills hub or another trusted source rather than copying them into this repository as Hercules-owned skills.
 
 ## Main entry skills
 
@@ -113,20 +122,20 @@ When adding new Hercules-specific development workflow skills:
 1. Put them under `~/.hermes/skills/hercules/` locally.
 2. Copy them into this repo under `skills/hercules/`.
 3. Do not copy Hermes builtin skills into this repo.
-4. Do not vendor broad general-purpose skills unless they are part of the Hercules workflow contract.
+4. Do not vendor third-party or official hub skills into this repo; list them as dependencies instead.
+5. Do not vendor broad general-purpose skills unless they are part of the Hercules workflow contract and have been customized for that contract.
 
 ## Current possible future candidates
 
 A local scan found these non-builtin skills that may be related to development workflow but are not currently included:
 
 ```text
-.archive/cross-agent-code-review
 software-development/chrome-cdp-automation
 software-development/debugging-hermes-tui-commands
 software-development/hermes-s6-container-supervision
 software-development/tauri-build
 ```
 
-They were not added automatically because they are either archived, tool-specific, or project/domain-specific rather than core Hercules orchestration skills.
+They were not added automatically because they are tool-specific or project/domain-specific rather than core Hercules orchestration skills.
 
 Other scanned skills such as Telegram formatting, webhook subscriptions, MCP utilities, ML/MLOps, and image generation are useful but are not core development workflow skills for this repository.
