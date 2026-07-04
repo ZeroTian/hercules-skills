@@ -1,8 +1,8 @@
 # Hercules Skills
 
-Portable Hermes skills for Hercules-style development workflow orchestration.
+Portable Hermes skills for the personal Hercules development workflow.
 
-This repository contains local, non-builtin Hermes skills that encode the Hercules development workflow: Hermes as orchestrator, Claude Code as implementer, Codex as independent reviewer, capability preflight before delegation, and project governance conventions for collaborative AI development.
+This workflow treats Hermes as the primary orchestration agent. Hermes gathers context, chooses tools, launches Claude Code for implementation, launches Codex CLI for independent review, verifies real outputs, and reports state back to the user. The skills in this repository encode that workflow as a portable skill group.
 
 Repository:
 
@@ -53,11 +53,13 @@ subagent-driven-development
 writing-plans
 ```
 
-These two are Superpowers/official-hub style skills, not Hercules-owned custom skills. Install them separately on a target machine if the target Hermes installation does not already provide them.
+These two are Superpowers/official-hub style skills, not Hercules-owned custom skills. The bootstrap script can check/install them on a target machine.
 
 ## Install on another machine
 
-Clone the repository:
+Install Hermes first using the official Hermes installation flow.
+
+Then clone this repository:
 
 ```bash
 git clone https://github.com/ZeroTian/hercules-skills.git
@@ -70,13 +72,46 @@ mkdir -p ~/.hermes/skills/hercules
 cp -a hercules-skills/skills/hercules/. ~/.hermes/skills/hercules/
 ```
 
+Run the bootstrap/dependency doctor:
+
+```bash
+bash ~/.hermes/skills/hercules/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh
+```
+
+For unattended setup after you have authorized installation:
+
+```bash
+HERCULES_YES=1 bash ~/.hermes/skills/hercules/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh
+```
+
+For audit-only mode:
+
+```bash
+HERCULES_CHECK_ONLY=1 bash ~/.hermes/skills/hercules/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh
+```
+
+The bootstrap script checks and installs where possible:
+
+```text
+Claude Code CLI: npm install -g @anthropic-ai/claude-code
+Codex CLI: npm install -g @openai/codex
+Hermes skills: subagent-driven-development, writing-plans
+Claude marketplaces: claude-plugins-official, omc
+Claude plugins: superpowers, oh-my-claudecode
+```
+
+It does not automate interactive auth. If needed, run:
+
+```bash
+claude auth login --console
+codex login
+```
+
 Start a new Hermes session, then verify:
 
 ```bash
 hermes skills list | grep hercules
 ```
-
-If dependencies are missing, install them from the skills hub or another trusted source rather than copying them into this repository as Hercules-owned skills.
 
 ## Main entry skills
 
@@ -96,6 +131,28 @@ For capability scanning and reasoning-effort selection before launching Claude/C
 
 ```text
 /skill hercules-agent-capability-preflight
+```
+
+## User-level rule location
+
+The personal workflow rule belongs in the user's Hermes-level configuration/persona, not in each project repository and not as a fake `HERMES.md` inside this skill group.
+
+For the default Hermes profile, that file is:
+
+```text
+~/.hermes/SOUL.md
+```
+
+The rule should say, in effect:
+
+```text
+Hermes is the main orchestration agent.
+Claude Code is the default implementation agent.
+Codex CLI is the default independent review/acceptance agent.
+Hercules-owned development workflow skills live under ~/.hermes/skills/hercules/ and sync to ZeroTian/hercules-skills.
+Builtin Hermes skills stay in the normal Hermes installation.
+Third-party/hub skills are dependencies and should be checked/installed, not vendored.
+Before launching Claude/Codex, run capability preflight and choose high/xhigh reasoning effort by task complexity.
 ```
 
 ## Workflow intent
@@ -122,7 +179,7 @@ When adding new Hercules-specific development workflow skills:
 1. Put them under `~/.hermes/skills/hercules/` locally.
 2. Copy them into this repo under `skills/hercules/`.
 3. Do not copy Hermes builtin skills into this repo.
-4. Do not vendor third-party or official hub skills into this repo; list them as dependencies instead.
+4. Do not vendor third-party or official hub skills into this repo; list them as dependencies and extend bootstrap if needed.
 5. Do not vendor broad general-purpose skills unless they are part of the Hercules workflow contract and have been customized for that contract.
 
 ## Current possible future candidates

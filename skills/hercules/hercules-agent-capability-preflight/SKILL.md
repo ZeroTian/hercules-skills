@@ -14,7 +14,7 @@ metadata:
 
 ## Overview
 
-Use this skill before Hermes delegates meaningful work to Claude Code or Codex CLI. It keeps Hermes from treating those agents as generic black boxes: first scan what each agent can actually use right now, then write briefs that exploit available skills, plugins, MCP servers, custom agents, and reasoning controls.
+Use this skill before Hermes delegates meaningful work to Claude Code or Codex CLI. It keeps Hermes from treating those agents as generic black boxes: first ensure the portable Hercules workflow dependencies exist, then scan what each agent can actually use right now, then write briefs that exploit available skills, plugins, MCP servers, custom agents, and reasoning controls.
 
 This is a user-portable Hercules skill. It intentionally lives outside bundled Hermes skill categories so it can be copied to other projects or machines without carrying official skills such as `claude-code`, `codex`, `hermes-agent`, or `opencode`.
 
@@ -33,6 +33,53 @@ Skip or use a cached result when:
 - The task is a tiny one-line edit or status query.
 - Capability inventory was already run in this session and no agent config changed.
 - The agent will not be launched.
+
+## Step 0 — Bootstrap / Dependency Doctor
+
+On a fresh machine, or whenever Claude/Codex/plugins/skills may be missing, run the bundled bootstrap script before normal preflight:
+
+```bash
+bash ~/.hermes/skills/hercules/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh
+```
+
+For unattended install on a machine where the user has authorized setup:
+
+```bash
+HERCULES_YES=1 bash ~/.hermes/skills/hercules/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh
+```
+
+For audit-only mode:
+
+```bash
+HERCULES_CHECK_ONLY=1 bash ~/.hermes/skills/hercules/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh
+```
+
+The script checks and installs where possible:
+
+| Component | Check | Install / remediation |
+|---|---|---|
+| Claude Code CLI | `claude --version` | `npm install -g @anthropic-ai/claude-code` |
+| Codex CLI | `codex --version` | `npm install -g @openai/codex` |
+| Hercules external skills | `hermes skills list` | `hermes skills install official/software-development/subagent-driven-development` and `hermes skills install skills-sh/obra/superpowers/writing-plans` |
+| Claude official plugin marketplace | `claude plugins marketplace list` | `claude plugins marketplace add anthropics/claude-plugins-official` |
+| OMC marketplace | `claude plugins marketplace list` | `claude plugins marketplace add https://github.com/Yeachan-Heo/oh-my-claudecode.git` |
+| Claude `superpowers` plugin | `claude plugins list` | `claude plugins install --scope user superpowers@claude-plugins-official` |
+| Claude OMC plugin | `claude plugins list` | `claude plugins install --scope user oh-my-claudecode@omc` |
+
+It does **not** automate interactive auth. If auth is missing, it reports the required commands:
+
+```bash
+claude auth login --console
+codex login
+```
+
+Optional plugins such as `playwright`, `context7`, and `pyright-lsp` can be installed by running with:
+
+```bash
+HERCULES_YES=1 HERCULES_INSTALL_OPTIONAL=1 bash ~/.hermes/skills/hercules/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh
+```
+
+Completion criterion: `claude`, `codex`, required Claude plugins, and external skills are present or the script has reported a real blocker such as missing Node/npm or missing auth.
 
 ## Step 1 — Classify Task Complexity
 
@@ -190,20 +237,29 @@ Reasoning effort: high|xhigh because ...
 
 ## Migration Pattern
 
-To reuse this skill on another machine:
-
-1. Copy this skill directory to `~/.hermes/skills/hercules/agent-capability-preflight/`.
-2. Run `hermes skills list` or start a fresh Hermes session.
-3. Load it by name: `hercules-agent-capability-preflight`.
-4. Keep bundled `claude-code`, `codex`, `hermes-agent`, `opencode`, and `hermes-collaborative-workflow` skills unmodified so Hermes updates remain clean.
-
-Recommended portable bundle root:
+This skill is part of the user's portable Hercules workflow pack:
 
 ```text
-~/.hermes/skills/hercules/
+https://github.com/ZeroTian/hercules-skills
 ```
 
-Copy only this `hercules/` directory when migrating Hercules-specific policies.
+To reuse this workflow on another machine:
+
+1. Install Hermes normally.
+2. Clone or copy this repository's `skills/hercules/` directory into `~/.hermes/skills/hercules/`.
+3. Run the bootstrap script above to install/check Claude Code, Codex, required Claude plugins, and external skill dependencies.
+4. Start a fresh Hermes session and load it by name: `hercules-agent-capability-preflight`.
+
+Keep bundled Hermes skills unmodified and outside this pack:
+
+```text
+claude-code
+codex
+hermes-agent
+opencode
+```
+
+Do not rely on model memory to reconstruct this workflow on a new host. The target agent must read the actual `SKILL.md` files from `~/.hermes/skills/hercules/`.
 
 ## Common Pitfalls
 
