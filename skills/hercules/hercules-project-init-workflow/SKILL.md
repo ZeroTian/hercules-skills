@@ -50,7 +50,7 @@ Load these when relevant:
 6. `test-driven-development` — RED/GREEN/REFACTOR discipline.
 7. `writing-plans` or `plan` — actionable implementation plans when a plan artifact is needed.
 
-These are dependencies, not content to copy. Keep their original locations so upstream/hub updates remain usable.
+These are dependencies, not content to copy into project repositories. Local custom workflow skills may live in the portable `hercules/` skill group; bundled Hermes skills should remain in their official categories on each host.
 
 ## Hercules Governance Preferences
 
@@ -95,28 +95,36 @@ Reuse existing equivalent files when present. Do not create duplicate rulebooks.
 
 ## Migration Pattern
 
-To move Hercules project-init policy to another machine, copy:
+To move Hercules project-init and development workflow policy to another machine, use the portable Hercules skill group:
+
+```text
+https://github.com/ZeroTian/hercules-skills
+```
+
+Copy or clone that repository's `skills/hercules/` directory into:
 
 ```text
 ~/.hermes/skills/hercules/
 ```
 
-Then ensure companion skills are installed or available:
+Then start a fresh Hermes session and load skills by name. Do not ask the agent to reconstruct missing workflow rules from memory; the target host must have the actual `SKILL.md` files.
+
+Use the target machine's own bundled Hermes skills directly instead of copying them into `hercules/`:
 
 ```text
-hermes-project-init-orchestration
-hermes-collaborative-workflow
 claude-code
 codex
+hermes-agent
+opencode
 test-driven-development
-writing-plans
+plan
 ```
 
-Do not copy the entire `autonomous-ai-agents/` directory just to migrate Hercules preferences.
+If a local custom development-workflow skill is authored later, place it under `~/.hermes/skills/hercules/` before syncing the GitHub skill group.
 
 ## Common Pitfalls
 
-1. **Physically moving atom skills.** Do not move `claude-code`, `codex`, or hub skills into `hercules/`; reference them.
+1. **Moving bundled skills into `hercules/`.** Do not move or fork bundled skills such as `claude-code`, `codex`, or `hermes-agent`; use the target host's bundled versions. Local custom workflow skills can live in the portable `hercules/` pack.
 2. **Duplicating rule content in README.** Keep long operational rules in actor-scoped files.
 3. **Skipping preview.** Governance rewrites need an explicit approved scope.
 4. **Treating generated plans as completion.** Completion requires files patched and verification run.

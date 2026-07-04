@@ -81,6 +81,34 @@ terminal(command='codex exec --sandbox danger-full-access "$(cat /tmp/codex_revi
 
 Summarize Codex's findings in the user's language. If P0 issues found (build broken, duplicate functions), fix them immediately — don't wait for user to ask.
 
+### Structured Review Contract
+
+For non-trivial `codex exec` review briefs, ask Codex to include a structured footer in addition to prose so Hermes does not have to infer routing from free text. Use this pattern when the review result will drive task/CR state transitions:
+
+```json
+{
+  "verdict": "PASS | FAIL | BLOCKED",
+  "highest_severity": "P0 | P1 | P2 | P3 | none",
+  "findings": [
+    {
+      "id": "CR-001",
+      "severity": "P1",
+      "location": "path:line",
+      "root_cause_category": "correctness | test | architecture | security | docs | process",
+      "required_fix_contract": "specific condition before PASS",
+      "verification_required": "command or evidence"
+    }
+  ],
+  "next_owner": "Hermes | Claude | Codex | User | none"
+}
+```
+
+Treat the footer as a routing aid, not as proof. Hermes still verifies the diff, tests, and ledger before closing anything.
+
+### Active Merge / Verification Node
+
+Before closing CRs, marking tasks done, or taking any real state-changing action, Hermes must actively recover missing evidence rather than passively summarize agent reports. Check diff scope, required commands/logs, task and CR consistency, stale `待复核` markers, duplicate CR IDs, and owner/next-owner fields. If evidence is missing or low-confidence, route to targeted Claude repair, Codex re-review, or user decision instead of closing optimistically.
+
 ## Proactive Progress Reporting Rules
 
 1. **Start with an estimate**: "Claude 开工了，预计 5-10 分钟"

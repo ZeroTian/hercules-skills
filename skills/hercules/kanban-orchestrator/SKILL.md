@@ -79,6 +79,8 @@ Examples of prompts that should fan out (using placeholder profile names — sub
 
 Words like "also," "finally," or "and" do not automatically imply a dependency. They often mean "make sure this is covered before reporting back." Only link tasks when one card cannot start until another card's output exists.
 
+For uncertainty-heavy work, design the graph to preserve alternatives instead of forcing premature commitment. If independent constraints, sources, or hypotheses can be checked separately, use bounded fan-out and a merge/review card that cross-validates the results. If a worker returns empty, contradictory, or low-confidence evidence, route a replanning/fallback card rather than forwarding the empty result as if it were complete.
+
 Show the graph to the user before creating cards. Let them correct it — including which actual profile name should own each lane.
 
 ### Step 3 — Create tasks and link
@@ -151,6 +153,10 @@ Tell them what you created in plain prose, naming the actual profiles you used:
 ## Common patterns
 
 **Fan-out + fan-in (research → synthesize):** N research-style cards with no parents, one synthesis card with all of them as parents.
+
+**Uncertainty-preserving fan-out:** For ambiguous multi-constraint work, create small parallel cards for independent evidence bundles and a merge card that keeps multiple hypotheses alive until enough evidence eliminates alternatives. The merge card should be allowed to request targeted follow-up when inputs are empty, contradictory, or low-confidence.
+
+**Active merge / review card:** A merge card is not a passive summarizer. It should verify source pointers, inspect coverage gaps, check whether every parent satisfied its contract, and create a fallback or repair card when evidence is missing. This mirrors Hermes' active verification role in the Claude/Codex workflow.
 
 **Parallel implementation + validation:** one implementer card makes the change while one explorer/researcher card verifies config, docs, or source mapping. A reviewer card can depend on both. Do not make the implementer own unrelated verification just because the user mentioned both in one sentence.
 

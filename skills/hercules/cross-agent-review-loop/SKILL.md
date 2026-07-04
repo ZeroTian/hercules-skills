@@ -67,6 +67,29 @@ Codex output includes severity levels:
 - **P1**: Data loss, correctness, or stability risk
 - **P2**: Edge cases, nice-to-have
 
+For non-trivial reviews that drive task/CR routing, require a structured footer so Hermes does not infer state transitions from prose alone:
+
+```json
+{
+  "verdict": "PASS | FAIL | BLOCKED",
+  "highest_severity": "P0 | P1 | P2 | P3 | none",
+  "findings": [
+    {
+      "id": "CR-001",
+      "severity": "P1",
+      "location": "path:line",
+      "root_cause_category": "correctness | test | architecture | security | docs | process",
+      "required_fix_contract": "specific condition before PASS",
+      "verification_required": "command or evidence",
+      "original_or_duplicate": "original | duplicate-of-CR-000 | follow-up"
+    }
+  ],
+  "next_owner": "Hermes | Claude | Codex | User | none"
+}
+```
+
+Treat the footer as a routing contract, not proof. Hermes must still inspect the diff, tests/logs, and ledger before closing any task or CR.
+
 Only continue if P0 or P1 remain. P2 can be deferred.
 
 ### 4. Iterate with --continue
@@ -83,9 +106,11 @@ terminal(
 
 `--continue` preserves Claude's context from the previous round so it already knows the codebase and prior changes. This is much more efficient than starting fresh each round.
 
-### 5. Stop Condition
+### 5. Stop Condition and Active Merge
 
-Stop when Codex returns zero P0/P1 findings. Three rounds is typical; if it goes past 5 rounds, the task may need human re-scoping.
+Before calling the loop clean, Hermes performs an active merge/verification pass: diff scope matches the task, required tests/logs exist, task and CR ledgers have no stale `待复核`/unchecked review markers, CR IDs are updated rather than duplicated, and owner/next-owner fields are consistent. Stop only after this evidence is present.
+
+Stop when Codex returns zero P0/P1 findings and Hermes' active merge pass finds no closure blocker. Three rounds is typical; if it goes past 5 rounds, the task may need human re-scoping.
 
 ## Codex Pitfalls
 

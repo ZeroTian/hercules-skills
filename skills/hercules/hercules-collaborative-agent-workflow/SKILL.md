@@ -7,14 +7,14 @@ license: MIT
 metadata:
   hermes:
     tags: [hercules, orchestration, claude-code, codex, code-review, workflow]
-    related_skills: [hermes-collaborative-workflow, coding-agent-orchestration, cross-agent-review-loop, iterative-agent-code-review, hercules-agent-capability-preflight]
+    related_skills: [hermes-collaborative-workflow, coding-agent-orchestration, cross-agent-review-loop, iterative-agent-code-review, hercules-agent-capability-preflight, hercules-meta-skill-evolution]
 ---
 
 # Hercules Collaborative Agent Workflow
 
 ## Overview
 
-Use this as the Hercules-specific entry skill for day-to-day collaborative development. It composes atom skills rather than migrating them into `hercules/`.
+Use this as the Hercules-specific entry skill for day-to-day collaborative development. It coordinates the user's portable `hercules/` development workflow pack while relying on bundled Hermes skills such as `claude-code`, `codex`, `hermes-agent`, and `opencode` from the target machine.
 
 Default loop:
 
@@ -54,8 +54,9 @@ Load as needed:
 7. `test-driven-development` — RED/GREEN/REFACTOR discipline.
 8. `subagent-driven-development` — when using Hermes `delegate_task` or Claude subagents for vertical slices.
 9. `open-ended-research-orchestration` — for broad research before implementation.
+10. `hercules-meta-skill-evolution` — when real runs should update the workflow pack through trajectory records, evidence packages, and evidence-backed skill patches.
 
-Keep these atom skills in their original categories. `hercules/` stores preference and assembly policy only.
+Installed local custom workflow skills may already live under `hercules/`; bundled skills should stay in their official categories. `hercules/` stores the user's portable workflow pack.
 
 ## Actor Policy
 
@@ -133,37 +134,53 @@ Never say a command/test/agent succeeded unless its output was actually observed
 
 ## Migration Pattern
 
-Copy only Hercules policy skills when moving machines:
+Hercules development-workflow skills are portable as one group:
 
 ```text
 ~/.hermes/skills/hercules/
 ```
 
-Then install or sync atom dependencies separately:
+This group may contain both entry/policy skills and local custom atom workflow skills. Keep locally-authored development workflow skills here so migration is one directory, not a scattered set of categories.
+
+Do **not** migrate bundled Hermes skills into this group. Use the target machine's own bundled versions of:
 
 ```text
 claude-code
 codex
-hermes-collaborative-workflow
-coding-agent-orchestration
-cross-agent-review-loop
-iterative-agent-code-review
+hermes-agent
+opencode
 test-driven-development
-subagent-driven-development
-open-ended-research-orchestration
+plan
 ```
 
-This prevents duplicate official skills while preserving Hercules-specific behavior.
+Preferred GitHub source for this user's portable workflow pack:
+
+```text
+https://github.com/ZeroTian/hercules-skills
+```
+
+When moving to another host, clone/copy `skills/hercules/` from that repo into `~/.hermes/skills/hercules/`, then start a fresh Hermes session and load the relevant skill by name. Do not ask the agent to infer missing skill contents from memory; it must read the actual `SKILL.md` files.
+
+## Real Execution Reference
+
+When the user asks to prove the workflow with a real run rather than more planning, use `references/real-execution-checklist.md`. Key rule: create a fresh artifact directory and redirect logs there instead of adding cleanup commands such as `rm -f /tmp/...`, which can trigger approval gates and block the actual run.
+
+## Meta-Skill Evolution Reference
+
+When a session reveals a reusable orchestration lesson, load `hercules-meta-skill-evolution` and use `references/skill-mas-meta-skill-evolution.md` before broadly changing Hercules workflow skills. Treat the Hercules workflow pack as an evolvable Meta-Skill: record compact trajectory evidence, use provisional scores only as sorting hints, compare successful and failed traces, produce an evidence package, then patch only the implicated workflow module with a generalized principle.
+
+For formal collaborative work, prefer structured review/decision contracts and make Hermes verification an active merge/investigation node: recover missing diff/test/ledger evidence before closing CRs, marking tasks done, or taking any real state-changing action. Do not turn one-off failures into permanent rules without evidence; store narrow case details in `references/` instead.
 
 ## Common Pitfalls
 
-1. **Migrating atom skills into `hercules/`.** Reference them; do not fork unless intentionally customizing.
+1. **Migrating bundled skills into `hercules/`.** Do not copy/fork bundled skills such as `claude-code`, `codex`, `hermes-agent`, or `opencode`; use the target machine's built-ins. Local custom workflow skills can live in `hercules/`.
 2. **Launching Claude/Codex without preflight.** The brief may request unavailable plugins/MCP.
 3. **Using the wrong effort.** Default high; use xhigh for complex/high-risk work only.
 4. **Trusting self-report.** Hermes must inspect actual diff, logs, records, and verification output.
 5. **Skipping Codex for review-required work.** Claude implementation is not independent review.
 6. **Creating duplicate CRs.** Update the original `CR-NNN` when rechecking.
 7. **Leaving the user to switch tools.** If Hermes can launch the CLI, Hermes should do it.
+8. **Blocking a real run with avoidable cleanup.** For experiments/builds/game runs, write to a unique artifact directory rather than deleting old temp logs in the launch command.
 
 ## Verification Checklist
 

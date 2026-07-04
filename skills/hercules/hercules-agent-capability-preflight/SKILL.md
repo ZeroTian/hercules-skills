@@ -156,7 +156,20 @@ Capture:
 
 Do not install new Codex plugins unless the user explicitly asks.
 
-## Step 4 — Write Capability-Aware Briefs
+## Step 4 — Capability Boundary Classification
+
+Before writing the agent brief, separate capabilities into two classes:
+
+| Capability class | Examples | How to use in briefs |
+|---|---|---|
+| Read/acquisition | Read files, search docs, browser/Playwright inspection, MCP list/read calls, static analysis | Safe for discovery, evidence gathering, and verification. Missing read capability usually means gather context another way before delegating. |
+| State-changing execution | Edit/write files, package install, server control, browser form submission, deploy, booking/purchase/API mutation, git push/commit | Only allow when the task requires it and the user/repo rules permit it. Require preconditions, rollback/verification, and explicit scope. |
+
+Do not give one agent both acquisition and state-changing authority when the task naturally crosses a safety boundary. Prefer a split: one actor gathers/selects options with structured output, then a separate scoped actor performs the state-changing step after Hermes verifies current context.
+
+Completion criterion: the brief states which capabilities are read-only, which are allowed to mutate state, and which are forbidden.
+
+## Step 5 — Write Capability-Aware Briefs
 
 Include a compact capability section in the agent prompt.
 
@@ -174,7 +187,7 @@ Capability inventory: Codex has MCP servers godot, google-search, sequentialthin
 Reasoning effort: xhigh because this is final safety/gate review after a failed implementation attempt.
 ```
 
-## Step 5 — Launch with Selected Effort
+## Step 6 — Launch with Selected Effort
 
 Claude print-mode pattern:
 
@@ -219,7 +232,7 @@ Keep the usual safety rules:
 - Do not allow commit/push/reset unless user explicitly requested it.
 - Hermes verifies output and diff; do not trust self-report.
 
-## Step 6 — Cache and Report
+## Step 7 — Cache and Report
 
 For the current Hermes session, treat capability inventory as cached unless:
 
