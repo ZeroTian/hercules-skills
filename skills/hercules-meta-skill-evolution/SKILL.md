@@ -98,6 +98,19 @@ Before patching a Hercules workflow skill:
 5. **Preserve scaffold.** Keep the target skill's role and structure intact. Completion: edited skill still has clear triggers, procedure, pitfalls, and verification checklist.
 6. **Verify.** Validate frontmatter, linked files, and diff. Completion: skill loads or file validation passes, and the diff is reviewed.
 
+## Post-Task Memory vs Skill Decision
+
+After a complex session, separate **who the user is** from **how to do this class of task** so the skill library stays class-level rather than accumulating one-session artifacts.
+
+1. **Memory captures durable user facts and preferences.** Save stable expectations such as preferred agent roles, formatting dislikes, and workflow priorities. Do not save temporary task state, commit SHAs, PR numbers, or completed-work logs.
+2. **Skills capture reusable procedure.** If a technique, workaround, review loop, validation pattern, or user-corrected approach would help next time, patch the skill that governs that task class.
+3. **Patch currently loaded/relevant skills first.** A skill loaded during the work was in play and is the best home for the lesson. If it is protected or not writable, use an existing umbrella support file or create a class-level umbrella only when no suitable editable skill exists.
+4. **Prefer `references/` for session-specific detail.** Add concrete evidence, command recipes, or case studies under an umbrella's `references/`. Keep `SKILL.md` focused on durable procedure and one-line pointers.
+5. **Treat frustration as a dual signal.** If the user corrects style, tone, formatting, autonomy, or verification expectations, update both memory (user preference) and the task-governing skill (procedure) when possible.
+6. **Avoid one-off narrow skills.** Do not turn a single session's narrative into a new skill; store it as a reference under an existing umbrella instead.
+
+Completion criterion: at least one memory decision and one skill decision are made (or explicitly none), and no one-off task narrative became a narrow skill.
+
 ## Structured Decision Contracts
 
 When an agent result drives routing or ledger closure, require a machine-readable footer in addition to prose. Use `templates/codex-review-contract.md` for reviews.
@@ -136,6 +149,7 @@ Sort by priority first. Use elbow detection only when there are enough tasks for
 - [ ] Trajectory records or verified case evidence exist
 - [ ] Evidence package distinguishes repeated pattern vs single-case lesson
 - [ ] Candidate patch is generalized and evidence-supported
+- [ ] After complex sessions, durable user facts (memory), reusable procedure (skills), and session-specific evidence (references) were distinguished; no one-off narrative became a narrow skill
 - [ ] No more than one substantive upgrade per module in this round
 - [ ] Existing stale/redundant wording was pruned or explicitly kept
 - [ ] Structured contracts are used where agent output drives routing/closure

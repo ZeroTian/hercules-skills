@@ -32,6 +32,10 @@ Round 3: Claude fixes remaining (--continue) → Codex reviews → clean ✓
 
 ## Step-by-Step
 
+### 0. Ledger Owner Dispatch Gate
+
+Before starting or resuming the loop, inspect the task/CR ledger. Treat `当前负责人` / `下一负责人` / `next_owner` as executable routing: Claude/Codex ownership means Hermes launches that step directly. See `hermes-collaborative-workflow#Owner-Driven Auto-Dispatch` for the full actor matrix. Do not report “next step is Claude/Codex” and stop while the corresponding CLI is available.
+
 ### 1. Initial Claude Fix (Print Mode)
 
 ```
@@ -67,26 +71,7 @@ Codex output includes severity levels:
 - **P1**: Data loss, correctness, or stability risk
 - **P2**: Edge cases, nice-to-have
 
-For non-trivial reviews that drive task/CR routing, require a structured footer so Hermes does not infer state transitions from prose alone:
-
-```json
-{
-  "verdict": "PASS | FAIL | BLOCKED",
-  "highest_severity": "P0 | P1 | P2 | P3 | none",
-  "findings": [
-    {
-      "id": "CR-001",
-      "severity": "P1",
-      "location": "path:line",
-      "root_cause_category": "correctness | test | architecture | security | docs | process",
-      "required_fix_contract": "specific condition before PASS",
-      "verification_required": "command or evidence",
-      "original_or_duplicate": "original | duplicate-of-CR-000 | follow-up"
-    }
-  ],
-  "next_owner": "Hermes | Claude | Codex | User | none"
-}
-```
+For non-trivial reviews that drive task/CR routing, require a structured JSON footer (verdict, highest_severity, findings, next_owner) so Hermes does not infer state transitions from prose alone. Use the canonical footer shape in `skills/hercules-meta-skill-evolution/templates/codex-review-contract.md`.
 
 Treat the footer as a routing contract, not proof. Hermes must still inspect the diff, tests/logs, and ledger before closing any task or CR.
 
@@ -176,3 +161,4 @@ codex review --uncommitted → clean ✓
 5. **Background + notify** — these are long-running, don't block the user
 6. **Poll Claude progress proactively** — print mode is silent until done. User will get impatient; poll every 2-3 min and report status.
 7. **Git operations stay with main agent** — structural conflicts (version collisions, duplicate function names) are faster to resolve directly than through Claude
+8. **Do not stop at handoff** — if the ledger says the next actor is Claude or Codex, Hermes launches that actor and monitors it; only user-owned decisions or real blockers pause the loop

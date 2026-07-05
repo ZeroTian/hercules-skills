@@ -61,4 +61,7 @@ Use when the user asks:
 - Do not treat current-machine runtime success as fresh-machine migration proof.
 - Do not commit or push just because files are staged; wait for explicit user authorization.
 - If a staged file is edited again, re-stage it and re-run staged validation.
+- Codex P3 ledger/evidence fixes often require re-staging the edited file and a narrow recheck of only the affected task/CR before closure.
+- Promoted skills may reference `references/`, `templates/`, or `scripts/` files that the generic validator does not check; confirm every linked path exists before claiming acceptance.
+- Treat runtime usability, staged package readiness, and post-push clone acceptance as three distinct evidence buckets — passing one does not imply passing the others.
 - When searching governance ledgers for stale review markers, distinguish real tasks from template examples.

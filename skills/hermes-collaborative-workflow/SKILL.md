@@ -25,6 +25,22 @@ Hermes chooses the right actor for each part:
 
 The user should not have to manually switch to Claude or Codex when Hermes can launch those tools.
 
+## Owner-Driven Auto-Dispatch
+
+When a repository/task ledger is already under Hermes orchestration, ownership fields are executable routing signals, not suggestions for the user to carry out manually.
+
+Use this rule whenever a tracker such as `TASKS.md`, CR file, Kanban lane, or review record contains `当前负责人`, `下一负责人`, `owner`, `next owner`, `next step`, or equivalent fields:
+
+| Ledger state | Hermes action |
+|---|---|
+| next/current owner is `Claude`, `Claude Code`, or implementation worker | Hermes writes a bounded Claude brief and launches `claude -p` itself. |
+| next/current owner is `Codex`, `Codex CLI`, review, CR, or acceptance | Hermes writes a bounded Codex review brief and launches `codex` itself. |
+| owner is `Hermes` | Hermes directly gathers context, patches low-risk bookkeeping, runs verification, or prepares the next delegate. |
+| owner is `User` | Ask only for the specific product/scope/destructive-operation decision that cannot be inferred or executed safely. |
+| owner is `none` / `无` and no next action | Stop and report completion. |
+
+Anti-pattern: “下一步是 Claude/Codex，请你去执行。” If Hermes can run the CLI from the current environment, it must run it, monitor it, verify output, update the ledger, and only then report. Mentioning the next owner in the final report is acceptable only after Hermes has either dispatched that owner or recorded a real blocker explaining why dispatch was impossible.
+
 ## When to Use
 
 Use this skill when the user asks for:
@@ -171,7 +187,7 @@ For collaborative tasks, run this loop:
    - Read `HERMES.md` when present, actor-specific rule files (`CLAUDE.md` for Claude work, `AGENTS.md` for Codex review), and the task state.
    - Treat README files as human-facing maps unless the repository explicitly makes one the rulebook; do not infer hidden operational rules from README prose when actor-scoped files exist.
    - Identify owner, status, scope, acceptance criteria, and blockers.
-   - Decide actor using the matrix.
+   - Decide actor using the matrix and **immediately auto-dispatch** when owner/next-owner is Claude or Codex. Do not stop at “下一步交给 Claude/Codex” unless dispatch is blocked by missing authority, missing tools, destructive scope, or a required user product decision.
 
 2. **Execute or delegate**
    - Hermes handles simple/non-code work directly.
@@ -238,6 +254,7 @@ If nothing remains:
 7. **Duplicate CRs.** Update the original review item for the same issue.
 8. **Premature `[x]`.** Main review-required tasks close only after Codex passes.
 9. **Silent background jobs.** Poll long-running processes and promptly report final output.
+10. **Stopping after assigning an agent.** In Hermes-managed projects, setting `下一负责人：Claude/Codex` is not completion. Hermes must launch that agent or record the concrete blocker.
 
 ## Verification Checklist
 
@@ -249,3 +266,4 @@ If nothing remains:
 - [ ] Relevant tests/build/lint/static checks ran or blockers are recorded
 - [ ] Task/CR state is synchronized and checkbox truth is preserved
 - [ ] User is not asked to switch tools unless Hermes cannot launch them
+- [ ] If a ledger owner/next-owner is Claude or Codex, Hermes launched the corresponding CLI or recorded a real blocker

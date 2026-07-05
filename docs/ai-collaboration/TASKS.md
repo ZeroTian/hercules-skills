@@ -392,6 +392,97 @@ trajectory:
     logs: ["docs/ai-collaboration/USABILITY_VALIDATION.md"]
 ```
 
+## [x] TASK-006：P0+P1 skill-pack convergence (post-task skill merge + owner-dispatch dedup)
+
+- 当前状态：已完成
+- 优先级：P0
+- 当前负责人：无
+- 下一负责人：无
+- 下一步：无；P0/P1 收敛包已经 Codex recheck PASS
+- 是否需要 Codex 复核：是
+- 创建日期：2026-07-05
+- 最后更新：2026-07-05
+- 来源：用户需求（基于 SKILL_GROUP_DEEP_RESEARCH_2026-07-05.md 的 P0/P1 优先级，执行收敛而非 P2 重构）
+- 关联任务：TASK-005
+- 关联审阅：`docs/ai-collaboration/codex-reviews/2026-07-05-task006-p0-p1-convergence.md`
+- 验证证据：`python3 scripts/validate-skill-pack.py` 输出 0 errors / 0 warnings / 0 signals；`git diff --check` 通过；`bash -n skills/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh` 通过；`git status --short -uall` 显示 6 个已修改 tracked skill、ARCHITECTURE/TASKS 文档更新、1 个 untracked 研究记录，`post-task-memory-skill-evolution` 目录已移除；Codex 初审 P3 `CR-T006-001` / `CR-T006-002` 已修复，recheck PASS
+- 阻塞原因：无
+
+### 目标
+
+在不触发 P2 重构的前提下，消除 untracked `post-task-memory-skill-evolution` 引发的 validator 警告，并将四个技能中重复的 owner-driven auto-dispatch 长文与嵌入的 review contract JSON 去重，使核心技能数回到 16、validator 回到 0 errors / 0 warnings / 0 signals。
+
+### 执行项
+
+- [x] 将 post-task memory-vs-skill 决策内容合并进 `skills/hercules-meta-skill-evolution/SKILL.md`（新增 Post-Task Memory vs Skill Decision 段 + checklist 项）
+- [x] 将治理类 pitfalls 合并进 `skills/skill-pack-governance-validation/SKILL.md`（P3 restaging + narrow recheck、缺失引用文件、三类证据桶）
+- [x] 删除 `skills/post-task-memory-skill-evolution/` 独立目录
+- [x] 以 `hermes-collaborative-workflow#Owner-Driven Auto-Dispatch` 为权威，将 `hercules-collaborative-agent-workflow`、`coding-agent-orchestration`、`cross-agent-review-loop` 中的重复长文替换为短指针，保留必要 checklist 行
+- [x] 将 `coding-agent-orchestration` 与 `cross-agent-review-loop` 中嵌入的 review contract JSON 替换为指向 `skills/hercules-meta-skill-evolution/templates/codex-review-contract.md` 的指针
+- [x] 保留 owner-driven dispatch 原则：ledger 中 `当前负责人` / `下一负责人` / `next_owner` 是可执行路由信号，Hermes 直接启动 Claude/Codex 而非让用户手动运行
+- [x] 运行 `python3 scripts/validate-skill-pack.py`、`git diff --check`、`bash -n` 静态检查
+- [x] 完成 Codex 复核
+
+### 验收标准
+
+- [x] `skills/post-task-memory-skill-evolution/` 已移除，核心技能数为 16
+- [x] validator 输出 0 errors / 0 warnings / 0 signals
+- [x] owner-driven auto-dispatch 长文仅存在于 `hermes-collaborative-workflow`，其余三个技能为短指针
+- [x] review contract JSON 仅存在于 `templates/codex-review-contract.md`，SKILL.md 文件中不再嵌入
+- [x] post-task 技能的独有概念（memory vs skill 边界、patch loaded skills first、frustration 双信号、避免 one-off 窄技能、session 细节入 references）已保留在 meta-skill-evolution
+- [x] 治理 pitfalls 已保留在 governance-validation
+- [x] 未触及 P2 范围（未合并 cross-agent-review-loop、未拆分 project-init、未做大重构）
+- [x] Codex 已完成复核
+
+### Claude 执行记录
+
+- 修改内容：P0 合并 post-task memory-vs-skill 决策进 meta-skill-evolution、治理 pitfalls 进 governance-validation、删除独立 post-task 目录；P1 将三个技能的 owner-dispatch 长文替换为指向 hermes-collaborative-workflow 的短指针、将两处嵌入 JSON 替换为指向 codex-review-contract 模板的指针；新增 TASK-006 并在研究记录中标注 P0/P1 已实现
+- 修改文件：skills/hercules-meta-skill-evolution/SKILL.md, skills/skill-pack-governance-validation/SKILL.md, skills/hermes-collaborative-workflow/SKILL.md, skills/hercules-collaborative-agent-workflow/SKILL.md, skills/coding-agent-orchestration/SKILL.md, skills/cross-agent-review-loop/SKILL.md, docs/ai-collaboration/ARCHITECTURE.md, docs/ai-collaboration/TASKS.md, docs/ai-collaboration/SKILL_GROUP_DEEP_RESEARCH_2026-07-05.md
+- 删除文件：skills/post-task-memory-skill-evolution/SKILL.md（untracked，独有内容已合并）
+- 验证命令：`python3 scripts/validate-skill-pack.py`, `git diff --check`, `bash -n skills/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh`, `git status --short -uall`
+- 验证结果：validator 0 errors / 0 warnings / 0 signals；`git diff --check` 通过；`bash -n` 通过；`git status` 显示 6 个已修改 tracked skill、ARCHITECTURE/TASKS 文档更新和 1 个 untracked 研究记录，post-task 目录已移除
+- 遗留问题：无 P2 重构；commit/push 需用户明确授权
+
+### Codex 复核记录
+
+- 复核日期：2026-07-05
+- 复核范围：P0/P1 收敛包（post-task skill 合并/移除、owner-dispatch 去重、review-contract JSON 去重、TASK-006 账本一致性、ARCHITECTURE stale wording）
+- 复核结果：PASS；初审 P3 `CR-T006-001` / `CR-T006-002` 已修复，Codex recheck 无新 findings
+- 遗留风险：P2 重构未执行；fresh-machine clean install 与 new-project use 仍未覆盖；commit/push 需用户明确授权
+
+### Trajectory
+
+```yaml
+trajectory:
+  task_id: TASK-006
+  attempt: 1
+  date: 2026-07-05
+  task_type: docs
+  skill_versions:
+    hercules-meta-skill-evolution: 1.0.0
+    skill-pack-governance-validation: 1.0.0
+    hermes-collaborative-workflow: 1.0.0
+  score: 1.0
+  actor_path: "Hermes -> Claude implement -> Hermes verify -> Codex"
+  phi:
+    capability_preflight: scanned
+    relevant_capabilities: ["superpowers", "oh-my-claudecode"]
+    effort: high
+    claude_result: completed
+    codex_result: PASS
+    verification:
+      commands: ["python3 scripts/validate-skill-pack.py", "git diff --check", "bash -n skills/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh", "git status --short -uall"]
+      logs: ["docs/ai-collaboration/codex-reviews/2026-07-05-task006-p0-p1-convergence.md"]
+      diff_scope: "skills/hercules-meta-skill-evolution/SKILL.md, skills/skill-pack-governance-validation/SKILL.md, skills/hermes-collaborative-workflow/SKILL.md, skills/hercules-collaborative-agent-workflow/SKILL.md, skills/coding-agent-orchestration/SKILL.md, skills/cross-agent-review-loop/SKILL.md, docs/ai-collaboration/ARCHITECTURE.md, docs/ai-collaboration/TASKS.md, docs/ai-collaboration/SKILL_GROUP_DEEP_RESEARCH_2026-07-05.md"
+    cr_ids: ["CR-T006-001", "CR-T006-002"]
+    blocker_type: none
+    next_owner: none
+  source_pointers:
+    task_record: "docs/ai-collaboration/TASKS.md#task-006"
+    review_record: "docs/ai-collaboration/codex-reviews/2026-07-05-task006-p0-p1-convergence.md"
+    logs: ["docs/ai-collaboration/codex-reviews/2026-07-05-task006-p0-p1-convergence.md"]
+```
+
 ## Trajectory record policy
 
 Every formal Claude/Codex collaboration task in this ledger should be able to leave reflection data. Use the trajectory shape from `skills/hercules-meta-skill-evolution/templates/trajectory-record.md`.

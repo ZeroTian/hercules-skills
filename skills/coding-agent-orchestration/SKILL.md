@@ -29,6 +29,8 @@ For repositories with Markdown governance records (`TASKS.md`, CR files, review 
 
 **Ledger ownership:** Subagent summaries are not authoritative state changes. After Claude says a task is ready for review or Codex says PASS/FAIL, Hermes must inspect the task ledger and apply the resulting transition itself: close tasks/CRs on PASS, create/update CRs on FAIL, set owners and next steps, run consistency checks, then report. Do not ask the user to trigger another agent if Hermes can run that delegate and finish the ledger update now.
 
+**Owner-driven dispatch:** In a Hermes-managed project, `当前负责人` / `下一负责人` / `next_owner` fields are dispatch triggers — Hermes launches Claude/Codex directly rather than telling the user to run them. See `hermes-collaborative-workflow#Owner-Driven Auto-Dispatch` for the full rule and valid stop-before-dispatch reasons.
+
 ### Step 1: Claude fixes (print mode)
 
 ```
@@ -83,25 +85,7 @@ Summarize Codex's findings in the user's language. If P0 issues found (build bro
 
 ### Structured Review Contract
 
-For non-trivial `codex exec` review briefs, ask Codex to include a structured footer in addition to prose so Hermes does not have to infer routing from free text. Use this pattern when the review result will drive task/CR state transitions:
-
-```json
-{
-  "verdict": "PASS | FAIL | BLOCKED",
-  "highest_severity": "P0 | P1 | P2 | P3 | none",
-  "findings": [
-    {
-      "id": "CR-001",
-      "severity": "P1",
-      "location": "path:line",
-      "root_cause_category": "correctness | test | architecture | security | docs | process",
-      "required_fix_contract": "specific condition before PASS",
-      "verification_required": "command or evidence"
-    }
-  ],
-  "next_owner": "Hermes | Claude | Codex | User | none"
-}
-```
+For non-trivial `codex exec` review briefs, ask Codex to include a structured JSON footer (verdict, highest_severity, findings, next_owner) so Hermes does not infer routing from free text. Use the canonical footer shape in `skills/hercules-meta-skill-evolution/templates/codex-review-contract.md` when the review result will drive task/CR state transitions.
 
 Treat the footer as a routing aid, not as proof. Hermes still verifies the diff, tests, and ledger before closing anything.
 
@@ -116,6 +100,7 @@ Before closing CRs, marking tasks done, or taking any real state-changing action
 3. **Never go silent >5 min**: if no update, user will ping "还没好吗"
 4. **On completion, immediately**: show what changed (`git diff --stat`), summarize findings
 5. **Chain automatically**: after Claude finishes, start Codex review without waiting for user approval
+6. **Dispatch ledger owners**: after setting `下一负责人` to Claude or Codex, immediately launch the matching CLI or record a blocker; owner assignment alone is not a completed turn
 
 ## Codex Review — Common Mistakes
 

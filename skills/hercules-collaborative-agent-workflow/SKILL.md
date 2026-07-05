@@ -66,6 +66,10 @@ Installed local custom workflow skills may already live under `hercules/`; bundl
 - **Hermes direct work** is allowed for small, low-risk, local edits and bookkeeping.
 - **User** decides scope expansion, destructive operations, commits/pushes, and unresolved product choices.
 
+### Owner-Driven Auto-Dispatch Policy
+
+In Hermes-managed ledgers, `当前负责人` / `下一负责人` / `next_owner` are executable routing signals: Claude/Codex ownership means Hermes launches that CLI in the same turn, not that the user is told to run it. See `hermes-collaborative-workflow#Owner-Driven Auto-Dispatch` for the full actor matrix and the only valid stop-before-dispatch reasons (tool unavailable, auth/preflight failure, destructive/user-decision boundary, or a recorded blocker).
+
 ## Capability and Effort Policy
 
 Before meaningful Claude/Codex launches, use `hercules-agent-capability-preflight`.
@@ -87,7 +91,7 @@ Effort defaults:
 ## Execution Procedure
 
 1. **Read rules and state.** For repos with governance, read `HERMES.md`, `CLAUDE.md`, `AGENTS.md`, `TASKS.md`, relevant specs, and review records. Completion: current owner/status/next action are known.
-2. **Classify the work.** Decide Hermes direct vs Claude vs Codex vs user. Completion: actor and effort are justified.
+2. **Classify and dispatch the work.** Decide Hermes direct vs Claude vs Codex vs user. If the current/next owner is Claude or Codex, launch that CLI in the same orchestration turn unless a real blocker exists. Completion: actor and effort are justified and either dispatched or explicitly blocked.
 3. **Run capability preflight.** Scan or reuse current-session cache for Claude/Codex. Completion: brief mentions only real available capabilities.
 4. **Delegate implementation to Claude when needed.** Scope the brief tightly: task ID, files, acceptance criteria, prohibited actions, SDD/TDD requirements, verification commands, no commit/push/reset.
 5. **Verify Claude output.** Inspect exit code, logs, diff, task records, and run key tests yourself. Completion: self-report is backed by evidence.
@@ -182,6 +186,7 @@ For formal collaborative work, prefer structured review/decision contracts and m
 5. **Skipping Codex for review-required work.** Claude implementation is not independent review.
 6. **Creating duplicate CRs.** Update the original `CR-NNN` when rechecking.
 7. **Leaving the user to switch tools.** If Hermes can launch the CLI, Hermes should do it.
+7a. **Stopping at owner assignment.** In a Hermes-managed ledger, “next owner = Claude/Codex” is not a final state. It is the trigger for Hermes to launch Claude/Codex immediately.
 8. **Blocking a real run with avoidable cleanup.** For experiments/builds/game runs, write to a unique artifact directory rather than deleting old temp logs in the launch command.
 9. **Trusting wrapper success for real game runs.** For Godot/RL validation, inspect Python logs, Godot logs, fresh telemetry JSONL, and `report.json`; wrapper return code alone may hide Python timeout or missing telemetry.
 10. **Hand-copying partial Godot projects.** For artifact copies, prefer `rsync` excluding generated caches (`.godot/`, `rec/`, telemetry) over manually selecting a few directories; partial copies can miss `.import`/`.uid`/autoload sidecars and create false runtime failures.
@@ -192,6 +197,7 @@ For formal collaborative work, prefer structured review/decision contracts and m
 - [ ] Rules/state/specs read before delegation
 - [ ] Capability preflight performed or fresh cache reused
 - [ ] Effort selected and justified
+- [ ] Ledger owner/next-owner was treated as executable routing; Claude/Codex was launched when indicated, or a real blocker was recorded
 - [ ] Claude brief is scoped, testable, and prohibits unsafe actions
 - [ ] Claude output verified by Hermes
 - [ ] Codex review is independent and scoped
