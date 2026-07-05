@@ -301,6 +301,97 @@ trajectory:
     logs: ["docs/ai-collaboration/USABILITY_VALIDATION.md"]
 ```
 
+## [x] TASK-005：Promote skill-pack-governance-validation to core skill
+
+- 当前状态：已完成
+- 优先级：P1
+- 当前负责人：无
+- 下一负责人：无
+- 下一步：无；round-3 staged package 已经 Codex PASS，等待用户确认 commit/push
+- 是否需要 Codex 复核：是
+- 创建日期：2026-07-05
+- 最后更新：2026-07-05
+- 来源：用户选择 option 1，将已存在的 untracked skill `skills/skill-pack-governance-validation/SKILL.md` 正式提升为 Hercules core skill（round-3 promotion，源自已实践的 usability/commit-package 接受工作流）
+- 关联任务：TASK-001, TASK-003, TASK-004
+- 关联审阅：`docs/ai-collaboration/codex-reviews/2026-07-05-round3-governance-validation.md`
+- 验证证据：clone-copy 验证已对 commit `97f78ca` 实践（clone HEAD = `97f78cacbc107f02b918576fdddc053388eab95d`，validator 0 errors / 0 warnings / 0 signals，bootstrap audit-only `[hercules-bootstrap] done`）；Hermes 已补齐 `skill-pack-governance-validation` 引用文件并将无关 game telemetry candidate 归档到非 runtime 路径；最终验证 `python3 scripts/validate-skill-pack.py` = 0 errors / 0 warnings / 0 signals，`git diff --cached --check` / `git diff --check` / `bash -n` 均通过，staged privacy scan 无命中；Codex final review PASS（highest severity: none）
+- 阻塞原因：无
+
+### 目标
+
+将 `skill-pack-governance-validation` 从 untracked 候选正式纳入 Hercules core skill pack，更新 README / ARCHITECTURE / SKILL_GROUP_AUDIT / USABILITY_VALIDATION / TASKS 一致性，并将 clone-copy 验证实践固化为该 skill 的接受证据。
+
+### 执行项
+
+- [x] 在 README.md 核心技能列表加入 `skill-pack-governance-validation` 并更新 prose（16 skills, round-3 promotion）
+- [x] 在 docs/ai-collaboration/ARCHITECTURE.md 核心技能目录加入该 skill 并更新 prose
+- [x] 在 docs/ai-collaboration/SKILL_GROUP_AUDIT.md 更新核心数量（15→16）、分类表、组合图 validation+audit 分支、practical usability 段、verification 段、prioritized actions
+- [x] 在 docs/ai-collaboration/USABILITY_VALIDATION.md 记录 commit `97f78ca` 的 clone-copy 验证证据，并标注新 skill 固化该实践
+- [x] 新增 TASK-005 条目（待复核，owner Codex）
+- [x] 补齐 `skills/skill-pack-governance-validation/references/usability-and-commit-package-validation.md`
+- [x] 将无关 `game-telemetry-closed-loop-validation` domain candidate 归档到 `docs/ai-collaboration/candidate-skills/`
+- [x] Hermes 暂存 `skills/skill-pack-governance-validation/SKILL.md` 及引用文件并运行最终验证
+- [x] Codex 独立复核
+
+### 验收标准
+
+- [x] README / ARCHITECTURE 核心列表与 runtime visible skills 一致（16 skills）
+- [x] validator 0 errors / 0 warnings / 0 signals
+- [x] `skill-pack-governance-validation` referenced files exist
+- [x] unrelated game telemetry domain candidate preserved outside runtime loading
+- [x] clone-copy 验证证据真实可复现
+- [x] fresh-machine clean install 与 new-project use 仍未覆盖（如实记录）
+- [x] Codex 已完成复核
+
+### Claude 执行记录
+
+- 修改内容：将 `skill-pack-governance-validation` 正式提升为 core skill；更新核心列表 15→16；更新组合图 validation+audit 分支；记录 commit `97f78ca` clone-copy 验证证据；新增 TASK-005；Hermes 补齐该 skill 的引用文件并将无关 game telemetry domain candidate 归档到非 runtime 路径
+- 修改文件：README.md, docs/ai-collaboration/ARCHITECTURE.md, docs/ai-collaboration/SKILL_GROUP_AUDIT.md, docs/ai-collaboration/USABILITY_VALIDATION.md, docs/ai-collaboration/TASKS.md, docs/ai-collaboration/candidate-skills/README.md, docs/ai-collaboration/candidate-skills/game-telemetry-closed-loop-validation/SKILL.md, skills/skill-pack-governance-validation/SKILL.md, skills/skill-pack-governance-validation/references/usability-and-commit-package-validation.md
+- 验证命令：`python3 scripts/validate-skill-pack.py`, `git diff --check`, `bash -n skills/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh`, clone-copy validation 对 commit `97f78ca`
+- 验证结果：Claude 交付时本地 validator 0 errors / 3 warnings（新 core skill 未暂存 + 无关 game telemetry candidate 在 runtime 路径）；Hermes 随后补齐引用文件并归档无关 domain candidate，最终验证 0 errors / 0 warnings / 0 signals；`git diff --cached --check`、`git diff --check`、`bash -n` 通过；staged privacy scan 无命中
+- 遗留问题：无已知引用缺口；fresh-machine clean install 与 new-project use 仍未覆盖，需后续单独验证
+
+### Codex 复核记录
+
+- 复核日期：2026-07-05
+- 复核范围：round-3 promotion 一致性、clone-copy 证据真实性、references 缺口处置
+- 复核结果：PASS；初审 P3 `CR-R3-001` / `CR-R3-002` 已修复，recheck 无 findings
+- 遗留风险：本轮不覆盖 fresh-machine clean install 与 new-project use；提交/推送需用户确认
+
+### Trajectory
+
+```yaml
+trajectory:
+  task_id: TASK-005
+  attempt: 1
+  date: 2026-07-05
+  task_type: docs
+  skill_versions:
+    skill-pack-governance-validation: 1.0.0
+    workflow-skill-pack-audit: 1.0.0
+    hercules-skill-pack-management: 1.0.0
+    hercules-agent-capability-preflight: 1.0.0
+  score: 1.0
+  actor_path: "Hermes -> Claude implement -> Hermes verify -> Codex"
+  phi:
+    capability_preflight: cached
+    relevant_capabilities: ["superpowers", "oh-my-claudecode"]
+    effort: high
+    claude_result: completed
+    codex_result: PASS
+    verification:
+      commands: ["python3 scripts/validate-skill-pack.py", "git diff --check", "bash -n skills/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh", "rm -rf /tmp/hercules-skills-smoke && mkdir -p /tmp/hercules-skills-smoke && git clone https://github.com/ZeroTian/hercules-skills.git /tmp/hercules-skills-smoke/hercules-skills && cd /tmp/hercules-skills-smoke/hercules-skills && git rev-parse HEAD && python3 scripts/validate-skill-pack.py && HERCULES_CHECK_ONLY=1 bash skills/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh"]
+      logs: ["docs/ai-collaboration/USABILITY_VALIDATION.md"]
+      diff_scope: "README.md, docs/ai-collaboration/ARCHITECTURE.md, docs/ai-collaboration/SKILL_GROUP_AUDIT.md, docs/ai-collaboration/USABILITY_VALIDATION.md, docs/ai-collaboration/TASKS.md, docs/ai-collaboration/candidate-skills/README.md, docs/ai-collaboration/candidate-skills/game-telemetry-closed-loop-validation/SKILL.md, skills/skill-pack-governance-validation/"
+    cr_ids: []
+    blocker_type: none
+    next_owner: none
+  source_pointers:
+    task_record: "docs/ai-collaboration/TASKS.md#task-005"
+    review_record: "docs/ai-collaboration/codex-reviews/2026-07-05-round3-governance-validation.md"
+    logs: ["docs/ai-collaboration/USABILITY_VALIDATION.md"]
+```
+
 ## Trajectory record policy
 
 Every formal Claude/Codex collaboration task in this ledger should be able to leave reflection data. Use the trajectory shape from `skills/hercules-meta-skill-evolution/templates/trajectory-record.md`.

@@ -33,12 +33,13 @@ kanban-codex-lane
 kanban-orchestrator
 kanban-worker
 open-ended-research-orchestration
+skill-pack-governance-validation
 workflow-skill-pack-audit
 ```
 
-`hercules-skill-pack-management` is the repository-maintenance atom covering layout, runtime symlink, backups, migration, GitHub synchronization, and pre-push privacy checks. `workflow-skill-pack-audit` is the skill-pack audit/reconciliation atom covering skill classification, validator/recheck workflow, ledger trajectory, and Codex reconciliation — it codifies the exact audit pass that produced the current repository state.
+`hercules-skill-pack-management` is the repository-maintenance atom covering layout, runtime symlink, backups, migration, GitHub synchronization, and pre-push privacy checks. `workflow-skill-pack-audit` is the skill-pack audit/reconciliation atom covering skill classification, validator/recheck workflow, ledger trajectory, and Codex reconciliation — it codifies the exact audit pass that produced the current repository state. `skill-pack-governance-validation` is the runtime usability / commit-package / migration acceptance atom covering runtime loading, archived candidate safety, validator/static checks, bootstrap audit-only, staged privacy scan, and commit-package readiness. The core set is 16 skills after the round-3 promotion, which codifies the practiced usability/commit-package acceptance workflow used to validate commit `97f78ca`.
 
-Four reviewed candidates — `real-game-closed-loop-validation` (Godot/RL domain validation), `game-mechanics-telemetry-validation` (game mechanic telemetry validation), `repository-governance-initialization` (governance init pattern, overlaps the existing project-init skills), and `scoped-codex-review-packets` (bounded Codex review packets, overlaps the review-loop family) — were **archived** under `docs/ai-collaboration/candidate-skills/` in this pass. They are preserved as reference/case-study material, are not runtime-loaded, and are not part of the core list. See `docs/ai-collaboration/SKILL_GROUP_AUDIT.md` for the full disposition and `docs/ai-collaboration/candidate-skills/README.md` for how to promote one later.
+Five reviewed candidates — `real-game-closed-loop-validation` (Godot/RL domain validation), `game-mechanics-telemetry-validation` and `game-telemetry-closed-loop-validation` (game mechanic / telemetry validation), `repository-governance-initialization` (governance init pattern, overlaps the existing project-init skills), and `scoped-codex-review-packets` (bounded Codex review packets, overlaps the review-loop family) — were **archived** under `docs/ai-collaboration/candidate-skills/` across these reconciliation passes. They are preserved as reference/case-study material, are not runtime-loaded, and are not part of the core list. See `docs/ai-collaboration/SKILL_GROUP_AUDIT.md` for the full disposition and `docs/ai-collaboration/candidate-skills/README.md` for how to promote one later.
 
 ## What is not included
 
