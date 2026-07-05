@@ -165,6 +165,8 @@ When moving to another host, clone/copy `skills/hercules/` from that repo into `
 
 When the user asks to prove the workflow with a real run rather than more planning, use `references/real-execution-checklist.md`. Key rule: create a fresh artifact directory and redirect logs there instead of adding cleanup commands such as `rm -f /tmp/...`, which can trigger approval gates and block the actual run.
 
+For Godot/RL/game-evaluation projects, also use `references/real-godot-closed-loop-validation.md`: validate a healthy real run, a controlled failure path, and a repaired copied-project path with telemetry/report/log evidence before claiming the loop works.
+
 ## Meta-Skill Evolution Reference
 
 When a session reveals a reusable orchestration lesson, load `hercules-meta-skill-evolution` and use `references/skill-mas-meta-skill-evolution.md` before broadly changing Hercules workflow skills. Treat the Hercules workflow pack as an evolvable Meta-Skill: record compact trajectory evidence, use provisional scores only as sorting hints, compare successful and failed traces, produce an evidence package, then patch only the implicated workflow module with a generalized principle.
@@ -181,6 +183,8 @@ For formal collaborative work, prefer structured review/decision contracts and m
 6. **Creating duplicate CRs.** Update the original `CR-NNN` when rechecking.
 7. **Leaving the user to switch tools.** If Hermes can launch the CLI, Hermes should do it.
 8. **Blocking a real run with avoidable cleanup.** For experiments/builds/game runs, write to a unique artifact directory rather than deleting old temp logs in the launch command.
+9. **Trusting wrapper success for real game runs.** For Godot/RL validation, inspect Python logs, Godot logs, fresh telemetry JSONL, and `report.json`; wrapper return code alone may hide Python timeout or missing telemetry.
+10. **Hand-copying partial Godot projects.** For artifact copies, prefer `rsync` excluding generated caches (`.godot/`, `rec/`, telemetry) over manually selecting a few directories; partial copies can miss `.import`/`.uid`/autoload sidecars and create false runtime failures.
 
 ## Verification Checklist
 

@@ -116,6 +116,10 @@ priority = 0.5 * norm(uncertainty) + 0.5 * norm(difficulty)
 
 Sort by priority first. Use elbow detection only when there are enough tasks for it to be meaningful; otherwise manually inspect the top few. For expensive Hercules tasks, K=2-3 repeated attempts may be a low-cost starting point, but this must be calibrated against real data and must not be presented as proven.
 
+## Reference Cases
+
+- `references/skill-mas-paper-application-case.md` — how the Skill-MAS paper was translated into the Hercules workflow pack, including reviewer caveats about provisional scores, K values, structured review contracts, and evidence-backed patching.
+
 ## Common Pitfalls
 
 1. **Turning one failure into a permanent rule.** Store narrow lessons as case studies unless they recur or the user explicitly approves the rule.

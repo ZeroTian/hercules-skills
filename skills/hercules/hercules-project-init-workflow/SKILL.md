@@ -58,12 +58,13 @@ Apply these preferences on top of the companion skills:
 
 1. **Hermes is the controller.** Hermes reads state, launches Claude/Codex, monitors processes, verifies output, and updates records.
 2. **README stays reader-facing.** README files are overview, install/use, and navigation docs. They should link to agent rules, not duplicate SDD/TDD or trigger protocols.
-3. **Rules are actor-scoped.** Use `HERMES.md` for Hermes orchestration, `CLAUDE.md` for Claude execution rules, `AGENTS.md` for Codex review rules, and `TASKS.md` for live state.
-4. **Formal development uses SDD + TDD.** Claude plans vertical slices, records RED/GREEN/REFACTOR evidence, and uses OMC/superpowers when available.
-5. **Codex closes review-required work.** Main tasks requiring review become `[x]` only after Codex PASS and Hermes verification.
-6. **Capability preflight is mandatory before delegation.** Use `hercules-agent-capability-preflight` before meaningful Claude/Codex launches.
-7. **Effort defaults to high.** Use `xhigh` for cross-subsystem, high-risk, safety/gate, real external execution, or failed-review work.
-8. **No commit/push/reset unless requested.** Governance init may patch files and run verification, but does not change Git history without explicit user request.
+3. **Rules are actor-scoped.** Use `HERMES.md` for repository-specific Hermes orchestration, `CLAUDE.md` for Claude execution rules, `AGENTS.md` for Codex review rules, and `TASKS.md` for live repo state.
+4. **User-level Hercules policy belongs in user config, not project docs.** Personal workflow preferences such as “Hercules skills live in `~/.hermes/skills/hercules/` and sync to `ZeroTian/hercules-skills`” belong in the user's global Hermes/SOUL configuration and in the portable skill pack, not in every repository `HERMES.md`.
+5. **Formal development uses SDD + TDD.** Claude plans vertical slices, records RED/GREEN/REFACTOR evidence, and uses OMC/superpowers when available.
+6. **Codex closes review-required work.** Main tasks requiring review become `[x]` only after Codex PASS and Hermes verification.
+7. **Capability preflight is mandatory before delegation.** Use `hercules-agent-capability-preflight` before meaningful Claude/Codex launches.
+8. **Effort defaults to high.** Use `xhigh` for cross-subsystem, high-risk, safety/gate, real external execution, or failed-review work.
+9. **No commit/push/reset unless requested.** Governance init may patch files and run verification, but does not change Git history without explicit user request.
 
 ## Recommended Artifact Layout
 
