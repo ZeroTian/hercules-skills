@@ -161,6 +161,49 @@ report_capabilities() {
   fi
 }
 
+latest_dir() {
+  # Print the lexically last matching directory. This is only a best-effort
+  # cache inspection helper; plugin managers remain the source of truth.
+  find "$1" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort | tail -1
+}
+
+report_plugin_deep_inventory() {
+  log "Plugin deep capability inventory"
+
+  local omc_root=""
+  if [ -d "$HOME/.claude/plugins/cache/omc/oh-my-claudecode" ]; then
+    omc_root=$(latest_dir "$HOME/.claude/plugins/cache/omc/oh-my-claudecode")
+  fi
+  if [ -n "$omc_root" ] && [ -d "$omc_root" ]; then
+    log "OMC root: $omc_root"
+    if [ -f "$omc_root/commands/omc-teams.md" ] || [ -f "$omc_root/skills/omc-teams/SKILL.md" ]; then
+      log "OMC team capability: present"
+    else
+      warn "OMC team capability not confirmed from commands/omc-teams.md or skills/omc-teams/SKILL.md"
+    fi
+    printf '[hercules-bootstrap] OMC agents: '
+    find "$omc_root/agents" -maxdepth 1 -name '*.md' -type f 2>/dev/null | sed 's|.*/||; s|\.md$||' | sort | paste -sd ',' - || true
+    printf '[hercules-bootstrap] OMC commands: '
+    find "$omc_root/commands" -maxdepth 1 -name '*.md' -type f 2>/dev/null | sed 's|.*/||; s|\.md$||' | sort | paste -sd ',' - || true
+    printf '[hercules-bootstrap] OMC bundled skills: '
+    find "$omc_root/skills" -mindepth 2 -maxdepth 2 -name 'SKILL.md' -type f 2>/dev/null | sed 's|.*/skills/||; s|/SKILL.md$||' | sort | paste -sd ',' - || true
+  else
+    warn "OMC plugin cache not found for deep inventory"
+  fi
+
+  local sp_root=""
+  if [ -d "$HOME/.claude/plugins/cache/claude-plugins-official/superpowers" ]; then
+    sp_root=$(latest_dir "$HOME/.claude/plugins/cache/claude-plugins-official/superpowers")
+  fi
+  if [ -n "$sp_root" ] && [ -d "$sp_root" ]; then
+    log "Superpowers root: $sp_root"
+    printf '[hercules-bootstrap] Superpowers bundled skills: '
+    find "$sp_root/skills" -mindepth 2 -maxdepth 2 -name 'SKILL.md' -type f 2>/dev/null | sed 's|.*/skills/||; s|/SKILL.md$||' | sort | paste -sd ',' - || true
+  else
+    warn "Superpowers plugin cache not found for deep inventory"
+  fi
+}
+
 main() {
   log "starting Hercules workflow bootstrap (check_only=$CHECK_ONLY yes=$YES)"
 
@@ -185,6 +228,7 @@ main() {
 
   report_auth
   report_capabilities
+  report_plugin_deep_inventory
   log "done"
 }
 

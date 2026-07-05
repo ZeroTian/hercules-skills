@@ -122,9 +122,12 @@ Capture:
 - Enabled plugins, especially `superpowers`, `oh-my-claudecode`, `playwright`, `context7`, `pyright-lsp`, `frontend-design`, `skill-creator`.
 - Connected MCP servers, especially project-specific ones like `godot`, browser/playwright, design, video, database, GitHub, or custom MCPs.
 - Custom agents if listed or configured.
+- Plugin-internal capability surfaces when relevant, not just the plugin name. For OMC this includes bundled commands/skills such as `omc-teams`, team bridge/MCP files, and agent prompts; for Superpowers this includes bundled skills such as `using-superpowers`, `test-driven-development`, `subagent-driven-development`, `dispatching-parallel-agents`, `verification-before-completion`, `requesting-code-review`, and `using-git-worktrees`.
 - Warnings that change capability, e.g. Claude connectors disabled because API key auth takes precedence over Claude.ai login.
 
 Do not ask Claude to use a capability that was not found.
+
+Do not treat “plugin installed” as proof that every sub-capability is available. For task-critical features, inspect the plugin cache or command/skill files and name the exact capability in the brief. Example: if OMC is installed and `skills/omc-teams/SKILL.md` or the `omc-teams` compatibility command is present, the brief may ask Claude to use OMC team orchestration; otherwise say OMC is installed but team capability was not confirmed.
 
 Do not use `--bare` for tasks that should use plugins, MCP, hooks, CLAUDE.md, or project settings. `--bare` intentionally disables much of the capability surface.
 
@@ -176,7 +179,7 @@ Include a compact capability section in the agent prompt.
 Claude example:
 
 ```text
-Capability inventory: Claude Code has superpowers + oh-my-claudecode + playwright + godot MCP available. Use OMC/superpowers for SDD+TDD planning where useful; use godot MCP only for Godot inspection tasks; record if any capability is unavailable at runtime.
+Capability inventory: Claude Code has superpowers + oh-my-claudecode + playwright + godot MCP available. OMC team capability was confirmed via `omc-teams`/team skill files; Superpowers skills confirmed include test-driven-development, subagent-driven-development, dispatching-parallel-agents, and verification-before-completion. Use OMC team orchestration for multi-lane implementation when it reduces coordination risk; use Superpowers SDD/TDD/verification skills for development discipline; use godot MCP only for Godot inspection tasks. Record if any capability is unavailable at runtime.
 Reasoning effort: xhigh because this task spans Godot runtime, Python harness, tests, and safety gates.
 ```
 
@@ -263,6 +266,8 @@ To reuse this workflow on another machine:
 3. Run the bootstrap script above to install/check Claude Code, Codex, required Claude plugins, and external skill dependencies.
 4. Start a fresh Hermes session and load it by name: `hercules-agent-capability-preflight`.
 
+Migration guarantee boundary: the bootstrap/dependency doctor is a best-effort declared-dependency and live-capability scanner, not an omniscient proof that every transitive plugin feature, per-project MCP server, credential, external binary, OS package, or interactive auth state exists. A target machine is only “ready” after both dependency checks and task-specific executable smoke tests pass. Missing auth, broken MCP servers, optional plugins, project-local tools, private credentials, and plugin-internal feature changes must be reported as blockers rather than papered over.
+
 Keep bundled Hermes skills unmodified and outside this pack:
 
 ```text
@@ -279,16 +284,19 @@ Do not rely on model memory to reconstruct this workflow on a new host. The targ
 1. **Editing bundled skills directly.** Upstream updates may overwrite changes or create drift. Put personal orchestration policy here instead.
 2. **Placing personal skills under official categories.** It works, but makes migration noisy. Prefer the `hercules/` namespace for user-specific skills.
 3. **Mistaking marketplace plugins for installed capability.** Codex `plugin list` shows many `not installed` entries. Only enabled/installed tools count.
-4. **Using `--bare` accidentally.** Claude `--bare` skips plugin/MCP/project context discovery. Avoid it when capability use matters.
-5. **Always using xhigh.** High is the default. Escalate only when risk/complexity justifies the cost and latency.
-6. **Stale capability assumptions.** Re-scan after upgrades, config changes, or capability-related failures.
-7. **Brief bloat.** Include only capabilities relevant to the task; do not paste full inventories into every prompt.
+4. **Confusing plugin presence with sub-capability readiness.** `oh-my-claudecode` being enabled does not by itself prove team orchestration is usable; `superpowers` being enabled does not by itself prove the task-relevant skill was considered. Inspect and name the sub-capability when it matters.
+5. **Using `--bare` accidentally.** Claude `--bare` skips plugin/MCP/project context discovery. Avoid it when capability use matters.
+6. **Always using xhigh.** High is the default. Escalate only when risk/complexity justifies the cost and latency.
+7. **Stale capability assumptions.** Re-scan after upgrades, config changes, plugin updates, migration, or capability-related failures.
+8. **Brief bloat.** Include only capabilities relevant to the task; do not paste full inventories into every prompt.
+9. **Overclaiming migration readiness.** A fresh host cannot be certified by static scans alone. Run the bootstrap doctor, then run the actual workflow smoke test for the intended task class.
 
 ## Verification Checklist
 
 - [ ] Task complexity classified as simple/default/complex/exceptional
 - [ ] Claude/Codex capability inventory scanned or explicitly reused from current-session cache
 - [ ] Prompt mentions only capabilities that actually exist
+- [ ] Task-critical plugin sub-capabilities were confirmed by command/skill/MCP evidence, not inferred from plugin presence alone
 - [ ] Effort selected and justified
 - [ ] Launch command includes the selected effort flag/config
 - [ ] Agent output verified by Hermes with real diff/test/log evidence
