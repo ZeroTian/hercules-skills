@@ -159,7 +159,7 @@ Preferred GitHub source for this user's portable workflow pack:
 https://github.com/ZeroTian/hercules-skills
 ```
 
-When moving to another host, clone/copy `skills/hercules/` from that repo into `~/.hermes/skills/hercules/`, then start a fresh Hermes session and load the relevant skill by name. Do not ask the agent to infer missing skill contents from memory; it must read the actual `SKILL.md` files.
+When moving to another host, clone/copy `skills/` from that repo into `~/.hermes/skills/hercules/`, then start a fresh Hermes session and load the relevant skill by name. Do not ask the agent to infer missing skill contents from memory; it must read the actual `SKILL.md` files.
 
 ## Real Execution Reference
 

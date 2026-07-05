@@ -102,7 +102,7 @@ To move Hercules project-init and development workflow policy to another machine
 https://github.com/ZeroTian/hercules-skills
 ```
 
-Copy or clone that repository's `skills/hercules/` directory into:
+Copy or clone that repository's `skills/` directory into:
 
 ```text
 ~/.hermes/skills/hercules/

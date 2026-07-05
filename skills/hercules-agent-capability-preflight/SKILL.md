@@ -259,7 +259,7 @@ https://github.com/ZeroTian/hercules-skills
 To reuse this workflow on another machine:
 
 1. Install Hermes normally.
-2. Clone or copy this repository's `skills/hercules/` directory into `~/.hermes/skills/hercules/`.
+2. Clone or copy this repository's `skills/` directory into `~/.hermes/skills/hercules/`.
 3. Run the bootstrap script above to install/check Claude Code, Codex, required Claude plugins, and external skill dependencies.
 4. Start a fresh Hermes session and load it by name: `hercules-agent-capability-preflight`.
 

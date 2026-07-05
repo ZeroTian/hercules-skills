@@ -13,7 +13,7 @@ https://github.com/ZeroTian/hercules-skills
 Skills are stored under:
 
 ```text
-skills/hercules/
+skills/
 ```
 
 Current Hercules-owned skills:
@@ -23,6 +23,7 @@ coding-agent-orchestration
 cross-agent-review-loop
 hercules-agent-capability-preflight
 hercules-collaborative-agent-workflow
+hercules-meta-skill-evolution
 hercules-project-init-workflow
 hermes-collaborative-workflow
 hermes-project-init-orchestration
@@ -69,7 +70,13 @@ Copy the skill group into Hermes:
 
 ```bash
 mkdir -p ~/.hermes/skills/hercules
-cp -a hercules-skills/skills/hercules/. ~/.hermes/skills/hercules/
+cp -a hercules-skills/skills/. ~/.hermes/skills/hercules/
+```
+
+For active development on the skill pack, prefer a symlink so the Hermes runtime and Git repository stay in sync:
+
+```bash
+ln -sfn /mnt/e/code/hercules-skills/skills ~/.hermes/skills/hercules
 ```
 
 Run the bootstrap/dependency doctor:
@@ -177,7 +184,7 @@ complex or high-risk: xhigh
 When adding new Hercules-specific development workflow skills:
 
 1. Put them under `~/.hermes/skills/hercules/` locally.
-2. Copy them into this repo under `skills/hercules/`.
+2. Copy or symlink them into this repo under `skills/`.
 3. Do not copy Hermes builtin skills into this repo.
 4. Do not vendor third-party or official hub skills into this repo; list them as dependencies and extend bootstrap if needed.
 5. Do not vendor broad general-purpose skills unless they are part of the Hercules workflow contract and have been customized for that contract.
