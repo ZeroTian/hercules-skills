@@ -1,0 +1,10 @@
+# Local agent/plugin state
+.omc/
+
+# Python caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Local validation artifacts
+.artifacts/

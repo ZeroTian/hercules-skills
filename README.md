@@ -25,6 +25,7 @@ hercules-agent-capability-preflight
 hercules-collaborative-agent-workflow
 hercules-meta-skill-evolution
 hercules-project-init-workflow
+hercules-skill-pack-management
 hermes-collaborative-workflow
 hermes-project-init-orchestration
 iterative-agent-code-review
@@ -32,7 +33,12 @@ kanban-codex-lane
 kanban-orchestrator
 kanban-worker
 open-ended-research-orchestration
+workflow-skill-pack-audit
 ```
+
+`hercules-skill-pack-management` is the repository-maintenance atom covering layout, runtime symlink, backups, migration, GitHub synchronization, and pre-push privacy checks. `workflow-skill-pack-audit` is the skill-pack audit/reconciliation atom covering skill classification, validator/recheck workflow, ledger trajectory, and Codex reconciliation — it codifies the exact audit pass that produced the current repository state.
+
+Four reviewed candidates — `real-game-closed-loop-validation` (Godot/RL domain validation), `game-mechanics-telemetry-validation` (game mechanic telemetry validation), `repository-governance-initialization` (governance init pattern, overlaps the existing project-init skills), and `scoped-codex-review-packets` (bounded Codex review packets, overlaps the review-loop family) — were **archived** under `docs/ai-collaboration/candidate-skills/` in this pass. They are preserved as reference/case-study material, are not runtime-loaded, and are not part of the core list. See `docs/ai-collaboration/SKILL_GROUP_AUDIT.md` for the full disposition and `docs/ai-collaboration/candidate-skills/README.md` for how to promote one later.
 
 ## What is not included
 
@@ -119,6 +125,16 @@ Start a new Hermes session, then verify:
 ```bash
 hermes skills list | grep hercules
 ```
+
+## Validate the skill pack
+
+Run the lightweight validator before skill-pack changes or before handoff to Codex review:
+
+```bash
+python3 scripts/validate-skill-pack.py
+```
+
+It checks frontmatter and required fields for `skills/*/SKILL.md`, description length, allowed linked directories, README/ARCHITECTURE skill-list consistency, governance file presence, shell-script syntax, and ledger reflection signals (repeated CR IDs, `max-turns`, `blocked/阻塞`, `repair-loop/需修改`, open formal tasks missing a trajectory block, and whether an evidence package should be considered). It exits nonzero only for structural errors. See `docs/ai-collaboration/SKILL_GROUP_AUDIT.md` for the skill-group audit and composition map.
 
 ## Main entry skills
 
