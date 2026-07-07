@@ -75,7 +75,7 @@ trajectory:
     capability_preflight: scanned
     relevant_capabilities: ["superpowers", "oh-my-claudecode", "skill-creator"]
     effort: xhigh
-    claude_result: completed
+    claude_result: timeout-after-edits-verified-by-Hermes
     codex_result: PASS
     verification:
       commands: ["git status --short -uall", "git ls-files 'skills/*/SKILL.md' | sort", "find skills -mindepth 2 -maxdepth 2 -name SKILL.md | sort", "python3 scripts/validate-skill-pack.py", "git diff --check", "bash -n skills/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh"]
@@ -481,6 +481,201 @@ trajectory:
     task_record: "docs/ai-collaboration/TASKS.md#task-006"
     review_record: "docs/ai-collaboration/codex-reviews/2026-07-05-task006-p0-p1-convergence.md"
     logs: ["docs/ai-collaboration/codex-reviews/2026-07-05-task006-p0-p1-convergence.md"]
+```
+
+## [x] TASK-007：Absorb OpenAI codex-plugin-cc as optional external Claude plugin dependency + governance policy
+
+- 当前状态：已完成
+- 优先级：P1
+- 当前负责人：无
+- 下一负责人：无
+- 下一步：无；Codex recheck PASS，等待用户明确授权 commit/push（如需要）
+- 是否需要 Codex 复核：是
+- 创建日期：2026-07-07
+- 最后更新：2026-07-07
+- 来源：用户需求（吸收 OpenAI `openai/codex-plugin-cc` 为可选外部 Claude 插件依赖 + Hercules-owned 治理策略，不 vendor 上游源码）
+- 关联任务：无
+- 关联审阅：`docs/ai-collaboration/codex-reviews/2026-07-07-task007-codex-plugin-cc-absorption.md`
+- 验证证据：Hermes 复跑验证：`bash -n` 通过；`python3 scripts/validate-skill-pack.py` 0 errors / 1 warning（预存在的 6 个 untracked 候选目录，非本任务引入）/ 2 reflection signals（记录本任务 Claude max-turns 事实）；`git diff --check` 通过；`HERCULES_CHECK_ONLY=1` bootstrap audit-only 完成；`NPM_REGISTRY=https://example.invalid HERCULES_CHECK_ONLY=1` mutation proof 显示 npm registry before/after unchanged；Codex 初审 P2 `CR-T007-001` 已修复，recheck PASS
+- 阻塞原因：无
+
+### 目标
+
+将 `openai/codex-plugin-cc` 作为可选外部 Claude Code 插件依赖纳入 Hercules skill pack，并以 Hercules-owned 治理策略约束其 `/codex:*` 命令边界，不 vendor 上游插件源码。
+
+### 执行项
+
+- [x] 调研结论：partial absorb（依赖 + 策略，不 vendor 源码）
+- [x] bootstrap：新增 `openai-codex` marketplace（`openai/codex-plugin-cc`），`HERCULES_INSTALL_OPTIONAL=1` 时安装 `codex@openai-codex`，新增 codex 插件 cache 深度盘点
+- [x] preflight skill：更新依赖表、可选安装文档、Claude 能力扫描、边界分类、pitfalls
+- [x] cross-agent-review-loop：新增可选 inline/preliminary 渠道段落，要求 `/codex:rescue` 显式授权
+- [x] README / ARCHITECTURE：提及 `codex-plugin-cc` 为可选外部 Claude 插件依赖
+- [x] 研究记录：`docs/ai-collaboration/CODEX_PLUGIN_CC_RESEARCH_2026-07-07.md`
+- [x] 静态检查：`bash -n`、`python3 scripts/validate-skill-pack.py`、`git diff --check`、`HERCULES_CHECK_ONLY=1` bootstrap audit-only
+- [x] 完成 Codex 复核
+
+### 验收标准
+
+- [x] 未 vendor 上游插件源码
+- [x] 默认不安装 `codex@openai-codex`，仅 `HERCULES_INSTALL_OPTIONAL=1` 安装
+- [x] 边界分类明确：`/codex:review` + `/codex:adversarial-review` 只读；`/codex:rescue` 默认 write-capable；stop-gate 默认关闭
+- [x] Hermes-owned 独立最终 Codex 复核未被插件渠道替代
+- [x] validator 0 errors；`bash -n` / `git diff --check` 通过
+- [x] Codex 已完成复核
+
+### Claude 执行记录
+
+- 修改内容：吸收 `codex-plugin-cc` 为可选外部依赖 + 治理策略；bootstrap 新增 marketplace/可选安装/深度盘点；preflight 更新依赖表/能力扫描/边界分类/pitfalls；cross-agent-review-loop 新增 inline 渠道段落；README/ARCHITECTURE 提及；新增研究记录与 TASK-007
+- 修改文件：`skills/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh`, `skills/hercules-agent-capability-preflight/SKILL.md`, `skills/cross-agent-review-loop/SKILL.md`, `README.md`, `docs/ai-collaboration/ARCHITECTURE.md`, `docs/ai-collaboration/TASKS.md`, `docs/ai-collaboration/CODEX_PLUGIN_CC_RESEARCH_2026-07-07.md`
+- 验证命令：`bash -n skills/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh`, `python3 scripts/validate-skill-pack.py`, `git diff --check`, `HERCULES_CHECK_ONLY=1 bash skills/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh`
+- 验证结果：Hermes 复跑确认 `bash -n` OK；validator 0 errors / 1 warning（预存在 untracked 候选目录）/ 2 reflection signals（由本任务如实记录 Claude max-turns 触发）；`git diff --check` OK；`HERCULES_CHECK_ONLY=1` bootstrap audit-only 完成，codex 插件 cache 未找到以 warn 报告（可选插件未安装），未执行任何安装
+- 遗留问题：codex 插件未在本机安装（可选），深度盘点将以 warn 形式报告 cache not found；commit/push 需用户明确授权
+
+### Codex 复核记录
+
+- 复核日期：2026-07-07
+- 复核范围：codex-plugin-cc optional dependency boundary, bootstrap check-only/install gating, preflight/cross-agent policy, README/ARCHITECTURE/TASKS consistency
+- 复核结果：PASS；初审 P2 `CR-T007-001`（`HERCULES_CHECK_ONLY=1` 仍会写 npm/pnpm registry）已修复，recheck 无剩余 findings
+- 遗留风险：`codex@openai-codex` 未在本机安装（可选）；当前工作树仍有 TASK-007 范围外的既有修改/未跟踪候选；commit/push 需用户明确授权
+
+### Trajectory
+
+```yaml
+trajectory:
+  task_id: TASK-007
+  attempt: 1
+  date: 2026-07-07
+  task_type: docs
+  skill_versions:
+    hercules-agent-capability-preflight: 1.0.0
+    cross-agent-review-loop: 1.0.0
+  score: 1.0
+  actor_path: "Hermes -> Claude implement -> Hermes verify -> Codex"
+  phi:
+    capability_preflight: scanned
+    relevant_capabilities: ["superpowers", "oh-my-claudecode"]
+    effort: xhigh
+    claude_result: max-turns-after-edits
+    codex_result: PASS
+    verification:
+      commands: ["bash -n skills/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh", "python3 scripts/validate-skill-pack.py", "git diff --check", "HERCULES_CHECK_ONLY=1 bash skills/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh"]
+      logs: ["docs/ai-collaboration/CODEX_PLUGIN_CC_RESEARCH_2026-07-07.md"]
+      diff_scope: "skills/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh, skills/hercules-agent-capability-preflight/SKILL.md, skills/cross-agent-review-loop/SKILL.md, README.md, docs/ai-collaboration/ARCHITECTURE.md, docs/ai-collaboration/TASKS.md, docs/ai-collaboration/CODEX_PLUGIN_CC_RESEARCH_2026-07-07.md"
+    cr_ids: ["CR-T007-001"]
+    blocker_type: none
+    next_owner: none
+  source_pointers:
+    task_record: "docs/ai-collaboration/TASKS.md#task-007"
+    review_record: "docs/ai-collaboration/codex-reviews/2026-07-07-task007-codex-plugin-cc-absorption.md"
+    logs: ["docs/ai-collaboration/CODEX_PLUGIN_CC_RESEARCH_2026-07-07.md"]
+```
+
+## [x] TASK-008：P0 round-4 skill-pack reconciliation (promote 4 atoms, archive 3 loop variants, fold unique detail)
+
+- 当前状态：已完成
+- 优先级：P0
+- 当前负责人：无
+- 下一负责人：无
+- 下一步：无；Codex recheck PASS，等待用户明确授权 commit/push（如需要）
+- 是否需要 Codex 复核：是
+- 创建日期：2026-07-08
+- 最后更新：2026-07-08
+- 来源：用户需求（优化 Hercules skill pack；P0 清理：协调 7 个 visible-untracked 候选 + 固化 TASK-007 codex-plugin-cc 吸收状态）
+- 关联任务：TASK-007
+- 关联审阅：`docs/ai-collaboration/codex-reviews/2026-07-08-task008-round4-skill-pack-reconciliation.md`
+- 验证证据：Hermes 已暂存 intended TASK-007/TASK-008 package（排除既有未暂存 `real-godot-closed-loop-validation.md` 用户改动）；`python3 scripts/validate-skill-pack.py` 0 errors / 0 warnings / 2 reflection signals（TASK-007 max-turns 既有信号）；`git diff --check` 与 `git diff --cached --check` 通过；`bash -n skills/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh` 通过；`HERCULES_CHECK_ONLY=1 bash skills/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh` 通过；staged filename/content privacy scan 通过；4 个提升技能 `skill_view` 可加载，`artifact-driven-evaluation-loops` 不再 runtime-load
+- 阻塞原因：无
+
+### 目标
+
+将 7 个 visible-untracked 候选协调为干净、有文档的状态：4 个提升为 Hercules-owned runtime 技能，3 个重叠候选在折叠独有细节后归档；保持 README/ARCHITECTURE/AUDIT/candidate-skills 一致；不触及 TASK-007 既有成果与无关用户改动。
+
+### 处置表
+
+| # | Candidate | Disposition | Rationale |
+|---|---|---|---|
+| A | `agent-plugin-dependency-governance` | PROMOTE/TRACK (core atom) | 外部 Claude/Codex/agent 插件依赖治理核心原子；TASK-007 已实践其策略，本技能一般化该策略。 |
+| B | `evaluation-closed-loop-orchestration` | PROMOTE/TRACK (core atom) | 评估系统闭环的规范宽原子；吸收 3 个重叠候选的独有细节后作为唯一闭环原子。 |
+| C | `godot-wsl-artifact-validation` | PROMOTE/TRACK (specialized domain atom) | WSL+Windows Godot 工件证据领域原子；填补 broad 闭环未覆盖的具体证据质量缺口。 |
+| D | `godot-rl-metric-regression` | PROMOTE/TRACK (specialized domain atom) | baseline-vs-candidate Godot/RL 指标回归领域原子；填补 Godot/RL 回归证据缺口。 |
+| E | `artifact-driven-evaluation-loops` | ARCHIVE (overlap/reference) | 与 `evaluation-closed-loop-orchestration` 重叠；BLOCKED 结果 + 字段保留契约已折叠进规范原子。 |
+| F | `artifact-handoff-orchestration` | ARCHIVE (overlap/reference) | 与 `evaluation-closed-loop-orchestration` 重叠；safe-anchor 校验清单已折叠进规范原子。 |
+| G | `autonomous-evaluation-loops` | ARCHIVE (overlap/reference) | 与 `evaluation-closed-loop-orchestration` 重叠；modification-request schema + instance-vs-system 区分已折叠进规范原子。 |
+
+### 执行项
+
+- [x] 读取 7 个候选 SKILL.md、README、ARCHITECTURE、AUDIT、candidate-skills/README、validator
+- [x] 折叠 3 个待归档候选的独有细节进 `evaluation-closed-loop-orchestration/SKILL.md`（BLOCKED 结果、字段保留、safe-anchor 校验清单、owner 路由信号）
+- [x] 更新 4 个提升技能的 `related_skills`（移除指向归档候选的引用）
+- [x] 创建 3 个 reference 文件（issue-to-handoff-closed-loop.md、godot-wsl-artifact-probes.md、combat-gate-regression.md）
+- [x] 移动 3 个重叠候选到 `docs/ai-collaboration/candidate-skills/<skill>/SKILL.md` 并移除 runtime 目录
+- [x] 更新 README、ARCHITECTURE 核心技能列表与计数（16→20）及归档候选说明（5→8）
+- [x] 更新 SKILL_GROUP_AUDIT.md（round 4、清单、分类表、冗余分析、组合图、runnable gaps、prioritized actions、验证段）
+- [x] 更新 candidate-skills/README.md（表格 + layout）
+- [x] 新增 TASK-008 条目（待复核，owner Codex）
+- [x] Hermes 暂存 4 个提升技能 + reference 文件并复跑最终 validator
+- [x] Codex 独立复核
+
+### 验收标准
+
+- [x] README / ARCHITECTURE 核心列表与 runtime visible skills 一致（20 skills）
+- [x] 3 个重叠候选已移出 `skills/`，归档于 `docs/ai-collaboration/candidate-skills/`
+- [x] `evaluation-closed-loop-orchestration` 含 BLOCKED 结果、字段保留、safe-anchor 校验清单、owner 路由信号
+- [x] 3 个 reference 文件存在且被对应 SKILL.md 引用
+- [x] validator 0 errors / 0 warnings after staging intended package
+- [x] `git diff --check` / `git diff --cached --check` / `bash -n` / bootstrap audit-only / privacy scan 通过
+- [x] 未暂存既有无关 `real-godot-closed-loop-validation.md` 改动；TASK-007 既有成果保留
+- [x] Codex 已完成复核
+
+### Claude 执行记录
+
+- 修改内容：round-4 协调——4 候选提升（agent-plugin-dependency-governance、evaluation-closed-loop-orchestration、godot-wsl-artifact-validation、godot-rl-metric-regression），3 重叠候选归档（artifact-driven-evaluation-loops、artifact-handoff-orchestration、autonomous-evaluation-loops）；折叠独有细节进 evaluation-closed-loop-orchestration；创建 3 个 reference 文件；更新 README/ARCHITECTURE/AUDIT/candidate-skills 一致性与计数（16→20，归档 5→8）；更新 4 提升技能 related_skills；新增 TASK-008
+- 修改文件：README.md, docs/ai-collaboration/ARCHITECTURE.md, docs/ai-collaboration/SKILL_GROUP_AUDIT.md, docs/ai-collaboration/candidate-skills/README.md, docs/ai-collaboration/TASKS.md, skills/agent-plugin-dependency-governance/SKILL.md, skills/evaluation-closed-loop-orchestration/SKILL.md, skills/evaluation-closed-loop-orchestration/references/issue-to-handoff-closed-loop.md, skills/godot-wsl-artifact-validation/SKILL.md, skills/godot-wsl-artifact-validation/references/godot-wsl-artifact-probes.md, skills/godot-rl-metric-regression/SKILL.md, skills/godot-rl-metric-regression/references/combat-gate-regression.md
+- 移动文件：skills/artifact-driven-evaluation-loops/SKILL.md → docs/ai-collaboration/candidate-skills/artifact-driven-evaluation-loops/SKILL.md；skills/artifact-handoff-orchestration/SKILL.md → docs/ai-collaboration/candidate-skills/artifact-handoff-orchestration/SKILL.md；skills/autonomous-evaluation-loops/SKILL.md → docs/ai-collaboration/candidate-skills/autonomous-evaluation-loops/SKILL.md
+- 验证命令：`python3 scripts/validate-skill-pack.py`, `git diff --check`, `git diff --cached --check`, `bash -n skills/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh`, `HERCULES_CHECK_ONLY=1 bash skills/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh`, staged privacy scan
+- 验证结果：Hermes 暂存 intended package 后复跑，validator 0 errors / 0 warnings / 2 reflection signals；diff checks、bash -n、bootstrap audit-only、staged privacy scan 均通过；4 个提升技能均已暂存且 runtime-load 成功；`artifact-driven-evaluation-loops` 不再 runtime-load
+- 遗留问题：fresh-clone 验证未覆盖；commit/push 需用户明确授权；既有未暂存 `real-godot-closed-loop-validation.md` 改动明确排除在本 package 外
+
+### Codex 复核记录
+
+- 复核日期：2026-07-08
+- 复核范围：staged TASK-007/TASK-008 package；skill count/list/disposition；TASK-007 optional codex-plugin policy；TASK-008 ledger truth；staging boundary and privacy
+- 初审结果：FAIL/P2 — `CR-T008-001`，TASK-008 ledger 有陈旧暂存/验证文字（遗漏 `agent-plugin-dependency-governance`、仍称 4 个提升技能未暂存、trajectory 写 Hermes verify pending）
+- 处理：Hermes 修正 TASK-008 修改文件、遗留问题、trajectory actor_path/verification/codex_result 字段并复跑验证；Codex recheck PASS
+- 最终结果：PASS，无剩余 findings
+- 遗留风险：fresh-clone 验证未覆盖；commit/push 需用户明确授权
+
+### Trajectory
+
+```yaml
+trajectory:
+  task_id: TASK-008
+  attempt: 1
+  date: 2026-07-08
+  task_type: docs
+  skill_versions:
+    workflow-skill-pack-audit: 1.0.0
+    evaluation-closed-loop-orchestration: 1.0.0
+    agent-plugin-dependency-governance: 1.0.0
+  score: 0.8
+  actor_path: "Hermes -> Claude reconcile -> Hermes verify -> Codex initial review -> Hermes repair -> Codex recheck"
+  phi:
+    capability_preflight: scanned
+    relevant_capabilities: ["superpowers", "oh-my-claudecode"]
+    effort: xhigh
+    claude_result: timeout-after-edits-verified-by-Hermes
+    codex_result: PASS-after-CR-T008-001
+    verification:
+      commands: ["python3 scripts/validate-skill-pack.py", "git diff --check", "git diff --cached --check", "bash -n skills/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh", "HERCULES_CHECK_ONLY=1 bash skills/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh", "staged privacy scan"]
+      logs: ["/tmp/hercules_task008_bootstrap_checkonly.log", "/tmp/hercules_task008_staged_files.txt"]
+      diff_scope: "README.md, docs/ai-collaboration/ARCHITECTURE.md, docs/ai-collaboration/SKILL_GROUP_AUDIT.md, docs/ai-collaboration/candidate-skills/README.md, docs/ai-collaboration/TASKS.md, skills/evaluation-closed-loop-orchestration/, skills/godot-wsl-artifact-validation/, skills/godot-rl-metric-regression/, skills/agent-plugin-dependency-governance/, docs/ai-collaboration/candidate-skills/{artifact-driven-evaluation-loops,artifact-handoff-orchestration,autonomous-evaluation-loops}/"
+    cr_ids: ["CR-T008-001"]
+    blocker_type: none
+    next_owner: none
+  source_pointers:
+    task_record: "docs/ai-collaboration/TASKS.md#task-008"
+    review_record: "docs/ai-collaboration/codex-reviews/2026-07-08-task008-round4-skill-pack-reconciliation.md"
+    logs: []
 ```
 
 ## Trajectory record policy

@@ -152,6 +152,19 @@ codex review --uncommitted → clean ✓
 - Trivial changes (typos, formatting) — overhead not worth it
 - Tasks where the agent needs to verify externally (deploy, API call) — add an explicit verification step after the loop
 
+## Optional: Claude-side `codex` plugin as an inline channel
+
+When the OpenAI `codex` Claude plugin (`codex@openai-codex`, from the `openai/codex-plugin-cc` marketplace) is installed, Claude Code gains `/codex:*` slash commands and a `codex:codex-rescue` agent. This can be used as an **optional inline/preliminary** review or rescue channel inside the Claude fix step — for example, running `/codex:review` or `/codex:adversarial-review` on the current diff before handing off to the independent Codex CLI review.
+
+Rules:
+
+1. **Hermes still owns the final independent review.** Claude-side `/codex:*` output is preliminary and same-context; it does not replace the independent Codex CLI review/acceptance pass described in this loop. Never close a review-required task or CR based only on `/codex:review` run inside Claude.
+2. **`/codex:rescue` is write-capable by default.** Require explicit Hermes/user authorization before invoking it, and scope the brief. Prefer a read-only rescue when only diagnosis is needed.
+3. **Do not enable the stop-review-gate by default.** It is off by default; enabling it can create long-running or costly loops. Only use it when explicitly requested and user-monitored.
+4. **Treat plugin output like any agent self-report.** Hermes verifies the real diff/tests/logs; the plugin channel does not bypass verification.
+
+See `hercules-agent-capability-preflight` for the full boundary classification of `/codex:*` commands.
+
 ## Rules
 
 1. **Claude for fixes, Codex for review** — each has different blind spots

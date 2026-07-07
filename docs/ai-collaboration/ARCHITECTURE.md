@@ -44,15 +44,19 @@ subagent-driven-development
 writing-plans
 ```
 
-External skills and CLIs are dependencies checked by bootstrap scripts, not source files owned here.
+External skills and CLIs are dependencies checked by bootstrap scripts, not source files owned here. Optional external Claude plugins are treated the same way: the OpenAI `codex-plugin-cc` Claude plugin (`codex@openai-codex`) is checked/installed only when `HERCULES_INSTALL_OPTIONAL=1` is set and is never vendored. Its `/codex:*` command surface and `codex:codex-rescue` agent are an optional in-Claude channel; the independent final Codex CLI review remains Hermes-owned. See `skills/hercules-agent-capability-preflight/SKILL.md` for the boundary classification.
 
 ## Current core skill directories
 
 The intended core Hercules skill pack contains these skill directories:
 
 ```text
+agent-plugin-dependency-governance
 coding-agent-orchestration
 cross-agent-review-loop
+evaluation-closed-loop-orchestration
+godot-rl-metric-regression
+godot-wsl-artifact-validation
 hercules-agent-capability-preflight
 hercules-collaborative-agent-workflow
 hercules-meta-skill-evolution
@@ -69,6 +73,6 @@ skill-pack-governance-validation
 workflow-skill-pack-audit
 ```
 
-`hercules-skill-pack-management` is the repository-maintenance atom (layout, symlink, backup, migration, GitHub sync, pre-push privacy checks). `workflow-skill-pack-audit` is the skill-pack audit/reconciliation atom (classification, validator/recheck workflow, ledger trajectory, Codex reconciliation). `skill-pack-governance-validation` is the runtime usability / commit-package / migration acceptance atom (runtime loading, archived candidate safety, validator/static checks, bootstrap audit-only, staged privacy scan, commit-package readiness); it is the tracked round-3 core skill promoted from the practiced usability/commit-package acceptance workflow that validated commit `97f78ca`. The core set is 16 tracked skills.
+`hercules-skill-pack-management` is the repository-maintenance atom (layout, symlink, backup, migration, GitHub sync, pre-push privacy checks). `workflow-skill-pack-audit` is the skill-pack audit/reconciliation atom (classification, validator/recheck workflow, ledger trajectory, Codex reconciliation). `skill-pack-governance-validation` is the runtime usability / commit-package / migration acceptance atom (runtime loading, archived candidate safety, validator/static checks, bootstrap audit-only, staged privacy scan, commit-package readiness); it is the tracked round-3 core skill promoted from the practiced usability/commit-package acceptance workflow that validated commit `97f78ca`. `agent-plugin-dependency-governance` is the external plugin dependency atom (dependency-vs-vendor boundary, optional bootstrap gating, live sub-capability scanning, safety-boundary classification). `evaluation-closed-loop-orchestration` is the canonical evaluated-system closed-loop atom (telemetry→modification request→agent handoff→BLOCKED outcome→Claude/Codex review). `godot-wsl-artifact-validation` and `godot-rl-metric-regression` are specialized domain atoms for WSL+Windows Godot artifact proof and baseline-vs-candidate Godot/RL metric regression. The core set is 20 tracked skills after the round-4 promotion.
 
-Five other reviewed candidates — `real-game-closed-loop-validation`, `game-mechanics-telemetry-validation`, `game-telemetry-closed-loop-validation` (domain Godot/RL/game telemetry validation), `repository-governance-initialization` (duplicate/case-study of the project-init family), and `scoped-codex-review-packets` (overlap with the review-loop family) — were **archived** under `docs/ai-collaboration/candidate-skills/` across these reconciliation passes. They are preserved as reference/case-study material, are **not** runtime-loaded (Hermes discovers skills only from `skills/<skill>/SKILL.md`), and are **not** part of the core list. Their full disposition and promotion path are recorded in `SKILL_GROUP_AUDIT.md` and `docs/ai-collaboration/candidate-skills/README.md`.
+Eight other reviewed candidates — `real-game-closed-loop-validation`, `game-mechanics-telemetry-validation`, `game-telemetry-closed-loop-validation` (domain Godot/RL/game telemetry validation), `repository-governance-initialization` (duplicate/case-study of the project-init family), `scoped-codex-review-packets` (overlap with the review-loop family), and `artifact-driven-evaluation-loops`, `artifact-handoff-orchestration`, `autonomous-evaluation-loops` (evaluated-system loop variants that overlap `evaluation-closed-loop-orchestration` after their unique details were folded into it) — were **archived** under `docs/ai-collaboration/candidate-skills/` across these reconciliation passes. They are preserved as reference/case-study material, are **not** runtime-loaded (Hermes discovers skills only from `skills/<skill>/SKILL.md`), and are **not** part of the core list. Their full disposition and promotion path are recorded in `SKILL_GROUP_AUDIT.md` and `docs/ai-collaboration/candidate-skills/README.md`.

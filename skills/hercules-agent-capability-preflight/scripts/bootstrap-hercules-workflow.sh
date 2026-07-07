@@ -13,6 +13,7 @@ set -euo pipefail
 #   HERCULES_CHECK_ONLY=1       only report, do not install
 #   HERCULES_SKIP_REGISTRY=1    do not change npm/pnpm registry
 #   HERCULES_INSTALL_OPTIONAL=1 install optional plugins too
+#                              (playwright, context7, pyright-lsp, codex@openai-codex)
 
 YES=${HERCULES_YES:-0}
 CHECK_ONLY=${HERCULES_CHECK_ONLY:-0}
@@ -51,6 +52,11 @@ ensure_node_toolchain() {
     return 1
   fi
   if [ "$SKIP_REGISTRY" != "1" ]; then
+    if [ "$CHECK_ONLY" = "1" ]; then
+      log "CHECK_ONLY: would set npm registry to $NPM_REGISTRY"
+      if have_cmd pnpm; then log "CHECK_ONLY: would set pnpm registry to $NPM_REGISTRY"; fi
+      return 0
+    fi
     npm config set registry "$NPM_REGISTRY" >/dev/null || true
     if have_cmd pnpm; then pnpm config set registry "$NPM_REGISTRY" >/dev/null || true; fi
   fi
@@ -202,6 +208,26 @@ report_plugin_deep_inventory() {
   else
     warn "Superpowers plugin cache not found for deep inventory"
   fi
+
+  # OpenAI codex-plugin-cc is an optional external Claude plugin. When present,
+  # inventory its /codex:* slash commands and the codex-rescue agent. Absent
+  # files are warnings only — the plugin is optional and never auto-installed.
+  local codex_cc_root=""
+  if [ -d "$HOME/.claude/plugins/cache/openai-codex/codex" ]; then
+    codex_cc_root=$(latest_dir "$HOME/.claude/plugins/cache/openai-codex/codex")
+  fi
+  if [ -n "$codex_cc_root" ] && [ -d "$codex_cc_root" ]; then
+    log "Codex CC plugin root: $codex_cc_root"
+    printf '[hercules-bootstrap] Codex plugin /codex:* commands: '
+    find "$codex_cc_root/commands" -maxdepth 1 -name '*.md' -type f 2>/dev/null | sed 's|.*/||; s|\.md$||; s|^|/codex:|' | sort | paste -sd ',' - || true
+    if [ -f "$codex_cc_root/agents/codex-rescue.md" ]; then
+      log "Codex plugin codex-rescue agent: present (codex:codex-rescue)"
+    else
+      warn "Codex plugin codex-rescue agent not found at agents/codex-rescue.md (write-capable rescue unavailable)"
+    fi
+  else
+    warn "Codex Claude plugin cache not found for deep inventory (optional; install with HERCULES_INSTALL_OPTIONAL=1)"
+  fi
 }
 
 main() {
@@ -217,12 +243,18 @@ main() {
   if have_cmd claude; then
     ensure_marketplace claude-plugins-official anthropics/claude-plugins-official || true
     ensure_marketplace omc https://github.com/Yeachan-Heo/oh-my-claudecode.git || true
+    # openai/codex-plugin-cc registers the marketplace under the stable name
+    # "openai-codex"; the plugin is referenced as codex@openai-codex. The
+    # marketplace is added always (registry entry only); plugin install is
+    # gated by HERCULES_INSTALL_OPTIONAL below.
+    ensure_marketplace openai-codex openai/codex-plugin-cc || true
     ensure_claude_plugin superpowers@claude-plugins-official superpowers || true
     ensure_claude_plugin oh-my-claudecode@omc oh-my-claudecode || true
     if [ "$INSTALL_OPTIONAL" = "1" ]; then
       ensure_claude_plugin playwright@claude-plugins-official playwright || true
       ensure_claude_plugin context7@claude-plugins-official context7 || true
       ensure_claude_plugin pyright-lsp@claude-plugins-official pyright-lsp || true
+      ensure_claude_plugin codex@openai-codex codex || true
     fi
   fi
 

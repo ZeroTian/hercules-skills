@@ -63,8 +63,10 @@ The script checks and installs where possible:
 | Hercules external skills | `hermes skills list` | `hermes skills install official/software-development/subagent-driven-development` and `hermes skills install skills-sh/obra/superpowers/writing-plans` |
 | Claude official plugin marketplace | `claude plugins marketplace list` | `claude plugins marketplace add anthropics/claude-plugins-official` |
 | OMC marketplace | `claude plugins marketplace list` | `claude plugins marketplace add https://github.com/Yeachan-Heo/oh-my-claudecode.git` |
+| OpenAI codex-plugin-cc marketplace | `claude plugins marketplace list` | `claude plugins marketplace add openai/codex-plugin-cc` (registers as `openai-codex`) |
 | Claude `superpowers` plugin | `claude plugins list` | `claude plugins install --scope user superpowers@claude-plugins-official` |
 | Claude OMC plugin | `claude plugins list` | `claude plugins install --scope user oh-my-claudecode@omc` |
+| Claude `codex` plugin (optional) | `claude plugins list` | `claude plugins install --scope user codex@openai-codex` — only with `HERCULES_INSTALL_OPTIONAL=1` |
 
 It does **not** automate interactive auth. If auth is missing, it reports the required commands:
 
@@ -73,11 +75,13 @@ claude auth login --console
 codex login
 ```
 
-Optional plugins such as `playwright`, `context7`, and `pyright-lsp` can be installed by running with:
+Optional plugins such as `playwright`, `context7`, `pyright-lsp`, and the OpenAI `codex` Claude plugin (`codex@openai-codex`, from the `openai/codex-plugin-cc` marketplace) can be installed by running with:
 
 ```bash
 HERCULES_YES=1 HERCULES_INSTALL_OPTIONAL=1 bash ~/.hermes/skills/hercules/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh
 ```
+
+The `codex` Claude plugin is **not** the Codex CLI. It is an optional in-Claude plugin that exposes `/codex:*` slash commands and a `codex:codex-rescue` agent. It is never installed by default. When present, the bootstrap deep inventory lists its `/codex:*` commands and reports whether `agents/codex-rescue.md` is available.
 
 Completion criterion: `claude`, `codex`, required Claude plugins, and external skills are present or the script has reported a real blocker such as missing Node/npm or missing auth.
 
@@ -119,10 +123,10 @@ claude agents || true
 Capture:
 
 - Version and auth state.
-- Enabled plugins, especially `superpowers`, `oh-my-claudecode`, `playwright`, `context7`, `pyright-lsp`, `frontend-design`, `skill-creator`.
+- Enabled plugins, especially `superpowers`, `oh-my-claudecode`, `playwright`, `context7`, `pyright-lsp`, `frontend-design`, `skill-creator`, and the optional OpenAI `codex` Claude plugin (`codex@openai-codex`, distinct from the Codex CLI).
 - Connected MCP servers, especially project-specific ones like `godot`, browser/playwright, design, video, database, GitHub, or custom MCPs.
 - Custom agents if listed or configured.
-- Plugin-internal capability surfaces when relevant, not just the plugin name. For OMC this includes bundled commands/skills such as `omc-teams`, team bridge/MCP files, and agent prompts; for Superpowers this includes bundled skills such as `using-superpowers`, `test-driven-development`, `subagent-driven-development`, `dispatching-parallel-agents`, `verification-before-completion`, `requesting-code-review`, and `using-git-worktrees`.
+- Plugin-internal capability surfaces when relevant, not just the plugin name. For OMC this includes bundled commands/skills such as `omc-teams`, team bridge/MCP files, and agent prompts; for Superpowers this includes bundled skills such as `using-superpowers`, `test-driven-development`, `subagent-driven-development`, `dispatching-parallel-agents`, `verification-before-completion`, `requesting-code-review`, and `using-git-worktrees`; for the OpenAI `codex` Claude plugin this includes the `/codex:*` slash commands (e.g. `/codex:review`, `/codex:adversarial-review`, `/codex:rescue`, `/codex:transfer`, `/codex:status`, `/codex:result`, `/codex:cancel`, `/codex:setup`) and the `codex:codex-rescue` agent. Inspect the plugin cache at `~/.claude/plugins/cache/openai-codex/codex` and name the exact command/agent in the brief. Report the stop-review-gate status only when the user has explicitly enabled or is monitoring it; it is off by default.
 - Warnings that change capability, e.g. Claude connectors disabled because API key auth takes precedence over Claude.ai login.
 
 Do not ask Claude to use a capability that was not found.
@@ -169,6 +173,14 @@ Before writing the agent brief, separate capabilities into two classes:
 | State-changing execution | Edit/write files, package install, server control, browser form submission, deploy, booking/purchase/API mutation, git push/commit | Only allow when the task requires it and the user/repo rules permit it. Require preconditions, rollback/verification, and explicit scope. |
 
 Do not give one agent both acquisition and state-changing authority when the task naturally crosses a safety boundary. Prefer a split: one actor gathers/selects options with structured output, then a separate scoped actor performs the state-changing step after Hermes verifies current context.
+
+OpenAI `codex` Claude plugin boundary classification (when installed):
+
+| Plugin surface | Class | Rule |
+|---|---|---|
+| `/codex:review`, `/codex:adversarial-review` | Read-only | Safe as an inline/preliminary review channel inside Claude Code. Does not replace Hermes-owned independent final Codex review. |
+| `/codex:rescue` | State-changing / write-capable by default | Requires explicit Hermes/user authorization before use. Treat as write-capable unless the brief explicitly requests a read-only rescue. |
+| Stop-review-gate | Off by default | Do not enable by default. Only use when explicitly requested and user-monitored; an enabled stop gate can create long-running or costly review loops. |
 
 Completion criterion: the brief states which capabilities are read-only, which are allowed to mutate state, and which are forbidden.
 
@@ -290,6 +302,9 @@ Do not rely on model memory to reconstruct this workflow on a new host. The targ
 7. **Stale capability assumptions.** Re-scan after upgrades, config changes, plugin updates, migration, or capability-related failures.
 8. **Brief bloat.** Include only capabilities relevant to the task; do not paste full inventories into every prompt.
 9. **Overclaiming migration readiness.** A fresh host cannot be certified by static scans alone. Run the bootstrap doctor, then run the actual workflow smoke test for the intended task class.
+10. **Mistaking the Claude-side `codex` plugin review for Hermes final review.** `/codex:review` and `/codex:adversarial-review` run inside Claude Code as an inline/preliminary channel. They do not replace the Hermes-owned independent final Codex CLI review/acceptance pass. Always run the independent Codex review before closing review-required work.
+11. **Enabling the stop-review-gate by default.** The `codex` plugin stop gate is off by default. Enabling it can create long-running or costly review loops. Only enable it when explicitly requested and user-monitored.
+12. **Treating `/codex:rescue` as read-only.** `/codex:rescue` defaults to write-capable. Require explicit Hermes/user authorization and a scoped brief before invoking it; prefer a read-only rescue when only diagnosis is needed.
 
 ## Verification Checklist
 

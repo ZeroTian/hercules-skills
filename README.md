@@ -19,8 +19,12 @@ skills/
 Current Hercules-owned skills:
 
 ```text
+agent-plugin-dependency-governance
 coding-agent-orchestration
 cross-agent-review-loop
+evaluation-closed-loop-orchestration
+godot-rl-metric-regression
+godot-wsl-artifact-validation
 hercules-agent-capability-preflight
 hercules-collaborative-agent-workflow
 hercules-meta-skill-evolution
@@ -37,9 +41,9 @@ skill-pack-governance-validation
 workflow-skill-pack-audit
 ```
 
-`hercules-skill-pack-management` is the repository-maintenance atom covering layout, runtime symlink, backups, migration, GitHub synchronization, and pre-push privacy checks. `workflow-skill-pack-audit` is the skill-pack audit/reconciliation atom covering skill classification, validator/recheck workflow, ledger trajectory, and Codex reconciliation — it codifies the exact audit pass that produced the current repository state. `skill-pack-governance-validation` is the runtime usability / commit-package / migration acceptance atom covering runtime loading, archived candidate safety, validator/static checks, bootstrap audit-only, staged privacy scan, and commit-package readiness. The core set is 16 skills after the round-3 promotion, which codifies the practiced usability/commit-package acceptance workflow used to validate commit `97f78ca`.
+`hercules-skill-pack-management` is the repository-maintenance atom covering layout, runtime symlink, backups, migration, GitHub synchronization, and pre-push privacy checks. `workflow-skill-pack-audit` is the skill-pack audit/reconciliation atom covering skill classification, validator/recheck workflow, ledger trajectory, and Codex reconciliation — it codifies the exact audit pass that produced the current repository state. `skill-pack-governance-validation` is the runtime usability / commit-package / migration acceptance atom covering runtime loading, archived candidate safety, validator/static checks, bootstrap audit-only, staged privacy scan, and commit-package readiness. `agent-plugin-dependency-governance` is the external Claude/Codex/agent plugin dependency atom covering dependency-vs-vendor boundaries, optional bootstrap gating, live sub-capability scanning, and safety-boundary classification. `evaluation-closed-loop-orchestration` is the canonical evaluated-system closed-loop atom that turns telemetry/diagnosis findings into safe modification requests, agent handoffs, structured BLOCKED outcomes, and Claude/Codex review cycles. `godot-wsl-artifact-validation` and `godot-rl-metric-regression` are specialized domain atoms for WSL+Windows Godot artifact proof and baseline-vs-candidate Godot/RL metric regression respectively. The core set is 20 skills after the round-4 promotion, which codifies the practiced usability/commit-package acceptance workflow used to validate commit `97f78ca`.
 
-Five reviewed candidates — `real-game-closed-loop-validation` (Godot/RL domain validation), `game-mechanics-telemetry-validation` and `game-telemetry-closed-loop-validation` (game mechanic / telemetry validation), `repository-governance-initialization` (governance init pattern, overlaps the existing project-init skills), and `scoped-codex-review-packets` (bounded Codex review packets, overlaps the review-loop family) — were **archived** under `docs/ai-collaboration/candidate-skills/` across these reconciliation passes. They are preserved as reference/case-study material, are not runtime-loaded, and are not part of the core list. See `docs/ai-collaboration/SKILL_GROUP_AUDIT.md` for the full disposition and `docs/ai-collaboration/candidate-skills/README.md` for how to promote one later.
+Eight reviewed candidates — `real-game-closed-loop-validation` (Godot/RL domain validation), `game-mechanics-telemetry-validation` and `game-telemetry-closed-loop-validation` (game mechanic / telemetry validation), `repository-governance-initialization` (governance init pattern, overlaps the existing project-init skills), `scoped-codex-review-packets` (bounded Codex review packets, overlaps the review-loop family), and `artifact-driven-evaluation-loops`, `artifact-handoff-orchestration`, and `autonomous-evaluation-loops` (evaluated-system loop variants that overlap the canonical `evaluation-closed-loop-orchestration` atom after their unique details were folded into it) — were **archived** under `docs/ai-collaboration/candidate-skills/` across these reconciliation passes. They are preserved as reference/case-study material, are not runtime-loaded, and are not part of the core list. See `docs/ai-collaboration/SKILL_GROUP_AUDIT.md` for the full disposition and `docs/ai-collaboration/candidate-skills/README.md` for how to promote one later.
 
 ## What is not included
 
@@ -110,9 +114,12 @@ The bootstrap script checks and installs where possible:
 Claude Code CLI: npm install -g @anthropic-ai/claude-code
 Codex CLI: npm install -g @openai/codex
 Hermes skills: subagent-driven-development, writing-plans
-Claude marketplaces: claude-plugins-official, omc
+Claude marketplaces: claude-plugins-official, omc, openai-codex (openai/codex-plugin-cc)
 Claude plugins: superpowers, oh-my-claudecode
+Optional Claude plugins (HERCULES_INSTALL_OPTIONAL=1): playwright, context7, pyright-lsp, codex@openai-codex
 ```
+
+The `codex@openai-codex` plugin is the OpenAI `codex-plugin-cc` Claude plugin — an optional in-Claude `/codex:*` command surface, distinct from the Codex CLI. It is not installed by default. See `skills/hercules-agent-capability-preflight/SKILL.md` for its boundary classification and `skills/cross-agent-review-loop/SKILL.md` for how it relates to the independent final Codex review.
 
 It does not automate interactive auth. If needed, run:
 
