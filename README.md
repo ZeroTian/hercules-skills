@@ -178,13 +178,16 @@ Run the productized validation entry before skill-pack changes or before handoff
 scripts/hercules validate
 ```
 
-The underlying validator can still be run directly when needed:
+The underlying validator can still be run directly when needed, including machine-readable and release-gate modes:
 
 ```bash
 python3 scripts/validate-skill-pack.py
+python3 scripts/validate-skill-pack.py --json
+python3 scripts/validate-skill-pack.py --strict
+scripts/smoke-fresh-clone.sh
 ```
 
-It checks frontmatter and required fields for `skills/*/SKILL.md`, description length, allowed linked directories, README/ARCHITECTURE skill-list consistency, governance file presence, shell-script syntax, and ledger reflection signals (repeated CR IDs, `max-turns`, `blocked/阻塞`, `repair-loop/需修改`, open formal tasks missing a trajectory block, and whether an evidence package should be considered). It exits nonzero only for structural errors. See `docs/ai-collaboration/SKILL_GROUP_AUDIT.md` for the skill-group audit and composition map.
+It checks frontmatter and required fields for `skills/*/SKILL.md`, description length, allowed linked directories and linked files, README/ARCHITECTURE skill-list consistency, governance file presence, shell-script syntax, and ledger reflection signals (repeated CR IDs, `max-turns`, `blocked/阻塞`, `repair-loop/需修改`, open formal tasks missing a trajectory block, and whether an evidence package should be considered). By default it exits nonzero only for structural errors; `--strict` also treats warnings as release-blocking while reflection signals remain advisory. See `docs/ai-collaboration/SKILL_GROUP_AUDIT.md` for the current skill classification.
 
 ## Main entry skills
 

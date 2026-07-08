@@ -862,21 +862,21 @@ trajectory:
     logs: []
 ```
 
-## [ ] TASK-011：P1/P2 validator release gate + fresh-clone smoke
+## [x] TASK-011：P1/P2 validator release gate + fresh-clone smoke
 
-- 当前状态：待处理
+- 当前状态：已完成
 - 优先级：P1
-- 当前负责人：User
-- 下一负责人：Hermes
-- 下一步：用户选择启动后，Hermes/Claude 增强 validator 与 migration smoke tooling
+- 当前负责人：无
+- 下一负责人：无
+- 下一步：无；TASK-011 release gate 已完成并经 Codex PASS，按用户授权自动进入 TASK-012
 - 是否需要 Codex 复核：是
 - 创建日期：2026-07-08
 - 最后更新：2026-07-08
 - 来源：优化路线图（发布门禁与可迁移证明）
 - 关联任务：TASK-010
-- 关联审阅：暂无
-- 验证证据：待补充
-- 阻塞原因：等待用户选择启动
+- 关联审阅：`docs/ai-collaboration/codex-reviews/2026-07-08-task011-validator-release-gate.md`（初审 FAIL；CR-T011-001~005 已修复；最终 Codex recheck PASS）
+- 验证证据：TDD red run observed expected failures before implementation；CR fix RED observed for inline linked-file and staged-only smoke tests；final verification passed after CR fixes: `python3 tests/test_validate_skill_pack_cli.py -v` OK (6 tests); `python3 scripts/validate-skill-pack.py` 0 errors / 0 warnings / 3 signals; `python3 scripts/validate-skill-pack.py --json` machine-parseable via `python3 -m json.tool`; `python3 scripts/validate-skill-pack.py --strict` exit 0; `scripts/smoke-fresh-clone.sh` passed in temp clone using staged-only default; `scripts/hercules validate` passed; `scripts/hercules package` passed; `git diff --check` 与 `git diff --cached --check` passed; staged privacy scan passed
+- 阻塞原因：无；用户已授权 TASK-010~013 自动执行、Codex PASS 后自动 commit、不 push
 
 ### 目标
 
@@ -884,20 +884,35 @@ trajectory:
 
 ### 执行项
 
-- [ ] 增加 `--json` 输出
-- [ ] 增加 `--strict` 模式
-- [ ] 增加 untracked candidate disposition 检查
-- [ ] 增加 `references/` / `templates/` / `scripts/` 深度链接检查
-- [ ] 新增 `scripts/smoke-fresh-clone.sh` 或等价 repo-level smoke script
-- [ ] 为 validator/smoke 增加可运行验证和 Codex review
+- [x] 增加 `--json` 输出
+- [x] 增加 `--strict` 模式
+- [x] 增加 untracked candidate disposition 检查（沿用 visible-vs-tracked warning，并由 `--strict` release gate 阻断）
+- [x] 增加 `references/` / `templates/` / `scripts/` / `assets/` 深度链接检查
+- [x] 新增 `scripts/smoke-fresh-clone.sh` repo-level smoke script
+- [x] 为 validator/smoke 增加可运行验证；Codex review PASS
 
 ### 验收标准
 
-- [ ] JSON 输出可机器解析
-- [ ] strict mode 对 release-blocking warning 失败
-- [ ] fresh-clone smoke 使用临时目录，不修改源 repo
-- [ ] 当前 repo normal validation 通过；strict 例外如有必须记录
-- [ ] Codex review PASS
+- [x] JSON 输出可机器解析
+- [x] strict mode 对 release-blocking warning 失败
+- [x] fresh-clone smoke 使用临时目录，不修改源 repo
+- [x] 当前 repo normal validation 与 strict validation 通过；无 strict 例外
+- [x] Codex review PASS
+
+### Hermes 执行记录
+
+- 授权边界：用户已授权 TASK-010~013 自动执行；每个任务 Codex PASS 后自动 commit；不 push
+- TDD RED：`python3 tests/test_validate_skill_pack_cli.py -v` 初次失败，缺少 `--json`、`--strict` 与 smoke script
+- 实现：validator 增加 `--json`、`--strict`、skill-local linked-file deep check；新增 `scripts/smoke-fresh-clone.sh`；新增 unittest smoke tests；补齐 `workflow-skill-pack-audit/references/round2-reconciliation-pattern.md` 使 linked-file deep check 零 warning
+- 修改文件：`scripts/validate-skill-pack.py`, `scripts/smoke-fresh-clone.sh`, `tests/test_validate_skill_pack_cli.py`, `README.md`, `docs/ai-collaboration/TASKS.md`, `docs/ai-collaboration/OPTIMIZATION_ROADMAP.md`, `skills/workflow-skill-pack-audit/references/round2-reconciliation-pattern.md`
+- Codex 初审：FAIL，CR-T011-001 P2 linked-file validation too narrow；CR-T011-002 P2 smoke included unstaged tracked diffs；CR-T011-003 P3 README strict-mode wording imprecise
+- Hermes 修复：linked-file classifier now validates normal inline same-skill references while skipping downstream `scripts/run_tests.sh` examples；fresh-clone smoke defaults to staged-only and requires `HERCULES_SMOKE_INCLUDE_UNSTAGED=1` opt-in for unstaged tracked diffs；README states default vs `--strict` exit semantics
+- Codex recheck 1：CR-T011-001~003 fixed；新增 CR-T011-004 P2 review record path did not exist / trajectory pointer stale
+- Hermes 修复 CR-T011-004：新增并暂存 `docs/ai-collaboration/codex-reviews/2026-07-08-task011-validator-release-gate.md`，同步 trajectory `source_pointers.review_record`
+- Codex recheck 2：CR-T011-004 fixed；新增 CR-T011-005 P2 CR IDs were accidentally attached to TASK-001 instead of TASK-011
+- Hermes 修复 CR-T011-005：TASK-001 `cr_ids` restored to `[]`；TASK-011 trajectory now carries `CR-T011-001`~`CR-T011-005`
+- Codex recheck 3：CR-T011-005 fixed；最终 PASS，highest_severity none
+- 遗留风险：signals 仍包含 TASK-007 max-turns 和 TASK-012/TASK-013 backlog blocked，这是反射提示不是 release-blocking warning；TASK-012/TASK-013 将在后续任务中解除 backlog blocker
 
 ### Trajectory
 
@@ -909,24 +924,24 @@ trajectory:
   task_type: implementation
   skill_versions:
     skill-pack-governance-validation: 1.0.0
-  score: provisional
+  score: 1.0
   actor_path: "User decision -> Hermes plan -> Claude implement -> Hermes verify -> Codex"
   phi:
     capability_preflight: cached
     relevant_capabilities: []
     effort: high
-    claude_result: not-launched
-    codex_result: not-launched
+    claude_result: skipped-after-previous-timeout-Hermes-direct-TDD-implementation
+    codex_result: PASS
     verification:
-      commands: []
+      commands: ["python3 tests/test_validate_skill_pack_cli.py -v", "python3 scripts/validate-skill-pack.py", "python3 scripts/validate-skill-pack.py --json", "python3 -m json.tool /tmp/hercules_task011_after_cr_fixes.json", "python3 scripts/validate-skill-pack.py --strict", "scripts/smoke-fresh-clone.sh", "scripts/hercules validate", "scripts/hercules package", "git diff --check", "git diff --cached --check"]
       logs: []
-      diff_scope: "scripts/validate-skill-pack.py, scripts/smoke-fresh-clone.sh"
-    cr_ids: []
-    blocker_type: scope
-    next_owner: User
+      diff_scope: "scripts/validate-skill-pack.py, scripts/smoke-fresh-clone.sh, tests/test_validate_skill_pack_cli.py, README.md, docs/ai-collaboration/TASKS.md, docs/ai-collaboration/OPTIMIZATION_ROADMAP.md, skills/workflow-skill-pack-audit/references/round2-reconciliation-pattern.md"
+    cr_ids: [CR-T011-001, CR-T011-002, CR-T011-003, CR-T011-004, CR-T011-005]
+    blocker_type: none
+    next_owner: none
   source_pointers:
     task_record: "docs/ai-collaboration/TASKS.md#task-011"
-    review_record: "暂无"
+    review_record: "docs/ai-collaboration/codex-reviews/2026-07-08-task011-validator-release-gate.md"
     logs: []
 ```
 

@@ -5,21 +5,26 @@ Runs with Python stdlib only. Checks:
   - frontmatter presence and required fields (name, description, version) for skills/*/SKILL.md
   - description length <= 1024 characters
   - linked file directories are only references/templates/scripts/assets
+  - skill-local linked-file references point to existing files
   - README and ARCHITECTURE tracked skill lists vs git tracked skills and visible skill dirs
   - governance files exist
   - shell scripts pass `bash -n`
+  - optional JSON output and strict warning-as-failure release gate
   - ledger reflection signals from TASKS.md and codex-reviews/*.md:
     repeated CR IDs, max-turns/max turns, blocked/阻塞, repair-loop/需修改,
     missing trajectory blocks for open formal tasks, and whether an evidence
     package should be considered.
 
 Output sections: ERRORS, WARNINGS, REFLECTION SIGNALS, SUMMARY.
-Exit nonzero only for structural errors (ERRORS non-empty). Warnings and
-reflection signals do not fail the command by default.
+Exit nonzero only for structural errors (ERRORS non-empty) by default. In
+`--strict` mode, warnings also fail the command; reflection signals remain
+advisory.
 """
 
 from __future__ import annotations
 
+import argparse
+import json
 import os
 import re
 import subprocess
@@ -66,6 +71,27 @@ class Report:
 
     def signal(self, msg: str) -> None:
         self.signals.append(msg)
+
+    def exit_code(self, *, strict: bool = False) -> int:
+        if self.errors:
+            return 1
+        if strict and self.warnings:
+            return 1
+        return 0
+
+    def to_dict(self, *, strict: bool = False) -> dict[str, object]:
+        return {
+            "errors": self.errors,
+            "warnings": self.warnings,
+            "signals": self.signals,
+            "summary": {
+                "errors": len(self.errors),
+                "warnings": len(self.warnings),
+                "signals": len(self.signals),
+                "strict": strict,
+                "exit_code": self.exit_code(strict=strict),
+            },
+        }
 
 
 def parse_frontmatter(text: str) -> dict[str, str] | None:
@@ -137,6 +163,66 @@ def check_linked_dirs(report: Report) -> None:
                         f"{skill_dir.relative_to(REPO_ROOT)}: unexpected subdirectory '{child.name}' "
                         f"(allowed: {sorted(ALLOWED_LINKED_DIRS)})"
                     )
+
+
+LINKED_FILE_RE = re.compile(
+    r"(?<![A-Za-z0-9_./-])"
+    r"(?P<path>(?:references|templates|scripts|assets)/[A-Za-z0-9._/@%+=:,~-]+(?:/[A-Za-z0-9._/@%+=:,~-]+)*)"
+)
+
+
+def normalize_linked_candidate(raw: str) -> str:
+    """Trim common Markdown/sentence punctuation from a linked-file candidate."""
+    return raw.strip("`'\"<>()[]{}.,;:")
+
+
+def should_validate_linked_candidate(line: str, rel: str) -> bool:
+    """Return True for references that are intended skill-local linked files.
+
+    SKILL.md files also contain downstream command examples such as
+    `scripts/run_tests.sh`. Those should not be treated as local linked files
+    for the current skill, but normal inline prose such as
+    "See `references/foo.md`" should be validated.
+    """
+    lowered = line.strip().lower()
+    downstream_hints = (
+        "downstream",
+        "other repos",
+        "repo's documented wrapper",
+        "arbitrary project",
+        "target project",
+        "project's documented",
+    )
+    if rel == "scripts/run_tests.sh":
+        return False
+    if rel.startswith("scripts/") and any(hint in lowered for hint in downstream_hints):
+        return False
+    # Repo-qualified or cross-skill paths are excluded by LINKED_FILE_RE's
+    # negative lookbehind before this point. Anything left is a same-skill
+    # references/templates/scripts/assets mention and should be checked.
+    return True
+
+
+def check_linked_file_references(report: Report, skill_files: list[Path]) -> None:
+    """Warn when SKILL.md mentions a linked file that is not present.
+
+    This is intentionally conservative: it only scans path-like mentions under
+    the allowed linked directories. It catches broken `references/foo.md`,
+    `templates/foo`, `scripts/foo.sh`, and `assets/foo` references without
+    requiring full Markdown parsing.
+    """
+    for sf in skill_files:
+        text = sf.read_text(encoding="utf-8")
+        seen: set[str] = set()
+        for line in text.splitlines():
+            for match in LINKED_FILE_RE.finditer(line):
+                rel = normalize_linked_candidate(match.group("path"))
+                if not rel or rel in seen or not should_validate_linked_candidate(line, rel):
+                    continue
+                seen.add(rel)
+                target = sf.parent / rel
+                if not target.exists():
+                    report.warn(f"{sf.relative_to(REPO_ROOT)}: linked file not found: {rel}")
 
 
 def extract_skill_list_from_doc(path: Path) -> set[str]:
@@ -384,44 +470,35 @@ def scan_reflection_signals(report: Report) -> None:
         )
 
 
-def main() -> int:
+def run_checks() -> Report:
     report = Report()
-    check_skill_frontmatter(report)
+    skill_files = check_skill_frontmatter(report)
     check_linked_dirs(report)
+    check_linked_file_references(report, skill_files)
     check_skill_lists(report)
     check_governance_files(report)
     check_shell_scripts(report)
     scan_reflection_signals(report)
+    return report
 
+
+def print_section(title: str, lines: list[str]) -> None:
     print("=" * 60)
-    print("ERRORS")
+    print(title)
     print("=" * 60)
-    if report.errors:
-        for line in report.errors:
+    if lines:
+        for line in lines:
             print(f"  - {line}")
     else:
         print("  (none)")
 
+
+def render_text(report: Report, *, strict: bool) -> None:
+    print_section("ERRORS", report.errors)
     print()
-    print("=" * 60)
-    print("WARNINGS")
-    print("=" * 60)
-    if report.warnings:
-        for line in report.warnings:
-            print(f"  - {line}")
-    else:
-        print("  (none)")
-
+    print_section("WARNINGS", report.warnings)
     print()
-    print("=" * 60)
-    print("REFLECTION SIGNALS")
-    print("=" * 60)
-    if report.signals:
-        for line in report.signals:
-            print(f"  - {line}")
-    else:
-        print("  (none)")
-
+    print_section("REFLECTION SIGNALS", report.signals)
     print()
     print("=" * 60)
     print("SUMMARY")
@@ -429,9 +506,29 @@ def main() -> int:
     print(f"  errors:    {len(report.errors)}")
     print(f"  warnings:  {len(report.warnings)}")
     print(f"  signals:   {len(report.signals)}")
-    print(f"  exit code: {1 if report.errors else 0}")
+    print(f"  strict:    {strict}")
+    print(f"  exit code: {report.exit_code(strict=strict)}")
 
-    return 1 if report.errors else 0
+
+def parse_args(argv: list[str]) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Validate the Hercules skill pack.")
+    parser.add_argument("--json", action="store_true", help="emit machine-readable JSON")
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="treat warnings as release-blocking failures (signals remain advisory)",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(sys.argv[1:] if argv is None else argv)
+    report = run_checks()
+    if args.json:
+        print(json.dumps(report.to_dict(strict=args.strict), ensure_ascii=False, indent=2))
+    else:
+        render_text(report, strict=args.strict)
+    return report.exit_code(strict=args.strict)
 
 
 if __name__ == "__main__":
