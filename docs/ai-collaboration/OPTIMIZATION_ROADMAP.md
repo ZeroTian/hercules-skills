@@ -18,9 +18,9 @@ This roadmap turns the `codex-plugin-cc` comparison and Hercules optimization pr
 |---|---|---|---|
 | P0 clean package | TASK-008 | Completed / committed as `14343ca` | Codex review `docs/ai-collaboration/codex-reviews/2026-07-08-task008-round4-skill-pack-reconciliation.md`; validator 0 errors / 0 warnings |
 | P0 residual cleanup before push | TASK-009 | Completed / committed as `304b0d1` | Codex review `docs/ai-collaboration/codex-reviews/2026-07-08-task009-residual-cleanup.md`; `staged-commit-package-governance` promoted to core atom; Godot reference improvement kept; validator 0 errors / 0 warnings |
-| P1 productized entry + landing | TASK-010 | Completed / staged for auto-commit | Codex review `docs/ai-collaboration/codex-reviews/2026-07-08-task010-productized-entry.md`; wrapper smoke tests pass |
-| P1/P2 release gate + migration proof | TASK-011 | Completed / staged for auto-commit | Codex review `docs/ai-collaboration/codex-reviews/2026-07-08-task011-validator-release-gate.md`; validator `--json` / `--strict`, linked-file deep checks, staged-only fresh-clone smoke script pass |
-| P2 information architecture | TASK-012 | Backlog | skill role metadata/composition map + TASKS active/archive split |
+| P1 productized entry + landing | TASK-010 | Completed / committed as `55a9817` | Codex review `docs/ai-collaboration/codex-reviews/2026-07-08-task010-productized-entry.md`; wrapper smoke tests pass |
+| P1/P2 release gate + migration proof | TASK-011 | Completed / committed as `98afa95` | Codex review `docs/ai-collaboration/codex-reviews/2026-07-08-task011-validator-release-gate.md`; validator `--json` / `--strict`, linked-file deep checks, staged-only fresh-clone smoke script pass |
+| P2 information architecture | TASK-012 | Completed / Codex PASS | Codex review `docs/ai-collaboration/codex-reviews/2026-07-08-task012-information-architecture.md`; skill navigation + TASKS archive split + validator checks pass |
 | P2/P3 absorption + outreach package | TASK-013 | Backlog | external-tool absorption workflow + `docs/WHY_HERCULES.md` + demo/tiny example decision |
 
 ## TASK-008 — P0 clean package
@@ -115,7 +115,15 @@ Acceptance gates:
 
 Goal: make the current core skill pack easier to navigate and keep TASKS manageable.
 
-Candidate deliverables:
+Delivered in staged package:
+
+- `docs/ai-collaboration/SKILL_NAVIGATION.md` role/maturity navigation map for all runtime skills;
+- `docs/ai-collaboration/tasks/archive-2026-07.md` archive for TASK-001 through TASK-009;
+- compact live `TASKS.md` with archive pointer, recent completed tasks, active/backlog tasks, and template;
+- validator checks for SKILL_NAVIGATION drift and TASKS archive link/duplicate task-id drift;
+- Codex review PASS after CR-T012-001..003 fixes.
+
+Original candidate deliverables:
 
 - role/maturity metadata convention, e.g. `entry`, `atom`, `specialized`, `archived`;
 - composition map maintained in `SKILL_GROUP_AUDIT.md` or a dedicated architecture doc;

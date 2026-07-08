@@ -62,6 +62,8 @@ No symlinks live inside the repository itself (`find skills -type l` is empty), 
 
 ## Classification
 
+For a compact role/maturity navigation table of all runtime skills, see `docs/ai-collaboration/SKILL_NAVIGATION.md` (validated against `git ls-files 'skills/*/SKILL.md'`). The table below is the detailed audit classification including archived candidates.
+
 Legend:
 - **entry** — Hercules-specific entry wrapper that composes atoms and applies Hercules preferences.
 - **atom** — single-responsibility generic workflow skill, reusable across repositories.

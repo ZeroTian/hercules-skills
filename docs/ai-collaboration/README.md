@@ -12,9 +12,11 @@ It is an index for humans and agents. Long operational rules live in the actor-s
 
 - `TASKS.md` — live task ledger and task template (with trajectory record policy)
 - `ARCHITECTURE.md` — repository structure and boundaries
+- `SKILL_NAVIGATION.md` — compact role/maturity navigation map for runtime Hercules skills
 - `PROJECT_AUDIT.md` — initialization/audit snapshot with evidence
 - `SKILL_GROUP_AUDIT.md` — skill-group redundancy/atomicity audit, composition map, and runnable gaps
 - `USABILITY_VALIDATION.md` — practical smoke-test evidence for runtime layout, skill loading, bootstrap audit-only, and real Claude/Codex workflow use
+- `tasks/` — archived completed task records split out of the live ledger
 - `codex-reviews/` — stable Codex review records
 - `decisions/` — ADR-style durable decisions
 

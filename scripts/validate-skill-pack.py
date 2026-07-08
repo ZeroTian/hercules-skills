@@ -7,6 +7,8 @@ Runs with Python stdlib only. Checks:
   - linked file directories are only references/templates/scripts/assets
   - skill-local linked-file references point to existing files
   - README and ARCHITECTURE tracked skill lists vs git tracked skills and visible skill dirs
+  - SKILL_NAVIGATION role/maturity table vs git tracked skills
+  - TASKS archive links, no duplicate task IDs across live/archive ledgers
   - governance files exist
   - shell scripts pass `bash -n`
   - optional JSON output and strict warning-as-failure release gate
@@ -49,7 +51,9 @@ GOVERNANCE_DOC_PATHS = (
     "docs/ai-collaboration/README.md",
     "docs/ai-collaboration/TASKS.md",
     "docs/ai-collaboration/ARCHITECTURE.md",
+    "docs/ai-collaboration/SKILL_NAVIGATION.md",
     "docs/ai-collaboration/PROJECT_AUDIT.md",
+    "docs/ai-collaboration/tasks",
     "docs/ai-collaboration/codex-reviews",
     "docs/ai-collaboration/decisions",
 )
@@ -309,6 +313,89 @@ def check_skill_lists(report: Report) -> None:
             report.warn(f"ARCHITECTURE lists skills not tracked by git: {sorted(extra_in_arch)}")
 
 
+
+SKILL_NAV_ALLOWED_ROLES = {"entry/composite", "atom", "specialized atom"}
+SKILL_NAV_ALLOWED_MATURITY = {"core", "domain"}
+TASK_ARCHIVE_LINK_RE = re.compile(r"docs/ai-collaboration/tasks/[A-Za-z0-9._-]+\.md")
+
+
+def parse_skill_navigation(path: Path) -> dict[str, list[tuple[str, str]]]:
+    """Return skill -> [(role, maturity), ...] from SKILL_NAVIGATION.md."""
+    rows: dict[str, list[tuple[str, str]]] = {}
+    if not path.exists():
+        return rows
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not line.startswith("|") or "`" not in line:
+            continue
+        cols = [c.strip() for c in line.strip().strip("|").split("|")]
+        if len(cols) < 5 or cols[0] == "Skill":
+            continue
+        m = re.fullmatch(r"`([a-z][a-z0-9-]*)`", cols[0])
+        if not m:
+            continue
+        rows.setdefault(m.group(1), []).append((cols[1], cols[2]))
+    return rows
+
+
+def check_skill_navigation(report: Report) -> None:
+    nav_path = DOCS_COLLAB / "SKILL_NAVIGATION.md"
+    tracked = git_tracked_skills()
+    rows = parse_skill_navigation(nav_path)
+    if not nav_path.exists():
+        report.error("missing governance path: docs/ai-collaboration/SKILL_NAVIGATION.md")
+        return
+    listed = set(rows)
+    missing = tracked - listed
+    extra = listed - tracked
+    if missing or extra:
+        report.warn(
+            "docs/ai-collaboration/SKILL_NAVIGATION.md skill table drift: "
+            f"missing={sorted(missing)}, extra={sorted(extra)}"
+        )
+    duplicated = {skill: len(values) for skill, values in rows.items() if len(values) > 1}
+    if duplicated:
+        report.warn(
+            "docs/ai-collaboration/SKILL_NAVIGATION.md duplicate skill rows: "
+            f"{sorted(duplicated.items())}"
+        )
+    for skill, values in sorted(rows.items()):
+        for role, maturity in values:
+            if role not in SKILL_NAV_ALLOWED_ROLES:
+                report.warn(f"docs/ai-collaboration/SKILL_NAVIGATION.md: {skill} has unknown role '{role}'")
+            if maturity not in SKILL_NAV_ALLOWED_MATURITY:
+                report.warn(
+                    f"docs/ai-collaboration/SKILL_NAVIGATION.md: {skill} has unknown maturity '{maturity}'"
+                )
+
+
+def check_task_archives(report: Report) -> None:
+    live_path = DOCS_COLLAB / "TASKS.md"
+    if not live_path.exists():
+        return
+    live_text = live_path.read_text(encoding="utf-8")
+    archive_links = sorted(set(TASK_ARCHIVE_LINK_RE.findall(live_text)))
+    for rel in archive_links:
+        if not (REPO_ROOT / rel).exists():
+            report.error(f"TASKS.md archive link missing target: {rel}")
+
+    live_ids = {t["id"] for t in parse_tasks(live_text)}
+    archive_ids: dict[str, str] = {}
+    for archive in sorted((DOCS_COLLAB / "tasks").glob("*.md")):
+        archive_text = archive.read_text(encoding="utf-8")
+        archive_tasks = parse_tasks(archive_text)
+        rel = str(archive.relative_to(REPO_ROOT))
+        if archive_text.strip() and rel not in archive_links:
+            report.warn(f"TASKS.md does not link non-empty task archive: {rel}")
+        for task in archive_tasks:
+            tid = task["id"]
+            if tid in archive_ids:
+                report.warn(f"task id {tid} appears in multiple archives: {archive_ids[tid]}, {rel}")
+            archive_ids[tid] = rel
+    duplicated = sorted(live_ids & set(archive_ids))
+    if duplicated:
+        report.warn(f"task ids duplicated between TASKS.md and archive files: {duplicated}")
+
+
 def check_governance_files(report: Report) -> None:
     for name in GOVERNANCE_ROOT_FILES:
         p = REPO_ROOT / name
@@ -476,6 +563,8 @@ def run_checks() -> Report:
     check_linked_dirs(report)
     check_linked_file_references(report, skill_files)
     check_skill_lists(report)
+    check_skill_navigation(report)
+    check_task_archives(report)
     check_governance_files(report)
     check_shell_scripts(report)
     scan_reflection_signals(report)

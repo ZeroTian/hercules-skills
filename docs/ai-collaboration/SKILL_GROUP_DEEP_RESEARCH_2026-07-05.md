@@ -178,7 +178,7 @@ governance validation
 
 ## Priority plan
 
-> Implementation status (2026-07-05): P0 and P1 were implemented in TASK-006 (see `docs/ai-collaboration/TASKS.md#task-006`). The validator returned to 0 errors / 0 warnings / 0 signals and the core skill count returned to 16 after removing the standalone `post-task-memory-skill-evolution` skill; its unique lessons were merged into `hercules-meta-skill-evolution` and `skill-pack-governance-validation`. P2 and P3 below remain future work.
+> Implementation status (2026-07-05): P0 and P1 were implemented in TASK-006 (see `docs/ai-collaboration/tasks/archive-2026-07.md#task-006`). The validator returned to 0 errors / 0 warnings / 0 signals and the core skill count returned to 16 after removing the standalone `post-task-memory-skill-evolution` skill; its unique lessons were merged into `hercules-meta-skill-evolution` and `skill-pack-governance-validation`. P2 and P3 below remain future work.
 
 ### P0 / release gate
 
