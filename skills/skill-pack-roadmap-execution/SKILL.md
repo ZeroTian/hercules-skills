@@ -1,7 +1,7 @@
 ---
 name: skill-pack-roadmap-execution
 description: "Use when executing a multi-task skill-pack roadmap under Hermes: advance TASKS.md automatically after user authorization, delegate implementation/review, verify staged packages, close ledgers truthfully, and auto-commit after Codex PASS while keeping push separate."
-version: 1.0.0
+version: 1.0.1
 author: Hercules / Hermes Agent
 license: MIT
 metadata:
@@ -41,6 +41,7 @@ Do not use when the user asks only for planning, only for review, or for a one-o
 8. **Close only after PASS.** Write/link the Codex review record, update TASKS/roadmap truthfully, set `codex_result: PASS`, `score: 1.0`, and `next_owner: none` only after real PASS evidence.
 9. **Auto-commit if authorized.** Commit after final validation and Codex PASS. Do not push unless explicitly authorized.
 10. **Advance or stop.** If more active tasks remain and the user authorized continuation, move to the next task; otherwise report current clean state and next decision.
+11. **Answer “all done?” only after a live audit.** Before saying every task is complete, re-check the active todo list, `TASKS.md` task headings, roadmap rows, `git status --short -uall`, and the strict/package gates. Treat unexpected untracked runtime skill directories as source decisions: either delete/archive them as out of scope or complete them as tracked skills with references, navigation/list updates, validation, Codex review, and commit.
 
 ## Standard Validation Bundle
 
@@ -66,6 +67,7 @@ Treat validator `ERRORS` and `WARNINGS` as blockers. Treat `REFLECTION SIGNALS` 
 4. **Premature ledger closure.** Do not mark checkboxes, trajectory score, or Codex result complete before review records and PASS evidence exist.
 5. **Losing partial Claude work.** `max-turns` can still leave useful edits. Inspect and reconcile instead of discarding or blindly rerunning.
 6. **Mixing staged and unstaged scope.** Stage only intended files, run staged package checks, and preserve unrelated work.
+7. **Answering “all complete” from memory.** A preserved todo list can be complete while Git still contains untracked runtime skills or documentation drift. Run the live audit gate before saying the repository is done.
 
 ## References
 
