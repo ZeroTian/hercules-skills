@@ -17,8 +17,8 @@ This roadmap turns the `codex-plugin-cc` comparison and Hercules optimization pr
 | Phase | Task | Status | Evidence |
 |---|---|---|---|
 | P0 clean package | TASK-008 | Completed / committed as `14343ca` | Codex review `docs/ai-collaboration/codex-reviews/2026-07-08-task008-round4-skill-pack-reconciliation.md`; validator 0 errors / 0 warnings |
-| P0 residual cleanup before push | TASK-009 | Completed / staged (pending commit authorization) | Codex review `docs/ai-collaboration/codex-reviews/2026-07-08-task009-residual-cleanup.md`; `staged-commit-package-governance` promoted to core atom; Godot reference improvement kept; validator 0 errors / 0 warnings |
-| P1 productized entry + landing | TASK-010 | Backlog | `scripts/hercules` wrapper + README landing acceptance |
+| P0 residual cleanup before push | TASK-009 | Completed / committed as `304b0d1` | Codex review `docs/ai-collaboration/codex-reviews/2026-07-08-task009-residual-cleanup.md`; `staged-commit-package-governance` promoted to core atom; Godot reference improvement kept; validator 0 errors / 0 warnings |
+| P1 productized entry + landing | TASK-010 | Completed / staged for auto-commit | Codex review `docs/ai-collaboration/codex-reviews/2026-07-08-task010-productized-entry.md`; wrapper smoke tests pass |
 | P1/P2 release gate + migration proof | TASK-011 | Backlog | validator `--json` / `--strict`, linked-file deep checks, fresh-clone smoke script |
 | P2 information architecture | TASK-012 | Backlog | skill role metadata/composition map + TASKS active/archive split |
 | P2/P3 absorption + outreach package | TASK-013 | Backlog | external-tool absorption workflow + `docs/WHY_HERCULES.md` + demo/tiny example decision |
@@ -40,7 +40,7 @@ Residual outside TASK-008, now addressed by TASK-009 package:
 - `skills/hercules-collaborative-agent-workflow/references/real-godot-closed-loop-validation.md` is kept as a durable reference improvement;
 - `skills/staged-commit-package-governance/` is promoted to a core atom with a round-4 case-study reference file.
 
-TASK-009 passed Codex recheck and remains staged pending explicit commit/push authorization.
+TASK-009 passed Codex recheck and was committed as `304b0d1`; not pushed.
 
 ## TASK-009 — P0 residual cleanup before push
 

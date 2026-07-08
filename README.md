@@ -2,11 +2,46 @@
 
 Portable Hermes skills for the personal Hercules development workflow.
 
-This workflow treats Hermes as the primary orchestration agent. Hermes gathers context, chooses tools, launches Claude Code for implementation, launches Codex CLI for independent review, verifies real outputs, and reports state back to the user. The skills in this repository encode that workflow as a portable skill group.
+Hercules makes multi-agent development governable and repeatable:
+
+```text
+Hermes orchestrates → Claude Code implements → Codex independently reviews → real commands verify
+```
+
+The skills in this repository encode that workflow as a portable skill group. They are useful when you want agent collaboration to leave an auditable trail: task records, validation commands, review records, and explicit residual risks.
 
 Repository:
 
 https://github.com/ZeroTian/hercules-skills
+
+## Quickstart
+
+From a checkout of this repository:
+
+```bash
+scripts/hercules status
+scripts/hercules validate
+scripts/hercules bootstrap --check
+```
+
+Use the helper as the lightweight product entry point:
+
+```bash
+scripts/hercules validate          # validator + whitespace diff check + bootstrap script syntax
+scripts/hercules bootstrap --check # audit-only dependency doctor; no optional installs
+scripts/hercules package           # staged package readiness; no commit or push
+scripts/hercules doctor            # tool presence + audit-only bootstrap + validation
+```
+
+For the detailed operating rules, use the governance docs instead of this README:
+
+```text
+HERMES.md                                  # Hermes orchestration rules
+CLAUDE.md                                  # Claude Code implementation rules
+AGENTS.md                                  # Codex review rules
+docs/ai-collaboration/TASKS.md            # live task ledger
+docs/ai-collaboration/OPTIMIZATION_ROADMAP.md
+```
 
 ## What is included
 
@@ -137,7 +172,13 @@ hermes skills list | grep hercules
 
 ## Validate the skill pack
 
-Run the lightweight validator before skill-pack changes or before handoff to Codex review:
+Run the productized validation entry before skill-pack changes or before handoff to Codex review:
+
+```bash
+scripts/hercules validate
+```
+
+The underlying validator can still be run directly when needed:
 
 ```bash
 python3 scripts/validate-skill-pack.py

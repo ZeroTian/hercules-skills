@@ -777,21 +777,21 @@ trajectory:
     logs: []
 ```
 
-## [ ] TASK-010：P1 productized entry + README landing
+## [x] TASK-010：P1 productized entry + README landing
 
-- 当前状态：待处理
+- 当前状态：已完成
 - 优先级：P1
-- 当前负责人：User
-- 下一负责人：Hermes
-- 下一步：用户选择启动后，Hermes/Claude 设计 `scripts/hercules` wrapper 与 README landing 改写
+- 当前负责人：无
+- 下一负责人：无
+- 下一步：无；Codex recheck PASS，按用户授权自动 commit，不 push
 - 是否需要 Codex 复核：是
 - 创建日期：2026-07-08
 - 最后更新：2026-07-08
 - 来源：优化路线图（codex-plugin-cc 对比：入口简单、可执行命令面）
 - 关联任务：TASK-008
-- 关联审阅：暂无
-- 验证证据：待补充
-- 阻塞原因：等待 TASK-009 或用户明确跳过残留项后启动
+- 关联审阅：`docs/ai-collaboration/codex-reviews/2026-07-08-task010-productized-entry.md`
+- 验证证据：Hermes 已暂存 intended TASK-010 package；`bash -n scripts/hercules` 通过；`scripts/hercules help` 通过；`scripts/hercules validate` 通过；`scripts/hercules bootstrap --check` 通过（audit-only，未安装 optional plugin）；`scripts/hercules status` 通过；`scripts/hercules package` 通过；`scripts/hercules doctor` 通过；`python3 scripts/validate-skill-pack.py` 0 errors / 0 warnings / 3 reflection signals；`git diff --check` 与 `git diff --cached --check` 通过；staged privacy scan 通过。中途 `scripts/hercules package` 初版 privacy scan 误扫自身 secret regex 已修复。Codex 初审发现 `CR-T010-001` executable bit 未暂存、`CR-T010-002` secret hits 写固定 `/tmp`；Hermes 已改为暂存 executable bit 并用内存变量保留前 20 条 hit，不写固定 temp 文件，Codex recheck PASS。
+- 阻塞原因：无；用户已授权 TASK-010~013 自动执行、Codex PASS 后自动 commit、不 push
 
 ### 目标
 
@@ -799,19 +799,37 @@ trajectory:
 
 ### 执行项
 
-- [ ] 设计 `scripts/hercules` 子命令：`validate`, `bootstrap --check`, `status`, `package`, `doctor`
-- [ ] 实现 shell wrapper 并保持无外部依赖
-- [ ] README 第一屏改为价值主张 + 三步 quickstart + 典型 Hermes→Claude→Codex→verification 流程
-- [ ] 运行 shell syntax、validator、wrapper 子命令 smoke tests
-- [ ] Codex 复核 CLI/README 是否降低入口门槛且不削弱治理边界
+- [x] 设计 `scripts/hercules` 子命令：`validate`, `bootstrap --check`, `status`, `package`, `doctor`
+- [x] 实现 shell wrapper 并保持无外部依赖
+- [x] README 第一屏改为价值主张 + 三步 quickstart + 典型 Hermes→Claude→Codex→verification 流程
+- [x] 运行 shell syntax、validator、wrapper 子命令 smoke tests
+- [x] Codex 复核 CLI/README 是否降低入口门槛且不削弱治理边界
 
 ### 验收标准
 
-- [ ] `scripts/hercules validate` 运行 validator、diff check、bootstrap script syntax check，并返回正确 exit code
-- [ ] `scripts/hercules bootstrap --check` 运行 audit-only bootstrap，不安装 optional plugin
-- [ ] README 保持 reader-facing，不复制长规则
-- [ ] validator / diff checks / shell syntax 通过
-- [ ] Codex review PASS
+- [x] `scripts/hercules validate` 运行 validator、diff check、bootstrap script syntax check，并返回正确 exit code
+- [x] `scripts/hercules bootstrap --check` 运行 audit-only bootstrap，不安装 optional plugin
+- [x] README 保持 reader-facing，不复制长规则
+- [x] validator / diff checks / shell syntax 通过
+- [x] Codex review PASS
+
+### Hermes 执行记录
+
+- 授权边界：用户已授权 TASK-010~013 自动执行；每个任务 Codex PASS 后自动 commit；不 push
+- Claude 尝试：Claude Code `--effort high --max-turns 30` 超时且无落地改动；Hermes 直接实现并继续独立验证
+- 修改文件：`scripts/hercules`, `README.md`, `docs/ai-collaboration/TASKS.md`, `docs/ai-collaboration/OPTIMIZATION_ROADMAP.md`
+- wrapper 子命令：`validate`, `bootstrap --check`, `status`, `package`, `doctor`, `help`
+- 验证结果：wrapper smoke tests、validator、diff checks、bootstrap audit-only、staged privacy scan 均通过；Codex 初审 FAIL：`CR-T010-001`/`CR-T010-002`；Hermes 已修复；Codex narrow recheck PASS
+- 遗留风险：fresh-clone smoke 不在 TASK-010 范围内，已留给 TASK-011
+
+### Codex 复核记录
+
+- 复核日期：2026-07-08
+- 初审结果：FAIL / highest P1
+- Findings：`CR-T010-001` executable bit 未暂存；`CR-T010-002` privacy scan 将 secret hits 写入固定 `/tmp` 路径
+- 修复：Hermes staged executable mode `100755`；privacy scan 改用内存变量 `hits`，不再写固定 temp path
+- Recheck：PASS，无剩余 findings
+- Review record：`docs/ai-collaboration/codex-reviews/2026-07-08-task010-productized-entry.md`
 
 ### Trajectory
 
@@ -823,24 +841,24 @@ trajectory:
   task_type: implementation
   skill_versions:
     writing-plans: 1.1.0
-  score: provisional
+  score: 0.8
   actor_path: "User decision -> Hermes plan -> Claude implement -> Hermes verify -> Codex"
   phi:
     capability_preflight: cached
     relevant_capabilities: []
     effort: high
-    claude_result: not-launched
-    codex_result: not-launched
+    claude_result: timeout-no-edits-then-Hermes-direct-implementation
+    codex_result: PASS-after-CR-T010-001-CR-T010-002
     verification:
-      commands: []
-      logs: []
-      diff_scope: "scripts/hercules, README.md"
-    cr_ids: []
-    blocker_type: scope
-    next_owner: User
+      commands: ["bash -n scripts/hercules", "scripts/hercules help", "scripts/hercules validate", "scripts/hercules bootstrap --check", "scripts/hercules status", "scripts/hercules package", "scripts/hercules doctor", "python3 scripts/validate-skill-pack.py", "git diff --check"]
+      logs: ["/tmp/task010_productized_entry_prompt.md"]
+      diff_scope: "scripts/hercules, README.md, docs/ai-collaboration/TASKS.md, docs/ai-collaboration/OPTIMIZATION_ROADMAP.md"
+    cr_ids: ["CR-T010-001", "CR-T010-002"]
+    blocker_type: none
+    next_owner: none
   source_pointers:
     task_record: "docs/ai-collaboration/TASKS.md#task-010"
-    review_record: "暂无"
+    review_record: "docs/ai-collaboration/codex-reviews/2026-07-08-task010-productized-entry.md"
     logs: []
 ```
 

@@ -1,0 +1,192 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+REPO_ROOT=$(cd -- "$SCRIPT_DIR/.." && pwd)
+BOOTSTRAP_SCRIPT="skills/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh"
+VALIDATOR="scripts/validate-skill-pack.py"
+
+cd "$REPO_ROOT"
+
+usage() {
+  cat <<'USAGE'
+Hercules skill-pack helper
+
+Usage:
+  scripts/hercules <command> [args]
+
+Commands:
+  validate            Run repo validation, whitespace diff check, and bootstrap script syntax check.
+  bootstrap --check   Run Hercules bootstrap/dependency doctor in audit-only mode.
+  status              Show concise repo status, latest commit, runtime skill count, and validator summary.
+  package             Check staged package readiness without committing or pushing.
+  doctor              Run audit-only bootstrap, validate, and tool presence checks.
+  help                Show this help.
+
+Notes:
+  - This helper never commits or pushes.
+  - bootstrap --check uses HERCULES_CHECK_ONLY=1 and does not install optional plugins.
+USAGE
+}
+
+section() {
+  printf '\n==> %s\n' "$*"
+}
+
+have_cmd() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+run_validate() {
+  section "validator"
+  python3 "$VALIDATOR"
+
+  section "git diff --check"
+  git diff --check
+
+  section "bootstrap script syntax"
+  bash -n "$BOOTSTRAP_SCRIPT"
+}
+
+run_bootstrap_check() {
+  if [ "${1:-}" != "--check" ] || [ "$#" -ne 1 ]; then
+    printf 'Usage: scripts/hercules bootstrap --check\n' >&2
+    return 2
+  fi
+  section "bootstrap audit-only"
+  HERCULES_CHECK_ONLY=1 bash "$BOOTSTRAP_SCRIPT"
+}
+
+runtime_skill_count() {
+  find skills -mindepth 2 -maxdepth 2 -name SKILL.md -type f | wc -l | tr -d ' '
+}
+
+run_status() {
+  section "repository"
+  printf 'root: %s\n' "$REPO_ROOT"
+  printf 'branch: '
+  git branch --show-current
+  printf 'latest_commit: '
+  git log -1 --oneline
+
+  section "worktree"
+  if git status --short -uall | grep -q .; then
+    git status --short -uall
+  else
+    printf 'clean\n'
+  fi
+
+  section "skills"
+  printf 'runtime_skill_count: %s\n' "$(runtime_skill_count)"
+
+  section "validator summary"
+  python3 "$VALIDATOR"
+}
+
+privacy_scan_staged() {
+  section "staged privacy scan"
+  if git diff --cached --name-only | grep -Ei '(^|/)(\.env|.*secret.*|.*token.*|.*credential.*|id_rsa|id_ed25519|config\.toml)$'; then
+    printf 'SENSITIVE_FILENAMES_FOUND\n' >&2
+    return 2
+  fi
+  printf 'filename scan ok\n'
+
+  # Build the regex from fragments so this helper's own source does not
+  # trigger the staged-diff secret scan when the helper is modified.
+  local github_token_pat='ghp_''[A-Za-z0-9_]{20,}'
+  local openai_token_pat='sk-''[A-Za-z0-9]{20,}'
+  local aws_key_pat='AKIA''[0-9A-Z]{16}'
+  local private_key_pat='BEGIN (RSA|OPENSSH|EC|DSA) PRIVATE KEY'
+  local api_key_pat='ANTHROPIC_''API_KEY|OPENAI_''API_KEY|SUDO_''PASSWORD'
+  local secret_regex="(${github_token_pat}|${openai_token_pat}|${aws_key_pat}|${private_key_pat}|${api_key_pat})"
+  local hits
+  hits=$(git diff --cached | grep -Eai "$secret_regex" | sed -n '1,20p' || true)
+  if [ -n "$hits" ]; then
+    printf 'SECRET_PATTERN_FOUND\n' >&2
+    printf '%s\n' "$hits" >&2
+    return 3
+  fi
+  printf 'content scan ok\n'
+}
+
+run_package() {
+  section "package readiness (no commit / no push)"
+  printf 'This command verifies the staged package only. It does not commit or push.\n'
+  run_validate
+
+  section "git diff --cached --check"
+  git diff --cached --check
+
+  section "staged paths"
+  if git diff --cached --name-only | grep -q .; then
+    git diff --cached --name-only
+  else
+    printf 'no staged paths\n'
+  fi
+
+  privacy_scan_staged
+}
+
+run_doctor() {
+  section "tool presence"
+  local missing=0
+  for cmd in git python3 bash claude codex hermes; do
+    if have_cmd "$cmd"; then
+      printf '%s: present' "$cmd"
+      case "$cmd" in
+        git|python3|bash|claude|codex)
+          printf ' (%s)' "$($cmd --version 2>/dev/null | head -1 || true)"
+          ;;
+      esac
+      printf '\n'
+    else
+      printf '%s: missing\n' "$cmd"
+      missing=1
+    fi
+  done
+
+  run_bootstrap_check --check
+  run_validate
+
+  return "$missing"
+}
+
+main() {
+  local cmd="${1:-help}"
+  case "$cmd" in
+    help|-h|--help)
+      usage
+      ;;
+    validate)
+      shift
+      if [ "$#" -ne 0 ]; then usage >&2; return 2; fi
+      run_validate
+      ;;
+    bootstrap)
+      shift
+      run_bootstrap_check "$@"
+      ;;
+    status)
+      shift
+      if [ "$#" -ne 0 ]; then usage >&2; return 2; fi
+      run_status
+      ;;
+    package)
+      shift
+      if [ "$#" -ne 0 ]; then usage >&2; return 2; fi
+      run_package
+      ;;
+    doctor)
+      shift
+      if [ "$#" -ne 0 ]; then usage >&2; return 2; fi
+      run_doctor
+      ;;
+    *)
+      printf 'Unknown command: %s\n\n' "$cmd" >&2
+      usage >&2
+      return 2
+      ;;
+  esac
+}
+
+main "$@"
