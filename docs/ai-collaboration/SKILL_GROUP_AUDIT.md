@@ -3,11 +3,11 @@
 Last inspected: 2026-07-08
 Reconciliation round: 2026-07-08 (round 4)
 Inspector: Claude Code (xhigh), under Hermes governance scope
-Scope: classify Hercules skills, identify redundancy/overlap, define an organic composition map, and list runnable gaps. Round 1 produced audit + runnable validation infrastructure. Round 2 reconciled visible-untracked candidates: promoted two core atoms and archived four non-core candidates. Round 3 promotes `skill-pack-governance-validation` from a practiced usability/commit-package acceptance workflow that validated commit `97f78ca`. Round 4 reconciles seven further visible-untracked candidates: promotes four core/specialized atoms (`agent-plugin-dependency-governance`, `evaluation-closed-loop-orchestration`, `godot-wsl-artifact-validation`, `godot-rl-metric-regression`) and archives three evaluated-system loop variants after folding their unique details into `evaluation-closed-loop-orchestration`. Round 4 folds reusable detail into one promoted skill and reconciles the runtime skill directory, docs, and task ledger.
+Scope: classify Hercules skills, identify redundancy/overlap, define an organic composition map, and list runnable gaps. Round 1 produced audit + runnable validation infrastructure. Round 2 reconciled visible-untracked candidates: promoted two core atoms and archived four non-core candidates. Round 3 promotes `skill-pack-governance-validation` from a practiced usability/commit-package acceptance workflow that validated commit `97f78ca`. Round 4 reconciles seven further visible-untracked candidates: promotes four core/specialized atoms (`agent-plugin-dependency-governance`, `evaluation-closed-loop-orchestration`, `godot-wsl-artifact-validation`, `godot-rl-metric-regression`) and archives three evaluated-system loop variants after folding their unique details into `evaluation-closed-loop-orchestration`. Round 4 folds reusable detail into one promoted skill and reconciles the runtime skill directory, docs, and task ledger. TASK-009 (follow-up to round 4) promotes one additional atom, `staged-commit-package-governance`, captured from the round-4 staged-package boundary and ledger-truth pattern, and keeps a durable Godot validation reference improvement in the same package.
 
 ## Inventory
 
-### Core skills after round 4 (20)
+### Core skills after round 4 + TASK-009 (21)
 
 ```text
 agent-plugin-dependency-governance
@@ -29,10 +29,11 @@ kanban-orchestrator
 kanban-worker
 open-ended-research-orchestration
 skill-pack-governance-validation
+staged-commit-package-governance
 workflow-skill-pack-audit
 ```
 
-Round 2 promoted `hercules-skill-pack-management` and `workflow-skill-pack-audit` from visible-untracked candidates to core skills (now tracked). Round 3 promotes `skill-pack-governance-validation` from a practiced usability/commit-package acceptance workflow that validated commit `97f78ca` (clone-copy acceptance after push). Round 4 promotes `agent-plugin-dependency-governance`, `evaluation-closed-loop-orchestration`, `godot-wsl-artifact-validation`, and `godot-rl-metric-regression` from visible-untracked candidates to core/specialized atoms. Hermes stages the promoted skill files for tracking before final validation so the runtime `skills/` directory and documentation list align.
+Round 2 promoted `hercules-skill-pack-management` and `workflow-skill-pack-audit` from visible-untracked candidates to core skills (now tracked). Round 3 promotes `skill-pack-governance-validation` from a practiced usability/commit-package acceptance workflow that validated commit `97f78ca` (clone-copy acceptance after push). Round 4 promotes `agent-plugin-dependency-governance`, `evaluation-closed-loop-orchestration`, `godot-wsl-artifact-validation`, and `godot-rl-metric-regression` from visible-untracked candidates to core/specialized atoms. Hermes stages the promoted skill files for tracking before final validation so the runtime `skills/` directory and documentation list align. TASK-009 promotes `staged-commit-package-governance` from the round-4 staged-package boundary and ledger-truth pattern; it complements `skill-pack-governance-validation` and is staged by Hermes pending Codex review.
 
 ### Archived candidates (8, under `docs/ai-collaboration/candidate-skills/`)
 
@@ -85,6 +86,7 @@ Legend:
 | hercules-skill-pack-management | atom (core) | Repo layout, symlink, backup, migration, GitHub sync, privacy pre-push checks. |
 | workflow-skill-pack-audit | atom (core) | Skill-pack audit/reconciliation: classification, validator/recheck workflow, ledger trajectory, Codex reconciliation. |
 | skill-pack-governance-validation | atom (core) | Runtime usability / commit-package / migration acceptance: runtime loading, archived candidate safety, validator/static checks, bootstrap audit-only, staged privacy scan, commit-package readiness. |
+| staged-commit-package-governance | atom (core) | Staged-package boundary and ledger-truth: index-vs-worktree boundaries, preserving unrelated unstaged work, ledger/trajectory truthfulness after staging, narrow Codex rechecks. Complements `skill-pack-governance-validation`. |
 | agent-plugin-dependency-governance | atom (core) | External Claude/Codex/agent plugin dependency governance: dependency-vs-vendor boundary, optional bootstrap gating, live sub-capability scanning, safety-boundary classification, independent review authority. |
 | evaluation-closed-loop-orchestration | atom (core) | Canonical evaluated-system closed loop: telemetry→diagnosis→safe attempt→gate→modification request→agent handoff→BLOCKED outcome→Claude/Codex review. Absorbs the unique detail of three archived loop variants. |
 | godot-wsl-artifact-validation | specialized atom (domain) | WSL + Windows Godot artifact proof: artifact projects, headless probes, import/smoke evidence, baseline-vs-candidate log preservation, SceneTree/`res://` pitfalls. |
@@ -135,6 +137,11 @@ Legend:
 
 - **Relationship**: visible-untracked after round 2. It codifies the acceptance pass that follows an audit or skill-pack change: runtime layout smoke test, `skill_view` loading, archived-candidate non-loading, validator/static checks, bootstrap audit-only, staged privacy scan, and commit-package readiness. It complements `workflow-skill-pack-audit` (which governs classification/reconciliation) and `hercules-skill-pack-management` (which governs layout/sync): those govern what the pack looks like; this governs evidence that the pack is usable and safe to package. The practice was exercised end-to-end against commit `97f78ca` (clone-copy validation after push).
 - **Decision (round 3)**: **promoted to core atom**. Added to README and ARCHITECTURE core lists. Hermes stages the skill file for tracking before final validation. Distinct from `workflow-skill-pack-audit`: audit/reconciliation stays with the audit atom; runtime usability / commit-package / migration acceptance stays with this skill.
+
+### staged-commit-package-governance
+
+- **Relationship**: TASK-009 visible-untracked candidate, captured from the round-4 staged-package boundary and ledger-truth pattern. It overlaps `skill-pack-governance-validation` in the commit-package space but narrows in on a distinct concern: keeping the staged index, TASKS/CR ledger, trajectory record, and review record aligned during the staging/review cycle, especially when unrelated unstaged work must be preserved and Codex finds ledger drift after staging.
+- **Decision (TASK-009)**: **promoted to core atom**. Distinct from `skill-pack-governance-validation`: that skill governs the broad acceptance pass (runtime loading, validator, bootstrap, privacy scan, commit-package readiness); this atom governs the staged-package boundary and ledger-truth cycle during the actual staging/review cycle, including narrow Codex rechecks of ledger drift. Added to README and ARCHITECTURE core lists.
 
 ### agent-plugin-dependency-governance
 
@@ -205,6 +212,7 @@ validation + audit
   scripts/validate-skill-pack.py (frontmatter, links, lists, governance, shell, reflection signals)
   workflow-skill-pack-audit (audit/reconciliation pass, Codex recheck)
   skill-pack-governance-validation (runtime usability / commit-package / migration acceptance)
+  staged-commit-package-governance (staged-package boundary, ledger truth, narrow Codex recheck)
 ```
 
 Side branches:
@@ -222,6 +230,7 @@ Side branches:
 5. **Review-loop family overlap.** Not fixed in this pass (no skill rewrites); layering map recorded above for a future evidence-backed patch round.
 6. **`repository-governance-initialization` duplicate.** Resolved in round 2 by archiving; unique content still pending merge into `hermes-project-init-orchestration/references/` as a case study.
 7. **Seven further visible-untracked candidates unresolved after round 3.** Resolved in round 4: `agent-plugin-dependency-governance`, `evaluation-closed-loop-orchestration`, `godot-wsl-artifact-validation`, `godot-rl-metric-regression` promoted to core/specialized atoms; `artifact-driven-evaluation-loops`, `artifact-handoff-orchestration`, `autonomous-evaluation-loops` archived after their unique details were folded into `evaluation-closed-loop-orchestration`.
+8. **Two residual worktree items after the round-4 commit.** Resolved in TASK-009 package: `staged-commit-package-governance` promoted to core atom and staged by Hermes; `real-godot-closed-loop-validation.md` durable reference improvement kept as a standalone tracked improvement. The runtime `skills/` directory matches the intended 21-skill core once this staged package is committed.
 
 ## Prioritized next actions
 
@@ -230,6 +239,7 @@ Side branches:
 | P1 | Commit the round-2 reconciliation when the user requests it: two promoted core skills + four archived candidates + doc updates. | Hermes | Commit/push remains out of scope until explicitly requested. Round-2 work is already committed at `97f78ca`. |
 | P1 | Commit the round-3 promotion when the user requests it: `skill-pack-governance-validation` promoted to core + doc updates. | Hermes | Commit/push remains out of scope until explicitly requested. |
 | P1 | Commit the round-4 promotion when the user requests it: four promoted core/specialized atoms + three archived loop variants + folded detail + reference files + doc updates. | Hermes | Commit/push remains out of scope until explicitly requested. Do not overclaim post-push migration readiness; fresh-clone validation still pending. |
+| P1 | Commit the TASK-009 residual cleanup when the user requests it: one promoted core atom (`staged-commit-package-governance`) + reference file + Godot validation reference improvement + doc updates. | Hermes | Commit/push remains out of scope until explicitly requested. Codex review pending; fresh-clone validation still pending. |
 | P1 | Run `python3 scripts/validate-skill-pack.py` before every skill-pack change. | Hermes / Claude | Added to HERMES.md validation commands. |
 | P2 | Merge `repository-governance-initialization` unique steps into `hermes-project-init-orchestration/references/` as a case study; then delete the archived copy. | Claude (after Codex review) | Open as a follow-up task. |
 | P2 | If promoting a domain validation candidate later, fix broken `references/godot-rl-stage2-optimizer.md` link first. | Claude | Follow `docs/ai-collaboration/candidate-skills/README.md`. |
@@ -238,7 +248,7 @@ Side branches:
 
 ## Practical usability validation
 
-Round 2 was practiced in the live repository rather than only documented. Round 3 extends the evidence with a clone-copy validation performed after pushing commit `97f78ca`, now codified by the `skill-pack-governance-validation` core skill. Round 4 reconciles seven further visible-untracked candidates (four promoted, three archived) against the same validator and ledger discipline; fresh-clone validation of the round-4 package is still pending and should be run after Hermes stages and commits the promoted skills. See `docs/ai-collaboration/USABILITY_VALIDATION.md` for evidence covering runtime symlink, the round-3 16-core-skill inventory, archived candidate non-loading, validator/static checks, bootstrap audit-only mode, clone-copy acceptance for `97f78ca`, and the actual Hermes → Claude → Hermes verify → Codex → TASKS closure loop.
+Round 2 was practiced in the live repository rather than only documented. Round 3 extends the evidence with a clone-copy validation performed after pushing commit `97f78ca`, now codified by the `skill-pack-governance-validation` core skill. Round 4 reconciles seven further visible-untracked candidates (four promoted, three archived) against the same validator and ledger discipline; fresh-clone validation of the round-4 package is still pending and should be run after the promoted skills are committed. See `docs/ai-collaboration/USABILITY_VALIDATION.md` for evidence covering runtime symlink, the round-3 16-core-skill inventory, archived candidate non-loading, validator/static checks, bootstrap audit-only mode, clone-copy acceptance for `97f78ca`, and the actual Hermes → Claude → Hermes verify → Codex → TASKS closure loop. TASK-009 adds one promoted atom (`staged-commit-package-governance`) and keeps a Godot validation reference improvement; fresh-clone validation of the TASK-009 package is still pending and should be run after the promoted skill is committed.
 
 ## Verification
 
@@ -254,4 +264,4 @@ git diff --check
 bash -n skills/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh
 ```
 
-The validation script reports 0 errors. After Hermes stages the round-3 promoted core skill file (`skill-pack-governance-validation`) for tracking and archives the unrelated game telemetry candidate outside `skills/`, the runtime `skills/` directory matches the intended round-3 16-skill core. Round 4 adds four promoted atoms and archives three loop variants; until Hermes stages the round-4 promoted skills, the validator is expected to warn about four visible-untracked promoted skill directories (not yet git-tracked). Once staged, the runtime `skills/` directory matches the intended 20-skill core and archived candidates live outside `skills/`. Reflection signals are non-failing and should point to concrete task IDs or review files rather than template prose.
+The validation script reports 0 errors. After Hermes stages the round-3 promoted core skill file (`skill-pack-governance-validation`) for tracking and archives the unrelated game telemetry candidate outside `skills/`, the runtime `skills/` directory matches the intended round-3 16-skill core. Round 4 adds four promoted atoms and archives three loop variants; after staging/commit, the runtime `skills/` directory matches the intended 20-skill core and archived candidates live outside `skills/`. TASK-009 promotes one additional atom (`staged-commit-package-governance`) and keeps a Godot validation reference improvement; Hermes staged the TASK-009 package and the validator reports 0 errors / 0 warnings with the intended 21-skill core. Reflection signals are non-failing and should point to concrete task IDs or review files rather than template prose.

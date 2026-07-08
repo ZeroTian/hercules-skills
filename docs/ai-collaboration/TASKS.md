@@ -678,6 +678,375 @@ trajectory:
     logs: []
 ```
 
+## [x] TASK-009：P0 residual cleanup before push (Godot reference edit + staged-package governance candidate)
+
+- 当前状态：已完成
+- 优先级：P0
+- 当前负责人：无
+- 下一负责人：无
+- 下一步：无；Codex recheck PASS，等待用户明确授权 commit/push（如需要）
+- 是否需要 Codex 复核：是
+- 创建日期：2026-07-08
+- 最后更新：2026-07-08
+- 来源：优化路线图（P0 clean/push-ready 收敛后的残留项）
+- 关联任务：TASK-008
+- 关联审阅：`docs/ai-collaboration/codex-reviews/2026-07-08-task009-residual-cleanup.md`
+- 验证证据：Hermes 已暂存 intended TASK-009 package；`python3 scripts/validate-skill-pack.py` 0 errors / 0 warnings / 3 reflection signals（TASK-007 max-turns 既有信号 + TASK-010..013 open blocked）；`git diff --check` 与 `git diff --cached --check` 通过；`bash -n skills/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh` 通过；`HERCULES_CHECK_ONLY=1 bash skills/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh` 通过；staged filename/content privacy scan 通过；`staged-commit-package-governance` reference 可通过 `skill_view` 加载；Codex 初审 P2 `CR-T009-001` 已修复，recheck PASS；commit 前发现 accidental duplicate `staged-package-ledger-governance` 未跟踪目录，已吸收其 stale-text search pattern into `staged-commit-package-governance` 并移除 duplicate，validator 回到 0 warnings
+- 阻塞原因：无
+
+### 目标
+
+让仓库重新达到可明确描述的 clean/push-ready 状态：当前已提交 TASK-008，但仍有一个未暂存 Godot reference 改动和一个未跟踪 `staged-commit-package-governance` skill candidate，需要单独处置。
+
+### 处置表
+
+| # | Residual | Disposition | Rationale |
+|---|---|---|---|
+| A | `skills/staged-commit-package-governance/SKILL.md` | PROMOTE/TRACK (core atom) | 捕获 round-4 staged-package boundary / ledger-truth / narrow Codex recheck 模式；与 `skill-pack-governance-validation` 互补而非冗余；补齐 `references/round4-staged-package-boundary.md`。 |
+| B | `skills/hercules-collaborative-agent-workflow/references/real-godot-closed-loop-validation.md` | KEEP/TRACK (reference improvement) | 3 条 durable Godot validation 新增（`/tmp` 日志及时复制、combat gate 伪改善判别、animation-driven hitbox 时序链）；作为独立 reference 改进纳入 TASK-009 package，不删除不重写。 |
+
+### 执行项
+
+- [x] 读取两个残留项并判断是否属于同一 package（同一 TASK-009 package，disposition 不同）
+- [x] 决定 `staged-commit-package-governance`：PROMOTE/TRACK core atom；补齐 `references/round4-staged-package-boundary.md`；调整 Overview 措辞以互补 `skill-pack-governance-validation`
+- [x] 决定 `real-godot-closed-loop-validation.md`：KEEP/TRACK 作为独立 reference 改进
+- [x] 更新 README / ARCHITECTURE / SKILL_GROUP_AUDIT 核心技能列表与计数（20→21）
+- [x] 更新 TASKS / OPTIMIZATION_ROADMAP 反映实际 disposition
+- [x] 运行 validator、`git diff --check`
+- [x] Hermes 暂存 intended TASK-009 package 并复跑 `git diff --cached --check`、staged privacy scan、bootstrap audit-only
+- [x] Codex 复核 staged TASK-009 package
+
+### 验收标准
+
+- [x] 两个残留项均有明确 disposition
+- [x] `staged-commit-package-governance` 作为正常 runtime skill 出现且 linked files 有效
+- [x] README/ARCHITECTURE/AUDIT skill counts/lists 与 21 runtime skills 一致
+- [x] validator 0 errors / 0 warnings after staging intended package
+- [x] `git diff --check` / `git diff --cached --check` / `bash -n` / bootstrap audit-only / privacy scan 通过
+- [x] 任务记录说明 committed / staged / unstaged / unpushed 状态
+- [x] Codex 已复核需要复核的 package
+
+### Claude 执行记录
+
+- 修改内容：promote `staged-commit-package-governance` 为 core atom（补齐 `references/round4-staged-package-boundary.md`、调整 Overview 措辞以互补 `skill-pack-governance-validation`）；KEEP `real-godot-closed-loop-validation.md` 3 条 Godot validation 新增作为独立 reference 改进；更新 README/ARCHITECTURE/AUDIT 核心技能列表与计数（20→21）；更新 TASKS/OPTIMIZATION_ROADMAP TASK-009 disposition
+- 补充处置：commit 前发现 accidental duplicate `skills/staged-package-ledger-governance/SKILL.md`；吸收其 stale future/backlog text search pattern into `staged-commit-package-governance`，删除 duplicate runtime directory，避免再次产生 visible-untracked warning
+- 修改文件：skills/staged-commit-package-governance/SKILL.md, skills/staged-commit-package-governance/references/round4-staged-package-boundary.md, README.md, docs/ai-collaboration/ARCHITECTURE.md, docs/ai-collaboration/SKILL_GROUP_AUDIT.md, docs/ai-collaboration/TASKS.md, docs/ai-collaboration/OPTIMIZATION_ROADMAP.md
+- KEEP/TRACK reference improvement：skills/hercules-collaborative-agent-workflow/references/real-godot-closed-loop-validation.md（3 条 durable Godot validation 新增纳入本 package）
+- 验证命令：`python3 scripts/validate-skill-pack.py`, `git diff --check`, `git diff --cached --check`, `bash -n skills/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh`, `HERCULES_CHECK_ONLY=1 bash skills/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh`, staged privacy scan, `skill_view(staged-commit-package-governance, references/round4-staged-package-boundary.md)`
+- 验证结果：Hermes 暂存 intended package 后复跑，validator 0 errors / 0 warnings / 3 reflection signals；diff checks、bash -n、bootstrap audit-only、staged privacy scan 均通过；`staged-commit-package-governance` reference 可通过 `skill_view` 加载；`git status` 仅显示 staged TASK-009 package
+- 遗留问题：fresh-clone 验证未覆盖；commit/push 需用户明确授权
+
+### Codex 复核记录
+
+- 复核日期：2026-07-08
+- 复核范围：staged TASK-009 package；21-skill count/list consistency；`staged-commit-package-governance` promotion; Godot reference guidance; TASKS/roadmap truth; staging boundary and privacy
+- 初审结果：PASS overall / P2 `CR-T009-001` — TASK-012 backlog text still referred to the pre-TASK-009 20-skill pack
+- 处理：Hermes 将 TASK-012 roadmap/ledger wording改为 count-neutral “current core skill pack”，修正 TASK-009 trajectory truth，并恢复 TASK-002 误改字段；Codex recheck PASS
+- 最终结果：PASS，无剩余 findings
+- 遗留风险：fresh-clone 验证未覆盖；commit/push 需用户明确授权
+
+### Trajectory
+
+```yaml
+trajectory:
+  task_id: TASK-009
+  attempt: 1
+  date: 2026-07-08
+  task_type: docs
+  skill_versions:
+    staged-commit-package-governance: 1.0.0
+    skill-pack-governance-validation: 1.0.0
+  score: 0.8
+  actor_path: "Hermes -> Claude implement -> Hermes verify -> Codex"
+  phi:
+    capability_preflight: cached
+    relevant_capabilities: []
+    effort: xhigh
+    claude_result: timeout-after-edits-verified-by-Hermes
+    codex_result: PASS-after-CR-T009-001
+    verification:
+      commands: ["python3 scripts/validate-skill-pack.py", "git diff --check", "git diff --cached --check", "bash -n skills/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh", "HERCULES_CHECK_ONLY=1 bash skills/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh", "staged privacy scan", "skill_view reference load"]
+      logs: ["/tmp/hercules_task009_bootstrap_checkonly.log"]
+      diff_scope: "skills/staged-commit-package-governance/SKILL.md, skills/staged-commit-package-governance/references/round4-staged-package-boundary.md, skills/hercules-collaborative-agent-workflow/references/real-godot-closed-loop-validation.md, README.md, docs/ai-collaboration/ARCHITECTURE.md, docs/ai-collaboration/SKILL_GROUP_AUDIT.md, docs/ai-collaboration/TASKS.md, docs/ai-collaboration/OPTIMIZATION_ROADMAP.md"
+    cr_ids: ["CR-T009-001"]
+    blocker_type: none
+    next_owner: none
+  source_pointers:
+    task_record: "docs/ai-collaboration/TASKS.md#task-009"
+    review_record: "docs/ai-collaboration/codex-reviews/2026-07-08-task009-residual-cleanup.md"
+    logs: []
+```
+
+## [ ] TASK-010：P1 productized entry + README landing
+
+- 当前状态：待处理
+- 优先级：P1
+- 当前负责人：User
+- 下一负责人：Hermes
+- 下一步：用户选择启动后，Hermes/Claude 设计 `scripts/hercules` wrapper 与 README landing 改写
+- 是否需要 Codex 复核：是
+- 创建日期：2026-07-08
+- 最后更新：2026-07-08
+- 来源：优化路线图（codex-plugin-cc 对比：入口简单、可执行命令面）
+- 关联任务：TASK-008
+- 关联审阅：暂无
+- 验证证据：待补充
+- 阻塞原因：等待 TASK-009 或用户明确跳过残留项后启动
+
+### 目标
+
+降低外部用户的上手成本：提供 `scripts/hercules` 命令入口和 reader-facing README landing，让用户不用先理解全部治理文档也能跑通 validate/bootstrap/status/package/doctor。
+
+### 执行项
+
+- [ ] 设计 `scripts/hercules` 子命令：`validate`, `bootstrap --check`, `status`, `package`, `doctor`
+- [ ] 实现 shell wrapper 并保持无外部依赖
+- [ ] README 第一屏改为价值主张 + 三步 quickstart + 典型 Hermes→Claude→Codex→verification 流程
+- [ ] 运行 shell syntax、validator、wrapper 子命令 smoke tests
+- [ ] Codex 复核 CLI/README 是否降低入口门槛且不削弱治理边界
+
+### 验收标准
+
+- [ ] `scripts/hercules validate` 运行 validator、diff check、bootstrap script syntax check，并返回正确 exit code
+- [ ] `scripts/hercules bootstrap --check` 运行 audit-only bootstrap，不安装 optional plugin
+- [ ] README 保持 reader-facing，不复制长规则
+- [ ] validator / diff checks / shell syntax 通过
+- [ ] Codex review PASS
+
+### Trajectory
+
+```yaml
+trajectory:
+  task_id: TASK-010
+  attempt: 1
+  date: 2026-07-08
+  task_type: implementation
+  skill_versions:
+    writing-plans: 1.1.0
+  score: provisional
+  actor_path: "User decision -> Hermes plan -> Claude implement -> Hermes verify -> Codex"
+  phi:
+    capability_preflight: cached
+    relevant_capabilities: []
+    effort: high
+    claude_result: not-launched
+    codex_result: not-launched
+    verification:
+      commands: []
+      logs: []
+      diff_scope: "scripts/hercules, README.md"
+    cr_ids: []
+    blocker_type: scope
+    next_owner: User
+  source_pointers:
+    task_record: "docs/ai-collaboration/TASKS.md#task-010"
+    review_record: "暂无"
+    logs: []
+```
+
+## [ ] TASK-011：P1/P2 validator release gate + fresh-clone smoke
+
+- 当前状态：待处理
+- 优先级：P1
+- 当前负责人：User
+- 下一负责人：Hermes
+- 下一步：用户选择启动后，Hermes/Claude 增强 validator 与 migration smoke tooling
+- 是否需要 Codex 复核：是
+- 创建日期：2026-07-08
+- 最后更新：2026-07-08
+- 来源：优化路线图（发布门禁与可迁移证明）
+- 关联任务：TASK-010
+- 关联审阅：暂无
+- 验证证据：待补充
+- 阻塞原因：等待用户选择启动
+
+### 目标
+
+把 `scripts/validate-skill-pack.py` 从结构检查升级为可供 Hermes/Codex/CI 消费的 release gate，并增加 fresh-clone smoke proof。
+
+### 执行项
+
+- [ ] 增加 `--json` 输出
+- [ ] 增加 `--strict` 模式
+- [ ] 增加 untracked candidate disposition 检查
+- [ ] 增加 `references/` / `templates/` / `scripts/` 深度链接检查
+- [ ] 新增 `scripts/smoke-fresh-clone.sh` 或等价 repo-level smoke script
+- [ ] 为 validator/smoke 增加可运行验证和 Codex review
+
+### 验收标准
+
+- [ ] JSON 输出可机器解析
+- [ ] strict mode 对 release-blocking warning 失败
+- [ ] fresh-clone smoke 使用临时目录，不修改源 repo
+- [ ] 当前 repo normal validation 通过；strict 例外如有必须记录
+- [ ] Codex review PASS
+
+### Trajectory
+
+```yaml
+trajectory:
+  task_id: TASK-011
+  attempt: 1
+  date: 2026-07-08
+  task_type: implementation
+  skill_versions:
+    skill-pack-governance-validation: 1.0.0
+  score: provisional
+  actor_path: "User decision -> Hermes plan -> Claude implement -> Hermes verify -> Codex"
+  phi:
+    capability_preflight: cached
+    relevant_capabilities: []
+    effort: high
+    claude_result: not-launched
+    codex_result: not-launched
+    verification:
+      commands: []
+      logs: []
+      diff_scope: "scripts/validate-skill-pack.py, scripts/smoke-fresh-clone.sh"
+    cr_ids: []
+    blocker_type: scope
+    next_owner: User
+  source_pointers:
+    task_record: "docs/ai-collaboration/TASKS.md#task-011"
+    review_record: "暂无"
+    logs: []
+```
+
+## [ ] TASK-012：P2 skill information architecture + TASKS scaling
+
+- 当前状态：待处理
+- 优先级：P2
+- 当前负责人：User
+- 下一负责人：Hermes
+- 下一步：用户选择启动后，Hermes/Claude 设计 skill role metadata、组合图与 TASKS archive split
+- 是否需要 Codex 复核：是
+- 创建日期：2026-07-08
+- 最后更新：2026-07-08
+- 来源：优化路线图（core skill pack 导航与 ledger 可维护性）
+- 关联任务：TASK-011
+- 关联审阅：暂无
+- 验证证据：待补充
+- 阻塞原因：等待用户选择启动
+
+### 目标
+
+让当前核心 skill pack 更易导航，并降低 `TASKS.md` 长期膨胀带来的上下文成本。
+
+### 执行项
+
+- [ ] 定义 role/maturity metadata：entry / atom / specialized / archived 等
+- [ ] 更新组合图和 skill 分类说明
+- [ ] 设计并实施 TASKS active/archive split，如 `docs/ai-collaboration/tasks/archive-2026-07.md`
+- [ ] 更新 validator 可检查的分类一致性
+- [ ] Codex 复核 ledger truth 未丢失
+
+### 验收标准
+
+- [ ] 新用户能区分 entry skills 与 atoms
+- [ ] 主 TASKS 只保留 active/recently closed，历史任务可回溯
+- [ ] archive 链接和 review records 不断链
+- [ ] validator 通过
+- [ ] Codex review PASS
+
+### Trajectory
+
+```yaml
+trajectory:
+  task_id: TASK-012
+  attempt: 1
+  date: 2026-07-08
+  task_type: docs
+  skill_versions:
+    workflow-skill-pack-audit: 1.1.0
+  score: provisional
+  actor_path: "User decision -> Hermes plan -> Claude implement -> Hermes verify -> Codex"
+  phi:
+    capability_preflight: cached
+    relevant_capabilities: []
+    effort: high
+    claude_result: not-launched
+    codex_result: not-launched
+    verification:
+      commands: []
+      logs: []
+      diff_scope: "docs/ai-collaboration/TASKS.md, docs/ai-collaboration/tasks/, docs/ai-collaboration/SKILL_GROUP_AUDIT.md, scripts/validate-skill-pack.py"
+    cr_ids: []
+    blocker_type: scope
+    next_owner: User
+  source_pointers:
+    task_record: "docs/ai-collaboration/TASKS.md#task-012"
+    review_record: "暂无"
+    logs: []
+```
+
+## [ ] TASK-013：P2/P3 external absorption workflow + WHY_HERCULES outreach package
+
+- 当前状态：待处理
+- 优先级：P2
+- 当前负责人：User
+- 下一负责人：Hermes
+- 下一步：用户选择启动后，Hermes/Claude 将 `codex-plugin-cc` 研究吸收流程产品化，并产出对外说明
+- 是否需要 Codex 复核：是
+- 创建日期：2026-07-08
+- 最后更新：2026-07-08
+- 来源：优化路线图（让“研究某 repo 能否吸收到技能组”可复用；对外传播）
+- 关联任务：TASK-007, TASK-008
+- 关联审阅：暂无
+- 验证证据：待补充
+- 阻塞原因：等待用户选择启动
+
+### 目标
+
+把 `codex-plugin-cc` 研究/吸收流程沉淀为标准工作流，并用 `docs/WHY_HERCULES.md` 讲清 Hercules 与 `codex-plugin-cc` 的定位差异。
+
+### 执行项
+
+- [ ] 将 external repo/plugin absorption workflow 写入 `agent-plugin-dependency-governance` 或 `open-ended-research-orchestration`
+- [ ] 输出标准决策字段：dependency-vs-vendor、risks、bootstrap changes、governance boundary、validation evidence、Codex review
+- [ ] 新增 `docs/WHY_HERCULES.md`
+- [ ] 决定是否创建 demo/tiny example 或 transcript plan
+- [ ] Codex 复核比较是否准确、不过度营销
+
+### 验收标准
+
+- [ ] 未来“研究这个 repo 能不能吸收到我们的技能组”有标准流程
+- [ ] WHY_HERCULES 准确表达：`codex-plugin-cc` lets Claude call Codex；Hercules makes Claude+Codex collaboration governable, auditable, and safe
+- [ ] 不 vendor 外部源码，不夸大未验证能力
+- [ ] validator / diff checks 通过
+- [ ] Codex review PASS
+
+### Trajectory
+
+```yaml
+trajectory:
+  task_id: TASK-013
+  attempt: 1
+  date: 2026-07-08
+  task_type: docs
+  skill_versions:
+    agent-plugin-dependency-governance: 1.0.0
+    open-ended-research-orchestration: 1.0.0
+  score: provisional
+  actor_path: "User decision -> Hermes plan -> Claude implement -> Hermes verify -> Codex"
+  phi:
+    capability_preflight: cached
+    relevant_capabilities: []
+    effort: high
+    claude_result: not-launched
+    codex_result: not-launched
+    verification:
+      commands: []
+      logs: []
+      diff_scope: "skills/agent-plugin-dependency-governance/, skills/open-ended-research-orchestration/, docs/WHY_HERCULES.md"
+    cr_ids: []
+    blocker_type: scope
+    next_owner: User
+  source_pointers:
+    task_record: "docs/ai-collaboration/TASKS.md#task-013"
+    review_record: "暂无"
+    logs: []
+```
+
 ## Trajectory record policy
 
 Every formal Claude/Codex collaboration task in this ledger should be able to leave reflection data. Use the trajectory shape from `skills/hercules-meta-skill-evolution/templates/trajectory-record.md`.

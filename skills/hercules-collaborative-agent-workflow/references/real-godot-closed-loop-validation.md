@@ -60,6 +60,7 @@ For every real run, verify all of these:
 
 - Python log contains `connection established`, model path, and `推理结束(完成 N 局)`.
 - Godot log contains handshake completion plus real game event lines such as `DONE FALL`, `DONE TIMEOUT`, `CROSS GAP`, or `DONE GOAL`.
+- If using this repo's `harness/run_infer.sh`, copy `/tmp/rl_infer.log` and `/tmp/infer_godot.log` into the artifact directory immediately after **each** baseline/candidate run; wrapper stdout is only a launcher summary, and the `/tmp` files are overwritten by the next run.
 - The isolated `TELEMETRY_DIR` contains exactly the expected `run_*.jsonl` for that run.
 - `diagnose.py` was run against that exact JSONL, not a shared `latest` fallback.
 - The report summary has `n_episodes >= requested episodes` for formal evaluation.
@@ -77,6 +78,8 @@ For every real run, verify all of these:
 - Copying a whole Godot project including `.godot` cache can be slow. For artifact experiments, prefer `rsync` excluding `.godot/`, `rec/`, and telemetry outputs rather than a manual whitelist copy.
 - Avoid cleanup commands in the same launch command. Use unique artifact directories instead of deleting `/tmp` logs.
 - When running optimizer verification in a temporary git repo, root-level untracked logs/metadata can trip change gates. Put run logs under ignored `.artifacts/`.
+- An issue disappearing from `diagnose` is not automatically an improvement. Check why it disappeared: if `completion_rate` collapsed to 0, a rule such as `combat_bypassed` may stop firing only because the player can no longer reach the goal. For combat gates, inspect raw `DONE ...` events plus combat metrics (`damage_dealt`, `kill_count`, `enemy_alive_at_goal`) to distinguish valid forced combat from a permanent wall or policy failure.
+- For Godot animation-driven hitboxes, prove the whole timing chain before retraining: virtual input should reach FSM Attack, AnimationPlayer must stay active until the method-track hit frame, Area2D should overlap the target at that frame, and only then should damage/kill/gate-open be expected. If `Attack` enters but returns to `Idle` before the method-track time (for example because `AnimatedSprite2D.animation_finished` fires and `exit()` stops the AnimationPlayer), training will never discover damage even when hitbox geometry overlaps. Use an artifact SceneTree probe with runtime snapshots; as a diagnostic control, calling the real `Attack.attack_check()` is acceptable to isolate hitbox→`take_hit`→gate-open, but do not call `take_hit()` directly or overclaim that control as virtual-input success.
 
 ## Example evidence shape
 
