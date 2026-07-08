@@ -14,7 +14,7 @@ For the full redundancy/overlap audit and the organic composition graph, see `do
   - `core` - tracked runtime skill in the core Hercules pack.
   - `domain` - specialized domain atom (narrower scope, still runtime-tracked).
 
-## Runtime core skills (21)
+## Runtime core skills (22)
 
 | Skill | Role | Maturity | Primary use | Composes with / Notes |
 |---|---|---|---|---|
@@ -34,6 +34,7 @@ For the full redundancy/overlap audit and the organic composition graph, see `do
 | `hercules-skill-pack-management` | atom | core | Repo layout, symlink, backup, migration, GitHub sync, privacy checks | Promoted round 2; v1.0.0 |
 | `workflow-skill-pack-audit` | atom | core | Skill-pack audit/reconciliation, validator/recheck, ledger trajectory | Promoted round 2; v1.1.0 |
 | `skill-pack-governance-validation` | atom | core | Runtime usability / commit-package / migration acceptance | Promoted round 3; v1.0.0 |
+| `skill-pack-roadmap-execution` | atom | core | Authorized TASKS auto-advance, validation/review/commit loop, no-push boundary | Extracted after TASK-010..013; v1.0.0 |
 | `staged-commit-package-governance` | atom | core | Staged-package boundary, ledger-truth, narrow Codex rechecks | Promoted TASK-009; v1.0.0 |
 | `agent-plugin-dependency-governance` | atom | core | External plugin dependency-vs-vendor boundary, optional install gating, standard absorption workflow | Promoted round 4; v1.1.0 |
 | `evaluation-closed-loop-orchestration` | atom | core | Canonical evaluated-system closed loop: telemetry->modification request->handoff->review | Promoted round 4; absorbs 3 archived variants; v1.0.0 |
