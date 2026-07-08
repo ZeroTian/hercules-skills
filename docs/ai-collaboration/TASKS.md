@@ -268,20 +268,20 @@ trajectory:
     logs: []
 ```
 
-## [ ] TASK-013：P2/P3 external absorption workflow + WHY_HERCULES outreach package
+## [x] TASK-013：P2/P3 external absorption workflow + WHY_HERCULES outreach package
 
-- 当前状态：待处理
+- 当前状态：已完成
 - 优先级：P2
-- 当前负责人：Hermes
-- 下一负责人：Hermes
-- 下一步：TASK-012 Codex PASS 并自动提交后，Hermes/Claude 将 `codex-plugin-cc` 研究吸收流程产品化，并产出对外说明
+- 当前负责人：无
+- 下一负责人：无
+- 下一步：无；Codex PASS，按用户授权自动 commit，不 push
 - 是否需要 Codex 复核：是
 - 创建日期：2026-07-08
 - 最后更新：2026-07-08
 - 来源：优化路线图（让“研究某 repo 能否吸收到技能组”可复用；对外传播）
 - 关联任务：TASK-007, TASK-008
-- 关联审阅：暂无
-- 验证证据：待补充
+- 关联审阅：`docs/ai-collaboration/codex-reviews/2026-07-08-task013-absorption-outreach.md`
+- 验证证据：Claude Code `--effort high --max-turns 20` 达到 max turns 后留下部分改动；Hermes 接管修复 validator warning 并准备复核。已实现 `agent-plugin-dependency-governance` v1.1.0 standard absorption workflow + required decision fields、`templates/external-absorption-decision.md`、`docs/WHY_HERCULES.md`、README/roadmap/navigation updates；无 upstream source vendored、未安装依赖、未 push；final validation passed: `python3 tests/test_validate_skill_pack_cli.py -v` OK (6 tests); `python3 scripts/validate-skill-pack.py --strict` 0 errors / 0 warnings / 3 advisory signals; `scripts/hercules package` pass; `git diff --check` 与 `git diff --cached --check` pass; staged privacy scan ok；Codex PASS
 - 阻塞原因：无；用户已授权 TASK-010~013 自动执行、Codex PASS 后自动 commit、不 push
 
 ### 目标
@@ -290,19 +290,32 @@ trajectory:
 
 ### 执行项
 
-- [ ] 将 external repo/plugin absorption workflow 写入 `agent-plugin-dependency-governance` 或 `open-ended-research-orchestration`
-- [ ] 输出标准决策字段：dependency-vs-vendor、risks、bootstrap changes、governance boundary、validation evidence、Codex review
-- [ ] 新增 `docs/WHY_HERCULES.md`
-- [ ] 决定是否创建 demo/tiny example 或 transcript plan
-- [ ] Codex 复核比较是否准确、不过度营销
+- [x] 将 external repo/plugin absorption workflow 写入 `agent-plugin-dependency-governance`
+- [x] 输出标准决策字段：dependency-vs-vendor、risks、bootstrap changes、governance boundary、validation evidence、Codex review
+- [x] 新增 `docs/WHY_HERCULES.md`
+- [x] 决定是否创建 demo/tiny example 或 transcript plan：本任务不创建 demo repo；`CODEX_PLUGIN_CC_RESEARCH_2026-07-07.md` + decision template 作为 worked example，后续如需演示另开任务
+- [x] Codex 复核比较是否准确、不过度营销
 
 ### 验收标准
 
-- [ ] 未来“研究这个 repo 能不能吸收到我们的技能组”有标准流程
-- [ ] WHY_HERCULES 准确表达：`codex-plugin-cc` lets Claude call Codex；Hercules makes Claude+Codex collaboration governable, auditable, and safe
-- [ ] 不 vendor 外部源码，不夸大未验证能力
-- [ ] validator / diff checks 通过
-- [ ] Codex review PASS
+- [x] 未来“研究这个 repo 能不能吸收到我们的技能组”有标准流程
+- [x] WHY_HERCULES 准确表达：`codex-plugin-cc` lets Claude call Codex；Hercules makes Claude+Codex collaboration governable, auditable, and safe
+- [x] 不 vendor 外部源码，不夸大未验证能力
+- [x] validator / diff checks 通过
+- [x] Codex review PASS
+
+### Hermes 执行记录
+
+- 授权边界：用户已授权 TASK-010~013 自动执行；每个任务 Codex PASS 后自动 commit；不 push
+- Claude 尝试：Claude Code `--effort high --max-turns 20` 达到 max turns 后留下部分改动；Hermes 接管修复 validator warning、同步 TASKS evidence，并完成 Codex review loop
+- 修改文件：`skills/agent-plugin-dependency-governance/SKILL.md`, `skills/agent-plugin-dependency-governance/templates/external-absorption-decision.md`, `docs/WHY_HERCULES.md`, `README.md`, `docs/ai-collaboration/OPTIMIZATION_ROADMAP.md`, `docs/ai-collaboration/SKILL_NAVIGATION.md`, `docs/ai-collaboration/TASKS.md`
+- Codex 复核：PASS / highest severity none；未发现 overclaiming、vendoring、scope drift 或 ledger truth 问题
+- 遗留风险：未安装 optional `codex@openai-codex`；未创建 demo repo；reflection signals 仍提示 TASK-012/TASK-013 max-turns/brief pressure，作为 meta-skill evidence 信号，不阻塞 release
+
+### Codex 复核记录
+
+- Review record：`docs/ai-collaboration/codex-reviews/2026-07-08-task013-absorption-outreach.md`
+- 最终结果：PASS；无 findings
 
 ### Trajectory
 
@@ -313,26 +326,26 @@ trajectory:
   date: 2026-07-08
   task_type: docs
   skill_versions:
-    agent-plugin-dependency-governance: 1.0.0
+    agent-plugin-dependency-governance: 1.1.0
     open-ended-research-orchestration: 1.0.0
-  score: provisional
+  score: 1.0
   actor_path: "User decision -> Hermes plan -> Claude implement -> Hermes verify -> Codex"
   phi:
     capability_preflight: cached
     relevant_capabilities: []
     effort: high
-    claude_result: not-launched
-    codex_result: not-launched
+    claude_result: max-turns-after-partial-edits-Hermes-finished
+    codex_result: PASS
     verification:
-      commands: []
-      logs: []
-      diff_scope: "skills/agent-plugin-dependency-governance/, skills/open-ended-research-orchestration/, docs/WHY_HERCULES.md"
+      commands: ["python3 tests/test_validate_skill_pack_cli.py -v", "python3 scripts/validate-skill-pack.py --strict", "scripts/hercules package", "git diff --check", "git diff --cached --check"]
+      logs: ["/tmp/task013_absorption_outreach_prompt.md"]
+      diff_scope: "skills/agent-plugin-dependency-governance/SKILL.md, skills/agent-plugin-dependency-governance/templates/external-absorption-decision.md, docs/WHY_HERCULES.md, README.md, docs/ai-collaboration/OPTIMIZATION_ROADMAP.md, docs/ai-collaboration/SKILL_NAVIGATION.md, docs/ai-collaboration/TASKS.md"
     cr_ids: []
     blocker_type: none
-    next_owner: Hermes
+    next_owner: none
   source_pointers:
     task_record: "docs/ai-collaboration/TASKS.md#task-013"
-    review_record: "暂无"
+    review_record: "docs/ai-collaboration/codex-reviews/2026-07-08-task013-absorption-outreach.md"
     logs: []
 ```
 

@@ -35,7 +35,7 @@ For the full redundancy/overlap audit and the organic composition graph, see `do
 | `workflow-skill-pack-audit` | atom | core | Skill-pack audit/reconciliation, validator/recheck, ledger trajectory | Promoted round 2; v1.1.0 |
 | `skill-pack-governance-validation` | atom | core | Runtime usability / commit-package / migration acceptance | Promoted round 3; v1.0.0 |
 | `staged-commit-package-governance` | atom | core | Staged-package boundary, ledger-truth, narrow Codex rechecks | Promoted TASK-009; v1.0.0 |
-| `agent-plugin-dependency-governance` | atom | core | External plugin dependency-vs-vendor boundary, optional install gating | Promoted round 4; v1.0.0 |
+| `agent-plugin-dependency-governance` | atom | core | External plugin dependency-vs-vendor boundary, optional install gating, standard absorption workflow | Promoted round 4; v1.1.0 |
 | `evaluation-closed-loop-orchestration` | atom | core | Canonical evaluated-system closed loop: telemetry->modification request->handoff->review | Promoted round 4; absorbs 3 archived variants; v1.0.0 |
 | `godot-wsl-artifact-validation` | specialized atom | domain | WSL+Windows Godot artifact proof, headless probes, log preservation | Promoted round 4; v1.0.0 |
 | `godot-rl-metric-regression` | specialized atom | domain | Baseline-vs-candidate Godot/RL metric regression, ACCEPTED/REJECTED | Promoted round 4; v1.0.0 |

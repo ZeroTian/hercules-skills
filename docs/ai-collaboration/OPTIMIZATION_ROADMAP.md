@@ -21,7 +21,7 @@ This roadmap turns the `codex-plugin-cc` comparison and Hercules optimization pr
 | P1 productized entry + landing | TASK-010 | Completed / committed as `55a9817` | Codex review `docs/ai-collaboration/codex-reviews/2026-07-08-task010-productized-entry.md`; wrapper smoke tests pass |
 | P1/P2 release gate + migration proof | TASK-011 | Completed / committed as `98afa95` | Codex review `docs/ai-collaboration/codex-reviews/2026-07-08-task011-validator-release-gate.md`; validator `--json` / `--strict`, linked-file deep checks, staged-only fresh-clone smoke script pass |
 | P2 information architecture | TASK-012 | Completed / Codex PASS | Codex review `docs/ai-collaboration/codex-reviews/2026-07-08-task012-information-architecture.md`; skill navigation + TASKS archive split + validator checks pass |
-| P2/P3 absorption + outreach package | TASK-013 | Backlog | external-tool absorption workflow + `docs/WHY_HERCULES.md` + demo/tiny example decision |
+| P2/P3 absorption + outreach package | TASK-013 | Completed / Codex PASS | Codex review `docs/ai-collaboration/codex-reviews/2026-07-08-task013-absorption-outreach.md`; standard absorption workflow + decision template + `docs/WHY_HERCULES.md` |
 
 ## TASK-008 — P0 clean package
 
@@ -140,6 +140,16 @@ Acceptance gates:
 ## TASK-013 — P2/P3 absorption workflow + outreach package
 
 Goal: make the `codex-plugin-cc` research/absorption pattern reusable and communicate why Hercules is different.
+
+Delivered (Codex PASS):
+
+- `skills/agent-plugin-dependency-governance/SKILL.md` v1.1.0: added Standard External Absorption Workflow and Required Decision Output Fields, referenced the new template, and extended the verification checklist.
+- `skills/agent-plugin-dependency-governance/templates/external-absorption-decision.md`: standard decision record template covering upstream identity, dependency-vs-vendor, surfaces/safety classification, bootstrap/default-install policy, governance boundary, validation evidence, Codex review record, and residual risks/non-goals.
+- `docs/WHY_HERCULES.md`: reader-facing comparison of `codex-plugin-cc` (in-Claude Codex channel) vs Hercules (governance/audit layer under Hermes); explicit that Hercules does not replace the plugin.
+- Minimal navigation updates in `README.md`, `SKILL_NAVIGATION.md`, and this roadmap; no upstream plugin source vendored, no dependency install, no push.
+- Codex review PASS: `docs/ai-collaboration/codex-reviews/2026-07-08-task013-absorption-outreach.md`.
+
+Demo/tiny example repository: not created; the filled `CODEX_PLUGIN_CC_RESEARCH_2026-07-07.md` plus the new template serve as the worked example. A separate demo repo remains a non-goal for this task unless Codex review or the user requests it.
 
 Candidate deliverables:
 

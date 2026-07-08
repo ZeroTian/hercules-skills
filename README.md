@@ -10,6 +10,8 @@ Hermes orchestrates → Claude Code implements → Codex independently reviews �
 
 The skills in this repository encode that workflow as a portable skill group. They are useful when you want agent collaboration to leave an auditable trail: task records, validation commands, review records, and explicit residual risks.
 
+For how Hercules differs from the OpenAI `codex-plugin-cc` Claude plugin, see `docs/WHY_HERCULES.md`.
+
 Repository:
 
 https://github.com/ZeroTian/hercules-skills
