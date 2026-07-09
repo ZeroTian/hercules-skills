@@ -10,7 +10,7 @@ Hercules turns the pattern below into reusable skills, scripts, ledgers, and rev
 Hermes orchestrates → Claude Code implements → Codex independently reviews → real commands verify
 ```
 
-> Status: local working package with 23 tracked runtime skills, validator release gate, task ledger, Codex review records, and optional external-plugin governance.
+> Status: local working package with 25 tracked runtime skills, validator release gate, task ledger, Codex review records, and optional external-plugin governance.
 
 ---
 
@@ -46,8 +46,8 @@ For the positioning note comparing Hercules with OpenAI `codex-plugin-cc`, see [
 
 ### Key features
 
-- **23 runtime skills** organized as entry skills, atoms, specialized atoms, and domain atoms.
-- **Productized CLI helper**: `scripts/hercules validate`, `package`, `status`, `doctor`, and `bootstrap --check`.
+- **25 runtime skills** organized as entry skills, atoms, specialized atoms, and domain atoms.
+- **Productized CLI helper**: `scripts/hercules setup`, `doctor`, `doctor --fix`, `validate`, `package`, `status`, and `bootstrap --check`.
 - **Release gate**: `scripts/validate-skill-pack.py --strict` checks skill metadata, linked files, navigation drift, task archive integrity, and reflection signals.
 - **Fresh-clone smoke test**: `scripts/smoke-fresh-clone.sh` validates staged-package portability.
 - **Task governance**: `docs/ai-collaboration/TASKS.md` keeps active/recent work compact while `docs/ai-collaboration/tasks/archive-2026-07.md` preserves history.
@@ -58,33 +58,37 @@ For the positioning note comparing Hercules with OpenAI `codex-plugin-cc`, see [
 
 ### One-command install
 
-For a fresh Linux/macOS/WSL machine, the installer can clone/update this repository, install Hermes if missing, install/link the Hercules skills, and run the dependency bootstrap. Use `--optional` when you want the script to align Claude plugin dependencies too:
+For a fresh Linux/macOS/WSL machine, the installer can clone/update this repository, install Hermes if missing, install/link the Hercules skills, and run the dependency bootstrap.
+
+Recommended full setup, including optional Claude plugins used by the full Hercules workflow:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ZeroTian/hercules-skills/main/scripts/install-hercules.sh | bash -s -- --yes --optional
+curl -fsSL https://raw.githubusercontent.com/ZeroTian/hercules-skills/main/scripts/install-hercules.sh | bash -s -- --full
 ```
 
 Minimal install without Claude plugin mutation:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ZeroTian/hercules-skills/main/scripts/install-hercules.sh | bash -s -- --yes
+curl -fsSL https://raw.githubusercontent.com/ZeroTian/hercules-skills/main/scripts/install-hercules.sh | bash -s -- --minimal
 ```
 
-Audit-only mode, with no installs, clones, pulls, registry writes, or symlink changes:
+Preview first, with no installs, clones, pulls, registry writes, or symlink changes:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ZeroTian/hercules-skills/main/scripts/install-hercules.sh | bash -s -- --check
+curl -fsSL https://raw.githubusercontent.com/ZeroTian/hercules-skills/main/scripts/install-hercules.sh | bash -s -- --dry-run
 ```
 
 Local checkout equivalent:
 
 ```bash
-scripts/install-hercules.sh --yes --optional
-scripts/install-hercules.sh --yes
-scripts/install-hercules.sh --check
+scripts/hercules setup --full
+scripts/hercules setup --minimal
+scripts/hercules setup --dry-run
+scripts/hercules doctor
+scripts/hercules doctor --fix --full
 ```
 
-The installer does not automate interactive auth. After it finishes, run `hermes setup`, `claude auth login --console`, or `codex login` if any of those are still missing.
+The installer does not automate interactive auth. After it finishes, run `hermes setup`, `claude auth login --console`, or `codex login` if any of those are still missing. Use `scripts/hercules doctor` for a read-only dashboard of what is ready, fixable, or blocked.
 
 From a checkout of this repository:
 
@@ -100,10 +104,12 @@ scripts/hercules bootstrap --check
 Use the helper as the lightweight product entry point:
 
 ```bash
+scripts/hercules setup --full      # recommended full setup, including optional Claude plugins
+scripts/hercules setup --dry-run   # preview-only install plan; no writes
+scripts/hercules doctor            # read-only dashboard: OK/WARN/FIXABLE/BLOCKED
+scripts/hercules doctor --fix      # repair minimal dependencies
 scripts/hercules validate          # validator + whitespace diff check + bootstrap script syntax
-scripts/hercules bootstrap --check # audit-only dependency doctor; no optional installs
 scripts/hercules package           # staged package readiness; no commit or push
-scripts/hercules doctor            # tool presence + audit-only bootstrap + validation
 ```
 
 ### Install into Hermes
@@ -153,6 +159,8 @@ kanban-orchestrator
 kanban-worker
 open-ended-research-orchestration
 open-source-project-packaging
+portable-skill-pack-installation
+cli-installer-ux-governance
 skill-pack-governance-validation
 skill-pack-roadmap-execution
 staged-commit-package-governance
@@ -264,8 +272,8 @@ AI coding workflow 很容易变得不可审计：一个 agent 写代码，另一
 
 ### 核心能力
 
-- **23 个 runtime skills**：按 entry、atom、specialized atom、domain atom 组织。
-- **产品化命令入口**：`scripts/hercules validate/package/status/doctor/bootstrap --check`。
+- **25 个 runtime skills**：按 entry、atom、specialized atom、domain atom 组织。
+- **产品化命令入口**：`scripts/hercules setup/doctor/doctor --fix/validate/package/status/bootstrap --check`。
 - **发布门禁**：`scripts/validate-skill-pack.py --strict` 检查 skill metadata、linked files、导航漂移、任务归档完整性和 reflection signals。
 - **fresh-clone smoke**：`scripts/smoke-fresh-clone.sh` 验证 staged package 可迁移性。
 - **任务治理**：`TASKS.md` 保留活跃/近期任务，`tasks/archive-2026-07.md` 保留历史审计链路。
@@ -276,33 +284,37 @@ AI coding workflow 很容易变得不可审计：一个 agent 写代码，另一
 
 ### 一键安装
 
-在新的 Linux / macOS / WSL 机器上，可以用安装脚本自动 clone/update 仓库、安装缺失的 Hermes、安装/链接 Hercules skills，并运行依赖 bootstrap。如果要把 Claude plugin 依赖也拉齐，使用 `--optional`：
+在新的 Linux / macOS / WSL 机器上，可以用安装脚本自动 clone/update 仓库、安装缺失的 Hermes、安装/链接 Hercules skills，并运行依赖 bootstrap。
+
+推荐完整安装，包括 Hercules workflow 使用的 optional Claude plugins：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ZeroTian/hercules-skills/main/scripts/install-hercules.sh | bash -s -- --yes --optional
+curl -fsSL https://raw.githubusercontent.com/ZeroTian/hercules-skills/main/scripts/install-hercules.sh | bash -s -- --full
 ```
 
 不改 Claude plugin 状态的最小安装：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ZeroTian/hercules-skills/main/scripts/install-hercules.sh | bash -s -- --yes
+curl -fsSL https://raw.githubusercontent.com/ZeroTian/hercules-skills/main/scripts/install-hercules.sh | bash -s -- --minimal
 ```
 
-只检查、不安装、不 clone/pull、不写 registry、不改 symlink：
+先预览，不安装、不 clone/pull、不写 registry、不改 symlink：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ZeroTian/hercules-skills/main/scripts/install-hercules.sh | bash -s -- --check
+curl -fsSL https://raw.githubusercontent.com/ZeroTian/hercules-skills/main/scripts/install-hercules.sh | bash -s -- --dry-run
 ```
 
 本地 checkout 中等价命令：
 
 ```bash
-scripts/install-hercules.sh --yes --optional
-scripts/install-hercules.sh --yes
-scripts/install-hercules.sh --check
+scripts/hercules setup --full
+scripts/hercules setup --minimal
+scripts/hercules setup --dry-run
+scripts/hercules doctor
+scripts/hercules doctor --fix --full
 ```
 
-安装脚本不会自动完成交互式登录。如果结束后仍缺认证，请运行 `hermes setup`、`claude auth login --console` 或 `codex login`。
+安装脚本不会自动完成交互式登录。如果结束后仍缺认证，请运行 `hermes setup`、`claude auth login --console` 或 `codex login`。使用 `scripts/hercules doctor` 可以查看只读仪表盘，区分已就绪、警告、可自动修复和必须手动处理的项。
 
 ```bash
 git clone https://github.com/ZeroTian/hercules-skills.git
@@ -316,10 +328,12 @@ scripts/hercules bootstrap --check
 常用命令：
 
 ```bash
+scripts/hercules setup --full      # 推荐完整安装，包括 optional Claude plugins
+scripts/hercules setup --dry-run   # 只预览安装计划，不写入
+scripts/hercules doctor            # 只读仪表盘：OK/WARN/FIXABLE/BLOCKED
+scripts/hercules doctor --fix      # 修复最小依赖
 scripts/hercules validate          # validator + whitespace diff check + bootstrap script syntax
-scripts/hercules bootstrap --check # audit-only dependency doctor；不安装 optional plugins
 scripts/hercules package           # staged package readiness；不 commit / 不 push
-scripts/hercules doctor            # tool presence + audit-only bootstrap + validation
 ```
 
 ### 安装到 Hermes
@@ -369,6 +383,8 @@ kanban-orchestrator
 kanban-worker
 open-ended-research-orchestration
 open-source-project-packaging
+portable-skill-pack-installation
+cli-installer-ux-governance
 skill-pack-governance-validation
 skill-pack-roadmap-execution
 staged-commit-package-governance

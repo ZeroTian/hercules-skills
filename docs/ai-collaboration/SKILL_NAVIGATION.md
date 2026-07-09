@@ -14,7 +14,7 @@ For the full redundancy/overlap audit and the organic composition graph, see `do
   - `core` - tracked runtime skill in the core Hercules pack.
   - `domain` - specialized domain atom (narrower scope, still runtime-tracked).
 
-## Runtime core skills (23)
+## Runtime core skills (25)
 
 | Skill | Role | Maturity | Primary use | Composes with / Notes |
 |---|---|---|---|---|
@@ -32,6 +32,8 @@ For the full redundancy/overlap audit and the organic composition graph, see `do
 | `kanban-codex-lane` | specialized atom | core | Codex-as-isolated-lane for Kanban workers | v1.0.0 |
 | `open-ended-research-orchestration` | specialized atom | core | Source packet -> Claude synthesis -> Codex adversarial review | v1.0.0 |
 | `open-source-project-packaging` | atom | core | Reader-facing open-source README, license, attribution, and release packaging | Extracted after README/license package; v1.0.0 |
+| `portable-skill-pack-installation` | atom | core | One-command installer, setup/doctor UX, dependency alignment, dry-run safety | Complements skill-pack management + capability preflight; v1.1.0 |
+| `cli-installer-ux-governance` | atom | core | Productized setup/doctor/status installer UX and safety contracts | Complements portable installer skill; v1.0.0 |
 | `hercules-skill-pack-management` | atom | core | Repo layout, symlink, backup, migration, GitHub sync, privacy checks | Promoted round 2; v1.0.0 |
 | `workflow-skill-pack-audit` | atom | core | Skill-pack audit/reconciliation, validator/recheck, ledger trajectory | Promoted round 2; v1.1.0 |
 | `skill-pack-governance-validation` | atom | core | Runtime usability / commit-package / migration acceptance | Promoted round 3; v1.0.0 |

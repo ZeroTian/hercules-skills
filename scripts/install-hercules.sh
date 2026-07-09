@@ -34,10 +34,15 @@ Usage:
   scripts/install-hercules.sh [options]
   curl -fsSL https://raw.githubusercontent.com/ZeroTian/hercules-skills/main/scripts/install-hercules.sh | bash -s -- [options]
 
-Options:
+Product modes:
+  --full                 Non-interactive recommended setup; includes optional Claude plugins.
+  --minimal              Non-interactive minimal setup; no Claude plugin mutation.
+  --dry-run              Alias for --check. Preview only; no installs/clones/pulls/config/symlink writes.
+  --check, --check-only  Audit-only mode. Report what would happen; do not mutate the machine.
+
+Compatibility / advanced options:
   -y, --yes              Non-interactive install where possible.
-  --check, --check-only  Audit-only mode. Report what would happen; do not install, clone, pull, write config, or change symlinks.
-  --optional             Also install optional Claude plugins (playwright, context7, pyright-lsp, codex@openai-codex).
+  --optional             Also install optional Claude plugins (superpowers, oh-my-claudecode, playwright, context7, pyright-lsp, codex@openai-codex).
   --copy                 Copy skills into ~/.hermes/skills/hercules instead of symlinking to the repo.
   --symlink              Symlink ~/.hermes/skills/hercules to <repo>/skills (default).
   --repo-url URL         Git repository URL. Default: https://github.com/ZeroTian/hercules-skills.git
@@ -47,6 +52,10 @@ Options:
   --skip-hermes-install  Do not run the official Hermes installer if hermes is missing.
   --skip-bootstrap       Do not run Hercules dependency bootstrap after installing skills.
   -h, --help             Show this help.
+
+No options:
+  Starts a small interactive setup picker when /dev/tty is available.
+  In non-interactive contexts, pass --full --yes, --minimal --yes, or --dry-run.
 
 Environment knobs:
   HERCULES_REPO_URL, HERCULES_BRANCH, HERCULES_REPO_DIR, HERCULES_INSTALL_MODE
@@ -61,11 +70,47 @@ This script cannot complete interactive auth. If needed, run after install:
 USAGE
 }
 
+read_tty() {
+  if [ -r /dev/tty ]; then
+    read -r "$1" </dev/tty || true
+  else
+    read -r "$1" || true
+  fi
+}
+
 confirm() {
   if [ "$YES" = "1" ]; then return 0; fi
   printf '%s [y/N] ' "$*" >&2
-  read -r ans || true
+  local ans=""
+  read_tty ans
   case "${ans:-}" in y|Y|yes|YES) return 0 ;; *) return 1 ;; esac
+}
+
+prompt_setup_mode() {
+  if [ ! -r /dev/tty ]; then
+    usage >&2
+    die "no options supplied and no TTY available; use --full --yes, --minimal --yes, or --dry-run"
+  fi
+
+  cat >/dev/tty <<'EOF'
+Hercules setup
+
+Choose setup mode:
+  1) Full recommended setup  (install optional Claude plugins too)
+  2) Minimal setup           (no Claude plugin mutation)
+  3) Dry run only            (preview, no writes)
+  4) Custom flags            (abort and rerun with explicit options)
+EOF
+  printf 'Select [1/2/3/4]: ' >/dev/tty
+  local choice=""
+  read_tty choice
+  case "${choice:-}" in
+    1) YES=1; INSTALL_OPTIONAL=1 ;;
+    2) YES=1; INSTALL_OPTIONAL=0 ;;
+    3) CHECK_ONLY=1 ;;
+    4) usage; exit 0 ;;
+    *) die "invalid setup mode: ${choice:-}" ;;
+  esac
 }
 
 run_cmd() {
@@ -99,7 +144,9 @@ parse_args() {
   while [ "$#" -gt 0 ]; do
     case "$1" in
       -y|--yes) YES=1 ;;
-      --check|--check-only) CHECK_ONLY=1 ;;
+      --full) YES=1; INSTALL_OPTIONAL=1 ;;
+      --minimal) YES=1; INSTALL_OPTIONAL=0 ;;
+      --dry-run|--check|--check-only) CHECK_ONLY=1 ;;
       --optional) INSTALL_OPTIONAL=1 ;;
       --copy) INSTALL_MODE=copy ;;
       --symlink) INSTALL_MODE=symlink ;;
@@ -150,6 +197,11 @@ install_os_basics() {
     return 0
   fi
 
+  if [ "$CHECK_ONLY" = "1" ]; then
+    log "CHECK_ONLY: would install missing OS packages with apt-get/brew where supported"
+    return 0
+  fi
+
   if have_cmd apt-get; then
     if [ "$YES" != "1" ] && ! confirm "Install missing OS packages with apt-get?"; then
       warn "skipped OS package installation"
@@ -190,6 +242,10 @@ install_hermes_if_missing() {
   fi
   if [ "$SKIP_HERMES_INSTALL" = "1" ]; then
     warn "hermes missing and --skip-hermes-install was set"
+    return 0
+  fi
+  if [ "$CHECK_ONLY" = "1" ]; then
+    log "CHECK_ONLY: would install Hermes Agent using the official installer"
     return 0
   fi
   if [ "$YES" != "1" ] && ! confirm "Install Hermes Agent using the official installer?"; then
@@ -328,9 +384,13 @@ Next steps for a fresh machine:
 
 Useful checks:
   cd "$REPO_DIR"
+  scripts/hercules doctor
   scripts/hercules status
   scripts/hercules validate
-  scripts/hercules bootstrap --check
+
+Repair helpers:
+  scripts/hercules doctor --fix        # minimal repair
+  scripts/hercules doctor --fix --full # include optional Claude plugins
 
 Installed skill path:
   ${HERMES_HOME:-$HOME/.hermes}/skills/hercules
@@ -338,7 +398,11 @@ EOF
 }
 
 main() {
-  parse_args "$@"
+  if [ "$#" -eq 0 ]; then
+    prompt_setup_mode
+  else
+    parse_args "$@"
+  fi
   detect_repo_from_script
   refresh_path
 
