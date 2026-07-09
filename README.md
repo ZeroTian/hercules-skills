@@ -1,26 +1,67 @@
 # Hercules Skills
 
-Portable Hermes skills for the personal Hercules development workflow.
+[English](#english) | [中文](#中文)
 
-Hercules makes multi-agent development governable and repeatable:
+A portable Hermes Agent skill pack for governed multi-agent software development.
+
+Hercules turns the pattern below into reusable skills, scripts, ledgers, and review gates:
 
 ```text
 Hermes orchestrates → Claude Code implements → Codex independently reviews → real commands verify
 ```
 
-The skills in this repository encode that workflow as a portable skill group. They are useful when you want agent collaboration to leave an auditable trail: task records, validation commands, review records, and explicit residual risks.
+> Status: local working package with 22 tracked runtime skills, validator release gate, task ledger, Codex review records, and optional external-plugin governance.
 
-For how Hercules differs from the OpenAI `codex-plugin-cc` Claude plugin, see `docs/WHY_HERCULES.md`.
+---
 
-Repository:
+## English
 
-https://github.com/ZeroTian/hercules-skills
+### What is Hercules Skills?
 
-## Quickstart
+Hercules Skills is a portable workflow skill pack for [Hermes Agent](https://hermes-agent.nousresearch.com/). It is designed for developers who want Claude Code and Codex CLI to collaborate under a clear controller instead of operating as ad-hoc assistants.
+
+The repository provides:
+
+- reusable Hercules-owned Hermes skills under `skills/`;
+- a lightweight command entry point at `scripts/hercules`;
+- validation and packaging checks for the skill pack;
+- a live task ledger and archived task history;
+- independent Codex review records;
+- governance rules for optional external agent plugins such as OpenAI `codex-plugin-cc`.
+
+Hercules is a workflow layer, not a replacement for Claude Code, Codex CLI, Hermes Agent, or `codex-plugin-cc`.
+
+### Why this project exists
+
+Modern AI coding workflows can become hard to audit: one agent edits, another reviews, a shell command verifies, and the user has to remember who did what. Hercules makes that loop explicit:
+
+| Actor | Responsibility |
+|---|---|
+| Hermes | Orchestrates, gathers context, delegates work, verifies outputs, updates ledgers. |
+| Claude Code | Implements code/docs/refactors with scoped instructions. |
+| Codex CLI | Performs independent review, risk checks, CR closure, and final acceptance. |
+| Real commands | Provide executable evidence: validators, tests, shell syntax checks, package checks. |
+
+For the positioning note comparing Hercules with OpenAI `codex-plugin-cc`, see [`docs/WHY_HERCULES.md`](docs/WHY_HERCULES.md).
+
+### Key features
+
+- **22 runtime skills** organized as entry skills, atoms, specialized atoms, and domain atoms.
+- **Productized CLI helper**: `scripts/hercules validate`, `package`, `status`, `doctor`, and `bootstrap --check`.
+- **Release gate**: `scripts/validate-skill-pack.py --strict` checks skill metadata, linked files, navigation drift, task archive integrity, and reflection signals.
+- **Fresh-clone smoke test**: `scripts/smoke-fresh-clone.sh` validates staged-package portability.
+- **Task governance**: `docs/ai-collaboration/TASKS.md` keeps active/recent work compact while `docs/ai-collaboration/tasks/archive-2026-07.md` preserves history.
+- **Independent review trail**: Codex review records live under `docs/ai-collaboration/codex-reviews/`.
+- **External-plugin boundary**: third-party agent plugins are treated as dependencies, not vendored source.
+
+### Quickstart
 
 From a checkout of this repository:
 
 ```bash
+git clone https://github.com/ZeroTian/hercules-skills.git
+cd hercules-skills
+
 scripts/hercules status
 scripts/hercules validate
 scripts/hercules bootstrap --check
@@ -35,25 +76,32 @@ scripts/hercules package           # staged package readiness; no commit or push
 scripts/hercules doctor            # tool presence + audit-only bootstrap + validation
 ```
 
-For the detailed operating rules, use the governance docs instead of this README:
+### Install into Hermes
 
-```text
-HERMES.md                                  # Hermes orchestration rules
-CLAUDE.md                                  # Claude Code implementation rules
-AGENTS.md                                  # Codex review rules
-docs/ai-collaboration/TASKS.md            # live task ledger
-docs/ai-collaboration/OPTIMIZATION_ROADMAP.md
+Install Hermes first using the official Hermes installation flow.
+
+Then copy this skill group into your Hermes skills directory:
+
+```bash
+mkdir -p ~/.hermes/skills/hercules
+cp -a skills/. ~/.hermes/skills/hercules/
 ```
 
-## What is included
+For active development, prefer a symlink so the Hermes runtime and this Git repository stay in sync:
 
-Skills are stored under:
-
-```text
-skills/
+```bash
+ln -sfn /path/to/hercules-skills/skills ~/.hermes/skills/hercules
 ```
 
-Current Hercules-owned skills:
+Start a new Hermes session and verify that the skills are visible:
+
+```bash
+hermes skills list | grep hercules
+```
+
+### Current Hercules-owned skills
+
+The current runtime skill pack contains these tracked skills:
 
 ```text
 agent-plugin-dependency-governance
@@ -80,200 +128,258 @@ staged-commit-package-governance
 workflow-skill-pack-audit
 ```
 
-For a role/maturity navigation map of these skills (entry vs atom vs specialized, core vs domain), see `docs/ai-collaboration/SKILL_NAVIGATION.md`.
+For role/maturity navigation, see [`docs/ai-collaboration/SKILL_NAVIGATION.md`](docs/ai-collaboration/SKILL_NAVIGATION.md). For the full audit and composition map, see [`docs/ai-collaboration/SKILL_GROUP_AUDIT.md`](docs/ai-collaboration/SKILL_GROUP_AUDIT.md).
 
-`hercules-skill-pack-management` is the repository-maintenance atom covering layout, runtime symlink, backups, migration, GitHub synchronization, and pre-push privacy checks. `workflow-skill-pack-audit` is the skill-pack audit/reconciliation atom covering skill classification, validator/recheck workflow, ledger trajectory, and Codex reconciliation — it codifies the exact audit pass that produced the current repository state. `skill-pack-governance-validation` is the runtime usability / commit-package / migration acceptance atom covering runtime loading, archived candidate safety, validator/static checks, bootstrap audit-only, staged privacy scan, and commit-package readiness. `skill-pack-roadmap-execution` is the continuous roadmap execution atom covering authorized auto-advance, Claude max-turns recovery, Codex PASS closure, and auto-commit/no-push boundaries. `staged-commit-package-governance` is the staged-package boundary and ledger-truth atom covering index-vs-worktree boundaries, preserving unrelated unstaged work, ledger/trajectory truthfulness after staging, and narrow Codex rechecks after review findings; it complements `skill-pack-governance-validation` and was promoted in TASK-009 from the round-4 staged-package boundary pattern. `agent-plugin-dependency-governance` is the external Claude/Codex/agent plugin dependency atom covering dependency-vs-vendor boundaries, optional bootstrap gating, live sub-capability scanning, and safety-boundary classification. `evaluation-closed-loop-orchestration` is the canonical evaluated-system closed-loop atom that turns telemetry/diagnosis findings into safe modification requests, agent handoffs, structured BLOCKED outcomes, and Claude/Codex review cycles. `godot-wsl-artifact-validation` and `godot-rl-metric-regression` are specialized domain atoms for WSL+Windows Godot artifact proof and baseline-vs-candidate Godot/RL metric regression respectively. The core set is 22 skills after adding `skill-pack-roadmap-execution` from the TASK-010..013 roadmap run on top of the round-4/TASK-009 core atoms. The TASK-009 `staged-commit-package-governance` atom codifies the practiced staged-package boundary and ledger-truth pattern from TASK-008.
-
-Eight reviewed candidates — `real-game-closed-loop-validation` (Godot/RL domain validation), `game-mechanics-telemetry-validation` and `game-telemetry-closed-loop-validation` (game mechanic / telemetry validation), `repository-governance-initialization` (governance init pattern, overlaps the existing project-init skills), `scoped-codex-review-packets` (bounded Codex review packets, overlaps the review-loop family), and `artifact-driven-evaluation-loops`, `artifact-handoff-orchestration`, and `autonomous-evaluation-loops` (evaluated-system loop variants that overlap the canonical `evaluation-closed-loop-orchestration` atom after their unique details were folded into it) — were **archived** under `docs/ai-collaboration/candidate-skills/` across these reconciliation passes. They are preserved as reference/case-study material, are not runtime-loaded, and are not part of the core list. See `docs/ai-collaboration/SKILL_GROUP_AUDIT.md` for the full disposition and `docs/ai-collaboration/candidate-skills/README.md` for how to promote one later.
-
-## What is not included
-
-Hermes builtin skills are intentionally not copied here. Use the target machine's own Hermes installation for them:
+### Repository layout
 
 ```text
-claude-code
-codex
-hermes-agent
-opencode
+skills/                                  # Runtime Hercules skills
+scripts/hercules                         # Productized helper entry point
+scripts/validate-skill-pack.py           # Skill-pack validator and release gate
+scripts/smoke-fresh-clone.sh             # Fresh-clone smoke validation
+tests/                                   # Validator tests
+docs/WHY_HERCULES.md                     # Positioning vs codex-plugin-cc
+docs/ai-collaboration/TASKS.md           # Live collaboration ledger
+docs/ai-collaboration/tasks/             # Archived task ledgers
+docs/ai-collaboration/codex-reviews/     # Independent Codex review records
+docs/ai-collaboration/SKILL_NAVIGATION.md# Skill role/maturity map
+HERMES.md                                # Hermes orchestration rules
+CLAUDE.md                                # Claude Code implementation rules
+AGENTS.md                                # Codex review rules
 ```
 
-Third-party or official hub skills are also intentionally not vendored here unless they become Hercules-owned custom workflow skills.
+### Validation
 
-Known external workflow dependencies:
+Run the standard validation bundle before submitting changes:
+
+```bash
+python3 tests/test_validate_skill_pack_cli.py -v
+python3 scripts/validate-skill-pack.py --strict
+scripts/hercules package
+git diff --check
+git diff --cached --check
+```
+
+`--strict` fails on structural warnings. Reflection signals remain advisory and are used to improve future workflow skills.
+
+### External dependencies and third-party content
+
+Hercules intentionally does **not** vendor Hermes built-in skills or third-party agent plugins.
+
+Known external workflow dependencies include:
 
 ```text
 subagent-driven-development
 writing-plans
 ```
 
-These two are Superpowers/official-hub style skills, not Hercules-owned custom skills. The bootstrap script can check/install them on a target machine.
+Optional Claude plugins checked by the bootstrap workflow can include:
 
-## Install on another machine
+```text
+superpowers
+oh-my-claudecode
+codex@openai-codex
+```
 
-Install Hermes first using the official Hermes installation flow.
+OpenAI [`codex-plugin-cc`](https://github.com/openai/codex-plugin-cc) is treated as an optional external dependency (`codex@openai-codex`), not copied source. It is licensed upstream under Apache-2.0. Hercules records policy, safety classification, and bootstrap checks around it; upstream plugin code remains upstream.
 
-Then clone this repository:
+### Contributing
+
+Contributions should preserve the actor boundaries and validation discipline:
+
+1. Keep README reader-facing; put long operating rules in `HERMES.md`, `CLAUDE.md`, `AGENTS.md`, or `docs/ai-collaboration/`.
+2. Keep Hercules-owned skills under `skills/<skill>/SKILL.md`.
+3. Do not vendor Hermes built-in skills or third-party plugins unless an explicit governance decision says otherwise.
+4. Run the validation bundle before review.
+5. Use independent Codex review for review-required governance changes.
+
+### License
+
+This repository is licensed under the MIT License. See [`LICENSE`](LICENSE).
+
+Third-party tools, skills, and plugins remain under their own licenses. In particular, OpenAI `codex-plugin-cc` is Apache-2.0 upstream and is not vendored into this repository.
+
+---
+
+## 中文
+
+### Hercules Skills 是什么？
+
+Hercules Skills 是一套面向 [Hermes Agent](https://hermes-agent.nousresearch.com/) 的可迁移 workflow skill pack。它面向希望把 Claude Code 与 Codex CLI 纳入清晰编排、独立复核和真实验证闭环的开发者。
+
+这个仓库提供：
+
+- `skills/` 下的 Hercules 自有 Hermes skills；
+- `scripts/hercules` 轻量命令入口；
+- skill pack validator、package gate 和 fresh-clone smoke；
+- live task ledger 与历史任务归档；
+- 独立 Codex review 记录；
+- 对 OpenAI `codex-plugin-cc` 等可选外部 agent plugin 的依赖治理边界。
+
+Hercules 是 workflow layer，不替代 Claude Code、Codex CLI、Hermes Agent 或 `codex-plugin-cc`。
+
+### 为什么需要它？
+
+AI coding workflow 很容易变得不可审计：一个 agent 写代码，另一个 agent review，shell 命令做验证，最后用户要靠记忆判断哪些事情完成了。Hercules 把这个过程显式化：
+
+| 角色 | 职责 |
+|---|---|
+| Hermes | 编排、收集上下文、分派 agent、验证输出、更新账本。 |
+| Claude Code | 在明确范围内实现代码、文档、重构。 |
+| Codex CLI | 独立 review、风险检查、CR closure、最终验收。 |
+| 真实命令 | 提供可执行证据：validator、tests、shell syntax、package checks。 |
+
+关于 Hercules 与 OpenAI `codex-plugin-cc` 的区别，见 [`docs/WHY_HERCULES.md`](docs/WHY_HERCULES.md)。
+
+### 核心能力
+
+- **22 个 runtime skills**：按 entry、atom、specialized atom、domain atom 组织。
+- **产品化命令入口**：`scripts/hercules validate/package/status/doctor/bootstrap --check`。
+- **发布门禁**：`scripts/validate-skill-pack.py --strict` 检查 skill metadata、linked files、导航漂移、任务归档完整性和 reflection signals。
+- **fresh-clone smoke**：`scripts/smoke-fresh-clone.sh` 验证 staged package 可迁移性。
+- **任务治理**：`TASKS.md` 保留活跃/近期任务，`tasks/archive-2026-07.md` 保留历史审计链路。
+- **独立 review 轨迹**：Codex review records 位于 `docs/ai-collaboration/codex-reviews/`。
+- **外部插件边界**：第三方 agent plugin 作为 dependency，不 vendor 源码。
+
+### 快速开始
 
 ```bash
 git clone https://github.com/ZeroTian/hercules-skills.git
+cd hercules-skills
+
+scripts/hercules status
+scripts/hercules validate
+scripts/hercules bootstrap --check
 ```
 
-Copy the skill group into Hermes:
+常用命令：
+
+```bash
+scripts/hercules validate          # validator + whitespace diff check + bootstrap script syntax
+scripts/hercules bootstrap --check # audit-only dependency doctor；不安装 optional plugins
+scripts/hercules package           # staged package readiness；不 commit / 不 push
+scripts/hercules doctor            # tool presence + audit-only bootstrap + validation
+```
+
+### 安装到 Hermes
+
+先按 Hermes 官方流程安装 Hermes。
+
+然后复制 skill group：
 
 ```bash
 mkdir -p ~/.hermes/skills/hercules
-cp -a hercules-skills/skills/. ~/.hermes/skills/hercules/
+cp -a skills/. ~/.hermes/skills/hercules/
 ```
 
-For active development on the skill pack, prefer a symlink so the Hermes runtime and Git repository stay in sync:
+如果是开发本仓库，建议使用 symlink：
 
 ```bash
-ln -sfn /mnt/e/code/hercules-skills/skills ~/.hermes/skills/hercules
+ln -sfn /path/to/hercules-skills/skills ~/.hermes/skills/hercules
 ```
 
-Run the bootstrap/dependency doctor:
-
-```bash
-bash ~/.hermes/skills/hercules/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh
-```
-
-For unattended setup after you have authorized installation:
-
-```bash
-HERCULES_YES=1 bash ~/.hermes/skills/hercules/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh
-```
-
-For audit-only mode:
-
-```bash
-HERCULES_CHECK_ONLY=1 bash ~/.hermes/skills/hercules/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh
-```
-
-The bootstrap script checks and installs where possible:
-
-```text
-Claude Code CLI: npm install -g @anthropic-ai/claude-code
-Codex CLI: npm install -g @openai/codex
-Hermes skills: subagent-driven-development, writing-plans
-Claude marketplaces: claude-plugins-official, omc, openai-codex (openai/codex-plugin-cc)
-Claude plugins: superpowers, oh-my-claudecode
-Optional Claude plugins (HERCULES_INSTALL_OPTIONAL=1): playwright, context7, pyright-lsp, codex@openai-codex
-```
-
-The `codex@openai-codex` plugin is the OpenAI `codex-plugin-cc` Claude plugin — an optional in-Claude `/codex:*` command surface, distinct from the Codex CLI. It is not installed by default. See `skills/hercules-agent-capability-preflight/SKILL.md` for its boundary classification and `skills/cross-agent-review-loop/SKILL.md` for how it relates to the independent final Codex review.
-
-It does not automate interactive auth. If needed, run:
-
-```bash
-claude auth login --console
-codex login
-```
-
-Start a new Hermes session, then verify:
+启动新的 Hermes session 后验证：
 
 ```bash
 hermes skills list | grep hercules
 ```
 
-## Validate the skill pack
+### 当前 Hercules 自有 skills
 
-Run the productized validation entry before skill-pack changes or before handoff to Codex review:
+当前 runtime skill pack 包含这些 tracked skills：
 
-```bash
-scripts/hercules validate
+```text
+agent-plugin-dependency-governance
+coding-agent-orchestration
+cross-agent-review-loop
+evaluation-closed-loop-orchestration
+godot-rl-metric-regression
+godot-wsl-artifact-validation
+hercules-agent-capability-preflight
+hercules-collaborative-agent-workflow
+hercules-meta-skill-evolution
+hercules-project-init-workflow
+hercules-skill-pack-management
+hermes-collaborative-workflow
+hermes-project-init-orchestration
+iterative-agent-code-review
+kanban-codex-lane
+kanban-orchestrator
+kanban-worker
+open-ended-research-orchestration
+skill-pack-governance-validation
+skill-pack-roadmap-execution
+staged-commit-package-governance
+workflow-skill-pack-audit
 ```
 
-The underlying validator can still be run directly when needed, including machine-readable and release-gate modes:
+角色与成熟度导航见 [`docs/ai-collaboration/SKILL_NAVIGATION.md`](docs/ai-collaboration/SKILL_NAVIGATION.md)。完整审计与组合图见 [`docs/ai-collaboration/SKILL_GROUP_AUDIT.md`](docs/ai-collaboration/SKILL_GROUP_AUDIT.md)。
+
+### 仓库结构
+
+```text
+skills/                                  # Runtime Hercules skills
+scripts/hercules                         # 产品化 helper 入口
+scripts/validate-skill-pack.py           # skill-pack validator / release gate
+scripts/smoke-fresh-clone.sh             # fresh-clone smoke validation
+tests/                                   # validator tests
+docs/WHY_HERCULES.md                     # 与 codex-plugin-cc 的定位对比
+docs/ai-collaboration/TASKS.md           # live collaboration ledger
+docs/ai-collaboration/tasks/             # 历史任务归档
+docs/ai-collaboration/codex-reviews/     # 独立 Codex review records
+docs/ai-collaboration/SKILL_NAVIGATION.md# skill role/maturity map
+HERMES.md                                # Hermes 编排规则
+CLAUDE.md                                # Claude Code 实现规则
+AGENTS.md                                # Codex review 规则
+```
+
+### 验证
+
+提交变更前建议运行：
 
 ```bash
-python3 scripts/validate-skill-pack.py
-python3 scripts/validate-skill-pack.py --json
+python3 tests/test_validate_skill_pack_cli.py -v
 python3 scripts/validate-skill-pack.py --strict
-scripts/smoke-fresh-clone.sh
+scripts/hercules package
+git diff --check
+git diff --cached --check
 ```
 
-It checks frontmatter and required fields for `skills/*/SKILL.md`, description length, allowed linked directories and linked files, README/ARCHITECTURE skill-list consistency, governance file presence, shell-script syntax, and ledger reflection signals (repeated CR IDs, `max-turns`, `blocked/阻塞`, `repair-loop/需修改`, open formal tasks missing a trajectory block, and whether an evidence package should be considered). By default it exits nonzero only for structural errors; `--strict` also treats warnings as release-blocking while reflection signals remain advisory. See `docs/ai-collaboration/SKILL_GROUP_AUDIT.md` for the current skill classification.
+`--strict` 会把结构性 warning 作为 release blocker；reflection signals 仍是 advisory，用于推动后续 workflow skill 改进。
 
-## Main entry skills
+### 外部依赖与第三方内容
 
-For project initialization or repository governance setup:
+Hercules 不 vendor Hermes builtin skills，也不默认 vendor 第三方 agent plugins。
+
+已知外部 workflow dependencies：
 
 ```text
-/skill hercules-project-init-workflow
+subagent-driven-development
+writing-plans
 ```
 
-For collaborative development with Hermes + Claude Code + Codex:
+bootstrap 可检查的 optional Claude plugins 包括：
 
 ```text
-/skill hercules-collaborative-agent-workflow
+superpowers
+oh-my-claudecode
+codex@openai-codex
 ```
 
-For capability scanning and reasoning-effort selection before launching Claude/Codex:
+OpenAI [`codex-plugin-cc`](https://github.com/openai/codex-plugin-cc) 在 Hercules 中被视为 optional external dependency（`codex@openai-codex`），不是 vendored source。它上游采用 Apache-2.0 license。Hercules 只沉淀围绕它的治理策略、安全边界和 bootstrap 检查；上游插件源码仍保留在上游。
 
-```text
-/skill hercules-agent-capability-preflight
-```
+### 贡献指南
 
-## User-level rule location
+贡献时请保持 actor boundary 和验证纪律：
 
-The personal workflow rule belongs in the user's Hermes-level configuration/persona, not in each project repository and not as a fake `HERMES.md` inside this skill group.
+1. README 保持 reader-facing；长规则放到 `HERMES.md`、`CLAUDE.md`、`AGENTS.md` 或 `docs/ai-collaboration/`。
+2. Hercules 自有 skills 放在 `skills/<skill>/SKILL.md`。
+3. 不 vendor Hermes builtin skills 或第三方 plugins，除非有明确治理决策。
+4. review 前运行验证命令。
+5. 需要验收的治理变更使用独立 Codex review。
 
-For the default Hermes profile, that file is:
+### 开源协议
 
-```text
-~/.hermes/SOUL.md
-```
+本仓库采用 MIT License，见 [`LICENSE`](LICENSE)。
 
-The rule should say, in effect:
-
-```text
-Hermes is the main orchestration agent.
-Claude Code is the default implementation agent.
-Codex CLI is the default independent review/acceptance agent.
-Hercules-owned development workflow skills live under ~/.hermes/skills/hercules/ and sync to ZeroTian/hercules-skills.
-Builtin Hermes skills stay in the normal Hermes installation.
-Third-party/hub skills are dependencies and should be checked/installed, not vendored.
-Before launching Claude/Codex, run capability preflight and choose high/xhigh reasoning effort by task complexity.
-```
-
-## Workflow intent
-
-The Hercules workflow prefers this split:
-
-```text
-Hermes: orchestrates, gathers context, launches agents, verifies output, updates task state
-Claude Code: implements code/docs/refactors using SDD + TDD where appropriate
-Codex CLI: performs independent review, CR, risk checks, and final acceptance
-```
-
-Before delegating substantial work, Hermes should scan the live Claude/Codex capabilities, including available plugins, MCP servers, agents, and features, then choose reasoning effort:
-
-```text
-default: high
-complex or high-risk: xhigh
-```
-
-## Migration rule
-
-When adding new Hercules-specific development workflow skills:
-
-1. Put them under `~/.hermes/skills/hercules/` locally.
-2. Copy or symlink them into this repo under `skills/`.
-3. Do not copy Hermes builtin skills into this repo.
-4. Do not vendor third-party or official hub skills into this repo; list them as dependencies and extend bootstrap if needed.
-5. Do not vendor broad general-purpose skills unless they are part of the Hercules workflow contract and have been customized for that contract.
-
-## Current possible future candidates
-
-A local scan found these non-builtin skills that may be related to development workflow but are not currently included:
-
-```text
-software-development/chrome-cdp-automation
-software-development/debugging-hermes-tui-commands
-software-development/hermes-s6-container-supervision
-software-development/tauri-build
-```
-
-They were not added automatically because they are tool-specific or project/domain-specific rather than core Hercules orchestration skills.
-
-Other scanned skills such as Telegram formatting, webhook subscriptions, MCP utilities, ML/MLOps, and image generation are useful but are not core development workflow skills for this repository.
+第三方工具、skills、plugins 保留其各自 license。尤其是 OpenAI `codex-plugin-cc` 上游是 Apache-2.0，本仓库没有 vendor 它的源码。
