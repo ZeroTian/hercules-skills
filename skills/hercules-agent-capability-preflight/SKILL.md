@@ -54,18 +54,18 @@ For audit-only mode:
 HERCULES_CHECK_ONLY=1 bash ~/.hermes/skills/hercules/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh
 ```
 
-The script checks and installs where possible:
+The script checks and installs where possible. Claude plugin marketplace/plugin installation is gated behind `HERCULES_INSTALL_OPTIONAL=1` so audit/minimal setup does not mutate Claude plugin state:
 
 | Component | Check | Install / remediation |
 |---|---|---|
 | Claude Code CLI | `claude --version` | `npm install -g @anthropic-ai/claude-code` |
 | Codex CLI | `codex --version` | `npm install -g @openai/codex` |
 | Hercules external skills | `hermes skills list` | `hermes skills install official/software-development/subagent-driven-development` and `hermes skills install skills-sh/obra/superpowers/writing-plans` |
-| Claude official plugin marketplace | `claude plugins marketplace list` | `claude plugins marketplace add anthropics/claude-plugins-official` |
-| OMC marketplace | `claude plugins marketplace list` | `claude plugins marketplace add https://github.com/Yeachan-Heo/oh-my-claudecode.git` |
-| OpenAI codex-plugin-cc marketplace | `claude plugins marketplace list` | `claude plugins marketplace add openai/codex-plugin-cc` (registers as `openai-codex`) |
-| Claude `superpowers` plugin | `claude plugins list` | `claude plugins install --scope user superpowers@claude-plugins-official` |
-| Claude OMC plugin | `claude plugins list` | `claude plugins install --scope user oh-my-claudecode@omc` |
+| Claude official plugin marketplace | `claude plugins marketplace list` | `claude plugins marketplace add anthropics/claude-plugins-official` — only with `HERCULES_INSTALL_OPTIONAL=1` |
+| OMC marketplace | `claude plugins marketplace list` | `claude plugins marketplace add https://github.com/Yeachan-Heo/oh-my-claudecode.git` — only with `HERCULES_INSTALL_OPTIONAL=1` |
+| OpenAI codex-plugin-cc marketplace | `claude plugins marketplace list` | `claude plugins marketplace add openai/codex-plugin-cc` (registers as `openai-codex`) — only with `HERCULES_INSTALL_OPTIONAL=1` |
+| Claude `superpowers` plugin | `claude plugins list` | `claude plugins install --scope user superpowers@claude-plugins-official` — only with `HERCULES_INSTALL_OPTIONAL=1` |
+| Claude OMC plugin | `claude plugins list` | `claude plugins install --scope user oh-my-claudecode@omc` — only with `HERCULES_INSTALL_OPTIONAL=1` |
 | Claude `codex` plugin (optional) | `claude plugins list` | `claude plugins install --scope user codex@openai-codex` — only with `HERCULES_INSTALL_OPTIONAL=1` |
 
 It does **not** automate interactive auth. If auth is missing, it reports the required commands:
@@ -75,7 +75,7 @@ claude auth login --console
 codex login
 ```
 
-Optional plugins such as `playwright`, `context7`, `pyright-lsp`, and the OpenAI `codex` Claude plugin (`codex@openai-codex`, from the `openai/codex-plugin-cc` marketplace) can be installed by running with:
+Claude plugin installation, including `superpowers`, `oh-my-claudecode`, `playwright`, `context7`, `pyright-lsp`, and the OpenAI `codex` Claude plugin (`codex@openai-codex`, from the `openai/codex-plugin-cc` marketplace) can be installed by running with:
 
 ```bash
 HERCULES_YES=1 HERCULES_INSTALL_OPTIONAL=1 bash ~/.hermes/skills/hercules/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh
@@ -83,7 +83,7 @@ HERCULES_YES=1 HERCULES_INSTALL_OPTIONAL=1 bash ~/.hermes/skills/hercules/hercul
 
 The `codex` Claude plugin is **not** the Codex CLI. It is an optional in-Claude plugin that exposes `/codex:*` slash commands and a `codex:codex-rescue` agent. It is never installed by default. When present, the bootstrap deep inventory lists its `/codex:*` commands and reports whether `agents/codex-rescue.md` is available.
 
-Completion criterion: `claude`, `codex`, required Claude plugins, and external skills are present or the script has reported a real blocker such as missing Node/npm or missing auth.
+Completion criterion: `claude`, `codex`, required Hermes skills, and any explicitly requested Claude plugins are present or the script has reported a real blocker such as missing Node/npm or missing auth.
 
 ## Step 1 — Classify Task Complexity
 

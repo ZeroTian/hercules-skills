@@ -5,15 +5,15 @@ set -euo pipefail
 # Safe defaults:
 # - Installs missing CLI packages with npm global install.
 # - Installs missing Hermes hub skills.
-# - Adds Claude plugin marketplaces if absent, then installs/enables required plugins.
+# - Installs/enables Claude plugin marketplaces/plugins only when HERCULES_INSTALL_OPTIONAL=1.
 # - Does not perform interactive auth; reports required login commands instead.
 #
 # Env knobs:
 #   HERCULES_YES=1              run installs without prompting
 #   HERCULES_CHECK_ONLY=1       only report, do not install
 #   HERCULES_SKIP_REGISTRY=1    do not change npm/pnpm registry
-#   HERCULES_INSTALL_OPTIONAL=1 install optional plugins too
-#                              (playwright, context7, pyright-lsp, codex@openai-codex)
+#   HERCULES_INSTALL_OPTIONAL=1 install Claude plugins/marketplaces too
+#                              (superpowers, oh-my-claudecode, playwright, context7, pyright-lsp, codex@openai-codex)
 
 YES=${HERCULES_YES:-0}
 CHECK_ONLY=${HERCULES_CHECK_ONLY:-0}
@@ -241,20 +241,20 @@ main() {
   ensure_skill writing-plans skills-sh/obra/superpowers/writing-plans || true
 
   if have_cmd claude; then
-    ensure_marketplace claude-plugins-official anthropics/claude-plugins-official || true
-    ensure_marketplace omc https://github.com/Yeachan-Heo/oh-my-claudecode.git || true
-    # openai/codex-plugin-cc registers the marketplace under the stable name
-    # "openai-codex"; the plugin is referenced as codex@openai-codex. The
-    # marketplace is added always (registry entry only); plugin install is
-    # gated by HERCULES_INSTALL_OPTIONAL below.
-    ensure_marketplace openai-codex openai/codex-plugin-cc || true
-    ensure_claude_plugin superpowers@claude-plugins-official superpowers || true
-    ensure_claude_plugin oh-my-claudecode@omc oh-my-claudecode || true
     if [ "$INSTALL_OPTIONAL" = "1" ]; then
+      ensure_marketplace claude-plugins-official anthropics/claude-plugins-official || true
+      ensure_marketplace omc https://github.com/Yeachan-Heo/oh-my-claudecode.git || true
+      # openai/codex-plugin-cc registers the marketplace under the stable name
+      # "openai-codex"; the plugin is referenced as codex@openai-codex.
+      ensure_marketplace openai-codex openai/codex-plugin-cc || true
+      ensure_claude_plugin superpowers@claude-plugins-official superpowers || true
+      ensure_claude_plugin oh-my-claudecode@omc oh-my-claudecode || true
       ensure_claude_plugin playwright@claude-plugins-official playwright || true
       ensure_claude_plugin context7@claude-plugins-official context7 || true
       ensure_claude_plugin pyright-lsp@claude-plugins-official pyright-lsp || true
       ensure_claude_plugin codex@openai-codex codex || true
+    else
+      log "skipping Claude plugin marketplace/plugin installs (set HERCULES_INSTALL_OPTIONAL=1 to align plugin dependencies)"
     fi
   fi
 

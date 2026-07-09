@@ -10,7 +10,7 @@ Hercules turns the pattern below into reusable skills, scripts, ledgers, and rev
 Hermes orchestrates → Claude Code implements → Codex independently reviews → real commands verify
 ```
 
-> Status: local working package with 22 tracked runtime skills, validator release gate, task ledger, Codex review records, and optional external-plugin governance.
+> Status: local working package with 23 tracked runtime skills, validator release gate, task ledger, Codex review records, and optional external-plugin governance.
 
 ---
 
@@ -46,7 +46,7 @@ For the positioning note comparing Hercules with OpenAI `codex-plugin-cc`, see [
 
 ### Key features
 
-- **22 runtime skills** organized as entry skills, atoms, specialized atoms, and domain atoms.
+- **23 runtime skills** organized as entry skills, atoms, specialized atoms, and domain atoms.
 - **Productized CLI helper**: `scripts/hercules validate`, `package`, `status`, `doctor`, and `bootstrap --check`.
 - **Release gate**: `scripts/validate-skill-pack.py --strict` checks skill metadata, linked files, navigation drift, task archive integrity, and reflection signals.
 - **Fresh-clone smoke test**: `scripts/smoke-fresh-clone.sh` validates staged-package portability.
@@ -55,6 +55,36 @@ For the positioning note comparing Hercules with OpenAI `codex-plugin-cc`, see [
 - **External-plugin boundary**: third-party agent plugins are treated as dependencies, not vendored source.
 
 ### Quickstart
+
+### One-command install
+
+For a fresh Linux/macOS/WSL machine, the installer can clone/update this repository, install Hermes if missing, install/link the Hercules skills, and run the dependency bootstrap. Use `--optional` when you want the script to align Claude plugin dependencies too:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/ZeroTian/hercules-skills/main/scripts/install-hercules.sh | bash -s -- --yes --optional
+```
+
+Minimal install without Claude plugin mutation:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/ZeroTian/hercules-skills/main/scripts/install-hercules.sh | bash -s -- --yes
+```
+
+Audit-only mode, with no installs, clones, pulls, registry writes, or symlink changes:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/ZeroTian/hercules-skills/main/scripts/install-hercules.sh | bash -s -- --check
+```
+
+Local checkout equivalent:
+
+```bash
+scripts/install-hercules.sh --yes --optional
+scripts/install-hercules.sh --yes
+scripts/install-hercules.sh --check
+```
+
+The installer does not automate interactive auth. After it finishes, run `hermes setup`, `claude auth login --console`, or `codex login` if any of those are still missing.
 
 From a checkout of this repository:
 
@@ -122,6 +152,7 @@ kanban-codex-lane
 kanban-orchestrator
 kanban-worker
 open-ended-research-orchestration
+open-source-project-packaging
 skill-pack-governance-validation
 skill-pack-roadmap-execution
 staged-commit-package-governance
@@ -173,7 +204,7 @@ subagent-driven-development
 writing-plans
 ```
 
-Optional Claude plugins checked by the bootstrap workflow can include:
+Claude plugins checked/installed by the bootstrap workflow only when `--optional` / `HERCULES_INSTALL_OPTIONAL=1` is set can include:
 
 ```text
 superpowers
@@ -233,7 +264,7 @@ AI coding workflow 很容易变得不可审计：一个 agent 写代码，另一
 
 ### 核心能力
 
-- **22 个 runtime skills**：按 entry、atom、specialized atom、domain atom 组织。
+- **23 个 runtime skills**：按 entry、atom、specialized atom、domain atom 组织。
 - **产品化命令入口**：`scripts/hercules validate/package/status/doctor/bootstrap --check`。
 - **发布门禁**：`scripts/validate-skill-pack.py --strict` 检查 skill metadata、linked files、导航漂移、任务归档完整性和 reflection signals。
 - **fresh-clone smoke**：`scripts/smoke-fresh-clone.sh` 验证 staged package 可迁移性。
@@ -242,6 +273,36 @@ AI coding workflow 很容易变得不可审计：一个 agent 写代码，另一
 - **外部插件边界**：第三方 agent plugin 作为 dependency，不 vendor 源码。
 
 ### 快速开始
+
+### 一键安装
+
+在新的 Linux / macOS / WSL 机器上，可以用安装脚本自动 clone/update 仓库、安装缺失的 Hermes、安装/链接 Hercules skills，并运行依赖 bootstrap。如果要把 Claude plugin 依赖也拉齐，使用 `--optional`：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/ZeroTian/hercules-skills/main/scripts/install-hercules.sh | bash -s -- --yes --optional
+```
+
+不改 Claude plugin 状态的最小安装：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/ZeroTian/hercules-skills/main/scripts/install-hercules.sh | bash -s -- --yes
+```
+
+只检查、不安装、不 clone/pull、不写 registry、不改 symlink：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/ZeroTian/hercules-skills/main/scripts/install-hercules.sh | bash -s -- --check
+```
+
+本地 checkout 中等价命令：
+
+```bash
+scripts/install-hercules.sh --yes --optional
+scripts/install-hercules.sh --yes
+scripts/install-hercules.sh --check
+```
+
+安装脚本不会自动完成交互式登录。如果结束后仍缺认证，请运行 `hermes setup`、`claude auth login --console` 或 `codex login`。
 
 ```bash
 git clone https://github.com/ZeroTian/hercules-skills.git
@@ -307,6 +368,7 @@ kanban-codex-lane
 kanban-orchestrator
 kanban-worker
 open-ended-research-orchestration
+open-source-project-packaging
 skill-pack-governance-validation
 skill-pack-roadmap-execution
 staged-commit-package-governance
