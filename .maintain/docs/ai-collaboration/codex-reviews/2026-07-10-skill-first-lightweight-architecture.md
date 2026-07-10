@@ -1,74 +1,62 @@
-# TASK-015 Skill-first lightweight architecture — final independent PASS
+# TASK-015 Skill-first lightweight architecture — merged-main cleanup recheck
 
 - Date: 2026-07-10
-- Initial review range: `df377c0..4742721`
-- Initial verdict: **FAIL**
-- Repair commits: `3ee0d9a`, `823f350`, `d18a026`, `bdc5db1`, `56df17f`, `e42f4f2`, `444ff02`, `0b56986`
-- Final independent recheck range: `df377c0..0b56986`; result **PASS** — 8 closed / 0 open
-- Current verdict: **PASS**
-- Ready: **YES**
-- Closure: TASK-015 is complete
+- Initial official review: **FAIL** — 5 findings (`Important 3`, `Minor 2`)
+- Current result: **PENDING** — approved lightweight package is implemented; merged `main` cleanup awaits one independent recheck
+- Ready: **No — cleanup recheck pending**
+- Closure: TASK-015 temporarily returns to `待复核`
 
-## Findings
+## Accepted findings
 
-### TASK015-CR-001 — Important — init conflict mutated Git metadata
+### TASK015-CR-001 — Important — capability behavior and cache authority evidence
 
-- Status: **CLOSED**
-- Fix: existing checkouts must be clean; a temporary isolated clone proves the local branch and tracking ref both fast-forward to a captured remote tip before the managed checkout fetches any object. Managed fetch uses `--no-write-fetch-head`; refs/worktree change only on the accepted update path.
-- RED→GREEN: divergent, dirty tracked/untracked, and remote-rewrite regressions failed against the old fetch-first flow; `test_init.py` now covers all cases including a genuine remote fast-forward.
+- Status: **FIXED — AWAITING RECHECK**
+- Fix: the nine task/facility/cache environments have executable behavior coverage. Cache reuse accepts only complete normalized records whose role, facility, surface, authority, evidence, and fingerprint satisfy the current demand. Compact, incomplete, stale, permission-mismatched, and failed-invocation records invalidate and use confirmed discovery/fallback. No install/config/auth commands are emitted.
 
-### TASK015-CR-002 — Important — package gate echoed secret material
+### TASK015-CR-002 — Important — privacy gate echoed secret-like content
 
-- Status: **CLOSED**
-- Fix: the gate emits only redacted category/path/line/count metadata. Distinctive sentinel values and matching lines never appear in stdout/stderr; deletion and unstaged-only cases remain allowed.
-- RED→GREEN: redacted-output regressions failed against verbatim output and now pass in the maintainer boundary suite.
+- Status: **FIXED — AWAITING RECHECK**
+- Fix: staged privacy output is limited to redacted category/path/line/count metadata; sentinel content is never printed.
 
-### TASK015-CR-003 — Important — compact cache bypassed authority evidence
+### TASK015-CR-003 — Important — navigation validator did not enforce the exact-five runtime
 
-- Status: **CLOSED**
-- Recheck evidence: a compact string route for `review-only-tool` plus a write-capable demand fabricated implementation surface, write authority, and evidence, then routed without discovery.
-- Fix: cache reuse now accepts only complete normalized records whose role, facility, confirmed surface, authority, evidence, and fingerprint satisfy the current demand. Compact/incomplete/read-only records become `invalid-cache-record` and use existing task-relevant discovery/fallback; missing-role, stale-fingerprint, and invocation-failure behavior is unchanged. The contract still emits no install/config/auth commands.
-- RED→GREEN: the reviewer compact-cache symptom failed by routing the unproven facility; after removing string synthesis, compact and read-only records invalidate while normalized fresh reuse and all fallback paths pass in the focused 7-case set.
+- Status: **FIXED — AWAITING RECHECK**
+- Fix: navigation keys must equal the five runtime Skills; `hercules` is the sole `entry/composite`, and the other four are internal rows. Missing, extra, and wrong-role fixtures fail.
 
-### TASK015-CR-004 — Important — active maintainer workflows referenced retired paths/runtime
+### TASK015-CR-004 — Minor — missing Git/Hermes UX lacked stable links and no-mutation evidence
 
-- Status: **CLOSED**
-- Fix: active maintainer Skills/templates/references now use `.maintain/` commands and exact-five paths. Round-2/round-4 material moved to an explicit historical archive; older plugin research is labeled historical.
-- RED→GREEN: the active-asset scan exposed retired commands/names across the maintainer tree; it now has zero matches.
+- Status: **FIXED — AWAITING RECHECK**
+- Fix: prerequisite failures include official links and explicitly state that Hercules changed nothing; isolated tests compare filesystem snapshots.
 
-### TASK015-CR-005 — Important — validator did not enforce navigation exactness
+### TASK015-CR-005 — Minor — public-surface assertions missed alternate Skill entries
 
-- Status: **CLOSED**
-- Fix: `check_skill_navigation()` requires the navigation key set to equal `EXPECTED_RUNTIME_SKILLS`, one core entry row for `hercules`, and one core internal row for each other runtime Skill. The package gate invokes this validator.
-- RED→GREEN: missing, extra, and wrong-entry fixtures failed before the validator change and now pass.
+- Status: **FIXED — AWAITING RECHECK**
+- Fix: both Quickstarts are exactly three commands, the only root executable is `init.sh`, and documented `/skill` parsing covers common Markdown wrappers while excluding URLs/paths. Only `/skill hercules` is accepted.
 
-### TASK015-CR-006 — Minor — missing Git/Hermes UX lacked stable links
+### TASK015-CR-006 — Minor — public entry did not link its runtime-routing reference
 
-- Status: **CLOSED**
-- Fix: failures include official Git/Hermes URLs and explicitly state Hercules changed nothing. Isolated PATH tests snapshot the filesystem and prove no checkout/runtime mutation.
-- RED→GREEN: missing-prerequisite message/mutation tests failed before the URL contract and now pass.
+- Status: **FIXED — AWAITING RECHECK**
+- Fix: `skills/hercules/SKILL.md` links `references/runtime-routing.md`; tests resolve the target.
 
-### TASK015-CR-007 — Minor — entry did not link routing reference
+### TASK015-CR-007 — Minor — validator advisory emitted a non-resolving maintainer path
 
-- Status: **CLOSED**
-- Recheck evidence: the reference file existed but `skills/hercules/SKILL.md`, runtime tests, and the validator path did not mention it.
-- Fix: `skills/hercules/SKILL.md` now links `[runtime routing reference](references/runtime-routing.md)` at the routing decision point. A regression test parses the Markdown link and resolves the target; strict linked-reference validation also covers it.
-- RED→GREEN: the navigation/reference test failed against the orphaned file and now passes.
+- Status: **FIXED — AWAITING RECHECK**
+- Fix: the advisory targets `.maintain/skills/hercules-meta-skill-evolution/templates/evidence-package.md`; a CLI test proves it exists.
 
-### TASK015-CR-008 — Minor — strict advisory emitted a non-resolving maintainer path
+## Explicitly excluded experiments
 
-- Status: **CLOSED**
-- Recheck evidence: strict output recommended `hercules-meta-skill-evolution/templates/evidence-package.md`, which does not exist at repository root.
-- Fix: the advisory now emits `.maintain/skills/hercules-meta-skill-evolution/templates/evidence-package.md`. A CLI regression test reads the JSON signal, rejects the old path, and proves the emitted target exists.
-- RED→GREEN: the advisory-path test failed on the stale path and now passes; the owning validator CLI suite passes 28/28.
+- `bdc5db1` added a complex Git preflight that the official review explicitly treated as Candidate A, not a finding. It is reverted on `main` by `0a63485`; `init.sh` and `test_init.py` retain the lightweight clone/update/symlink contract.
+- `823f350` changed active maintainer Skills and historical material outside the accepted CR package. It is reverted on `main` by `3504f0f`.
+- The ignored SDD report was accidentally tracked during the interrupted run and is removed from the product package.
 
-## Final verification evidence
+## Fresh merged-main evidence before recheck
 
-- Targeted CR-003 cache-integrity/fallback set: 7/7 passed.
-- Runtime owning suite: 27/27 passed; complete stdlib discovery suite: 89/89 passed.
-- Strict validator: 0 errors / 0 warnings; Bash, diff, public forbidden-behavior, exact-five, and root-executable scans are clean.
-- Final staged package gate: passed with `maintainer package checks passed`.
+- Complete stdlib suite: 81/81 passed.
+- Runtime owning suite: 27/27 passed.
+- Strict validator: 0 errors / 0 warnings.
+- Bash syntax and diff checks passed.
+- Default runtime remains exactly five Skills; the only public root executable is `init.sh`.
 
 ## Closure gate
 
-The final independent recheck at `0b56986` closed CR-003 after reproducing the original compact-cache symptom and verifying the normalized-cache boundary. CR-001 through CR-008 are all closed; spec compliance is PASS and Ready is YES.
+An independent reviewer must confirm the seven accepted fixes, both cleanup reverts, the untracked-report removal, package gate, and fresh-clone smoke on merged `main`. Only then may this record return to PASS / Ready Yes and TASK-015 to `已完成`.
