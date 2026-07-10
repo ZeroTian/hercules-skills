@@ -16,7 +16,7 @@ Hermes / Claude / Codex / 用户 / 无
 
 ## Archive
 
-Completed tasks TASK-001 through TASK-009 have been archived to keep this ledger compact. See `docs/ai-collaboration/tasks/archive-2026-07.md`. The archive preserves full task records, trajectory blocks, source pointers, and review-record links. This live ledger keeps recently closed tasks (TASK-010, TASK-011), active/backlog tasks (TASK-012, TASK-013), and the template/policy sections.
+Completed tasks TASK-001 through TASK-009 have been archived to keep this ledger compact. See `.maintain/docs/ai-collaboration/tasks/archive-2026-07.md`. The archive preserves full task records, trajectory blocks, source pointers, and review-record links. This live ledger keeps recently closed tasks (TASK-010, TASK-011), active/backlog tasks (TASK-012, TASK-013), and the template/policy sections.
 
 ## [x] TASK-010：P1 productized entry + README landing
 

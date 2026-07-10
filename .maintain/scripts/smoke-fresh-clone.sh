@@ -41,16 +41,12 @@ elif ! git -C "$SOURCE_ROOT" diff --quiet --binary; then
 fi
 
 log "running validator"
-python3 "$CLONE_DIR/scripts/validate-skill-pack.py"
+python3 "$CLONE_DIR/.maintain/scripts/validate-skill-pack.py" --strict
 
-if [ -x "$CLONE_DIR/scripts/hercules" ]; then
-  log "running scripts/hercules validate"
-  "$CLONE_DIR/scripts/hercules" validate
-else
-  log "scripts/hercules not executable in clone; skipping helper validation"
-fi
+log "checking init.sh syntax"
+bash -n "$CLONE_DIR/init.sh"
 
-log "running bootstrap syntax check"
-bash -n "$CLONE_DIR/skills/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh"
+log "running runtime Skill contract tests"
+python3 "$CLONE_DIR/.maintain/tests/test_runtime_skill_contract.py" -v
 
 log "fresh-clone smoke passed"

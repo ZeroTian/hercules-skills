@@ -6,8 +6,8 @@ Runs with Python stdlib only. Checks:
   - description length <= 1024 characters
   - linked file directories are only references/templates/scripts/assets
   - skill-local linked-file references point to existing files
-  - README and ARCHITECTURE tracked skill lists vs git tracked skills and visible skill dirs
-  - SKILL_NAVIGATION role/maturity table vs git tracked skills
+  - exact five-Skill runtime scope vs git tracked skills and visible skill dirs
+  - maintainer SKILL_NAVIGATION role/maturity table consistency
   - TASKS archive links, no duplicate task IDs across live/archive ledgers
   - governance files exist
   - shell scripts pass `bash -n`
@@ -33,9 +33,16 @@ import subprocess
 import sys
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+REPO_ROOT = Path(__file__).resolve().parents[2]
 SKILLS_DIR = REPO_ROOT / "skills"
-DOCS_COLLAB = REPO_ROOT / "docs" / "ai-collaboration"
+DOCS_COLLAB = REPO_ROOT / ".maintain" / "docs" / "ai-collaboration"
+EXPECTED_RUNTIME_SKILLS = {
+    "hercules",
+    "hercules-capability-discovery",
+    "hercules-collaborative-workflow",
+    "hercules-review-workflow",
+    "hercules-project-init",
+}
 
 REQUIRED_FRONTMATTER_FIELDS = ("name", "description", "version")
 ALLOWED_LINKED_DIRS = {"references", "templates", "scripts", "assets"}
@@ -48,14 +55,14 @@ GOVERNANCE_ROOT_FILES = (
     "AGENTS.md",
 )
 GOVERNANCE_DOC_PATHS = (
-    "docs/ai-collaboration/README.md",
-    "docs/ai-collaboration/TASKS.md",
-    "docs/ai-collaboration/ARCHITECTURE.md",
-    "docs/ai-collaboration/SKILL_NAVIGATION.md",
-    "docs/ai-collaboration/PROJECT_AUDIT.md",
-    "docs/ai-collaboration/tasks",
-    "docs/ai-collaboration/codex-reviews",
-    "docs/ai-collaboration/decisions",
+    ".maintain/docs/ai-collaboration/README.md",
+    ".maintain/docs/ai-collaboration/TASKS.md",
+    ".maintain/docs/ai-collaboration/ARCHITECTURE.md",
+    ".maintain/docs/ai-collaboration/SKILL_NAVIGATION.md",
+    ".maintain/docs/ai-collaboration/PROJECT_AUDIT.md",
+    ".maintain/docs/ai-collaboration/tasks",
+    ".maintain/docs/ai-collaboration/codex-reviews",
+    ".maintain/docs/ai-collaboration/decisions",
 )
 
 OPEN_TASK_STATUSES = ("待处理", "处理中", "阻塞", "待复核", "需修改")
@@ -229,26 +236,6 @@ def check_linked_file_references(report: Report, skill_files: list[Path]) -> Non
                     report.warn(f"{sf.relative_to(REPO_ROOT)}: linked file not found: {rel}")
 
 
-def extract_skill_list_from_doc(path: Path) -> set[str]:
-    """Pull skill names out of fenced code blocks that list one skill per line."""
-    if not path.exists():
-        return set()
-    text = path.read_text(encoding="utf-8")
-    names: set[str] = set()
-    in_block = False
-    for line in text.splitlines():
-        stripped = line.strip()
-        if stripped.startswith("```"):
-            in_block = not in_block
-            continue
-        if not in_block:
-            continue
-        token = stripped.split("#", 1)[0].strip()
-        if re.match(r"^[a-z][a-z0-9-]*$", token):
-            names.add(token)
-    return names
-
-
 def git_tracked_skills() -> set[str]:
     try:
         out = subprocess.run(
@@ -274,49 +261,26 @@ def visible_skill_dirs() -> set[str]:
     return {p.name for p in SKILLS_DIR.iterdir() if p.is_dir() and (p / "SKILL.md").exists()}
 
 
-def check_skill_lists(report: Report) -> None:
-    readme_skills = extract_skill_list_from_doc(REPO_ROOT / "README.md")
-    arch_skills = extract_skill_list_from_doc(DOCS_COLLAB / "ARCHITECTURE.md")
+def check_runtime_skill_scope(report: Report) -> None:
+    """Require the product runtime to contain exactly the five public Skills."""
     tracked = git_tracked_skills()
     visible = visible_skill_dirs()
 
-    # Filter doc-extracted sets to plausible skill names that actually exist as dirs.
-    readme_skills = readme_skills & visible if visible else readme_skills
-    arch_skills = arch_skills & visible if visible else arch_skills
-
-    if tracked and tracked != visible:
-        untracked_visible = visible - tracked
-        tracked_missing_dir = tracked - visible
-        if untracked_visible:
-            report.warn(
-                f"visible skill directories not tracked by git: {sorted(untracked_visible)}"
-            )
-        if tracked_missing_dir:
+    for label, actual in (("git-tracked", tracked), ("visible", visible)):
+        if actual != EXPECTED_RUNTIME_SKILLS:
             report.error(
-                f"git-tracked skills without a visible SKILL.md directory: {sorted(tracked_missing_dir)}"
+                f"exact runtime skill scope drift ({label}): "
+                f"missing={sorted(EXPECTED_RUNTIME_SKILLS - actual)}, "
+                f"extra={sorted(actual - EXPECTED_RUNTIME_SKILLS)}"
             )
-
-    if readme_skills and tracked and not readme_skills.issuperset(tracked):
-        missing_from_readme = tracked - readme_skills
-        report.warn(f"README skill list missing tracked skills: {sorted(missing_from_readme)}")
-    if readme_skills and tracked:
-        extra_in_readme = readme_skills - tracked
-        if extra_in_readme:
-            report.warn(f"README lists skills not tracked by git: {sorted(extra_in_readme)}")
-
-    if arch_skills and tracked and not arch_skills.issuperset(tracked):
-        missing_from_arch = tracked - arch_skills
-        report.warn(f"ARCHITECTURE skill list missing tracked skills: {sorted(missing_from_arch)}")
-    if arch_skills and tracked:
-        extra_in_arch = arch_skills - tracked
-        if extra_in_arch:
-            report.warn(f"ARCHITECTURE lists skills not tracked by git: {sorted(extra_in_arch)}")
 
 
 
 SKILL_NAV_ALLOWED_ROLES = {"entry/composite", "atom", "specialized atom"}
 SKILL_NAV_ALLOWED_MATURITY = {"core", "domain"}
-TASK_ARCHIVE_LINK_RE = re.compile(r"docs/ai-collaboration/tasks/[A-Za-z0-9._-]+\.md")
+TASK_ARCHIVE_LINK_RE = re.compile(
+    r"\.maintain/docs/ai-collaboration/tasks/[A-Za-z0-9._-]+\.md"
+)
 
 
 def parse_skill_navigation(path: Path) -> dict[str, list[tuple[str, str]]]:
@@ -339,32 +303,30 @@ def parse_skill_navigation(path: Path) -> dict[str, list[tuple[str, str]]]:
 
 def check_skill_navigation(report: Report) -> None:
     nav_path = DOCS_COLLAB / "SKILL_NAVIGATION.md"
-    tracked = git_tracked_skills()
     rows = parse_skill_navigation(nav_path)
     if not nav_path.exists():
-        report.error("missing governance path: docs/ai-collaboration/SKILL_NAVIGATION.md")
-        return
-    listed = set(rows)
-    missing = tracked - listed
-    extra = listed - tracked
-    if missing or extra:
-        report.warn(
-            "docs/ai-collaboration/SKILL_NAVIGATION.md skill table drift: "
-            f"missing={sorted(missing)}, extra={sorted(extra)}"
+        report.error(
+            "missing governance path: "
+            ".maintain/docs/ai-collaboration/SKILL_NAVIGATION.md"
         )
+        return
     duplicated = {skill: len(values) for skill, values in rows.items() if len(values) > 1}
     if duplicated:
         report.warn(
-            "docs/ai-collaboration/SKILL_NAVIGATION.md duplicate skill rows: "
+            ".maintain/docs/ai-collaboration/SKILL_NAVIGATION.md duplicate skill rows: "
             f"{sorted(duplicated.items())}"
         )
     for skill, values in sorted(rows.items()):
         for role, maturity in values:
             if role not in SKILL_NAV_ALLOWED_ROLES:
-                report.warn(f"docs/ai-collaboration/SKILL_NAVIGATION.md: {skill} has unknown role '{role}'")
+                report.warn(
+                    ".maintain/docs/ai-collaboration/SKILL_NAVIGATION.md: "
+                    f"{skill} has unknown role '{role}'"
+                )
             if maturity not in SKILL_NAV_ALLOWED_MATURITY:
                 report.warn(
-                    f"docs/ai-collaboration/SKILL_NAVIGATION.md: {skill} has unknown maturity '{maturity}'"
+                    ".maintain/docs/ai-collaboration/SKILL_NAVIGATION.md: "
+                    f"{skill} has unknown maturity '{maturity}'"
                 )
 
 
@@ -408,7 +370,9 @@ def check_governance_files(report: Report) -> None:
 
 
 def check_shell_scripts(report: Report) -> None:
-    sh_files = sorted(REPO_ROOT.glob("scripts/**/*.sh")) + sorted(SKILLS_DIR.glob("*/scripts/*.sh"))
+    sh_files = sorted(REPO_ROOT.glob(".maintain/scripts/**/*.sh")) + sorted(
+        SKILLS_DIR.glob("*/scripts/*.sh")
+    )
     for sh in sh_files:
         try:
             subprocess.run(
@@ -562,7 +526,7 @@ def run_checks() -> Report:
     skill_files = check_skill_frontmatter(report)
     check_linked_dirs(report)
     check_linked_file_references(report, skill_files)
-    check_skill_lists(report)
+    check_runtime_skill_scope(report)
     check_skill_navigation(report)
     check_task_archives(report)
     check_governance_files(report)

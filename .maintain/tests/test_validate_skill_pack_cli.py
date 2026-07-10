@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
-import json
 import importlib.util
+import json
 import subprocess
 import unittest
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-VALIDATOR_PATH = REPO_ROOT / "scripts" / "validate-skill-pack.py"
+from test_maintainer_boundary import (
+    MaintainerBoundaryContractTest,
+    MaintainerPackageGateTest,
+)
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+VALIDATOR_PATH = REPO_ROOT / ".maintain" / "scripts" / "validate-skill-pack.py"
 
 
 def load_validator_module():
@@ -20,7 +25,7 @@ def load_validator_module():
 class ValidateSkillPackCliTest(unittest.TestCase):
     def run_validator(self, *args: str) -> subprocess.CompletedProcess[str]:
         return subprocess.run(
-            ["python3", "scripts/validate-skill-pack.py", *args],
+            ["python3", str(VALIDATOR_PATH), *args],
             cwd=REPO_ROOT,
             text=True,
             capture_output=True,
@@ -47,12 +52,12 @@ class ValidateSkillPackCliTest(unittest.TestCase):
 
 class FreshCloneSmokeScriptTest(unittest.TestCase):
     def test_smoke_script_exists_and_is_executable(self) -> None:
-        script = REPO_ROOT / "scripts" / "smoke-fresh-clone.sh"
+        script = REPO_ROOT / ".maintain" / "scripts" / "smoke-fresh-clone.sh"
         self.assertTrue(script.exists())
         self.assertTrue(script.stat().st_mode & 0o111)
 
     def test_smoke_script_is_staged_only_by_default(self) -> None:
-        script = (REPO_ROOT / "scripts" / "smoke-fresh-clone.sh").read_text()
+        script = (REPO_ROOT / ".maintain" / "scripts" / "smoke-fresh-clone.sh").read_text()
         self.assertIn("HERCULES_SMOKE_INCLUDE_UNSTAGED", script)
         self.assertIn('if [ "${HERCULES_SMOKE_INCLUDE_UNSTAGED:-0}" = "1" ]; then', script)
 
