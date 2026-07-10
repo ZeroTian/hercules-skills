@@ -18,6 +18,10 @@ class RuntimeSkillContractTest(unittest.TestCase):
     def text(self, name):
         return (SKILLS / name / "SKILL.md").read_text()
 
+    def test_default_runtime_contains_exactly_five_skills(self):
+        actual = {path.parent.name for path in SKILLS.glob("*/SKILL.md")}
+        self.assertEqual(actual, CORE)
+
     def test_public_entry_routes_by_task_need(self):
         text = self.text("hercules")
         for phrase in ("single public entry", "task capability roles", "session capability cache", "fallback"):
