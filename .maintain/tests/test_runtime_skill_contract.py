@@ -33,6 +33,22 @@ class RuntimeSkillContractTest(unittest.TestCase):
         ):
             self.assertNotIn(forbidden, text)
 
+    def test_collaboration_consumes_confirmed_capabilities(self):
+        text = self.text("hercules-collaborative-workflow")
+        for phrase in ("confirmed capability map", "user and project preference", "sanitized failure category", "fallback"):
+            self.assertIn(phrase, text)
+
+    def test_review_requires_independence_only_when_task_requires_it(self):
+        text = self.text("hercules-review-workflow")
+        self.assertIn("independence requirement", text)
+        self.assertIn("available reviewer", text)
+        self.assertNotIn("Codex is always required", text)
+
+    def test_project_init_is_project_scoped(self):
+        text = self.text("hercules-project-init")
+        for phrase in ("project-scoped", "do not install", "preserve existing instructions"):
+            self.assertIn(phrase, text)
+
     def test_no_plugin_is_declared_required(self):
         combined = "\n".join(
             path.read_text() for path in SKILLS.glob("*/SKILL.md") if path.parent.name in CORE
