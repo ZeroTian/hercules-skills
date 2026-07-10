@@ -435,25 +435,25 @@ trajectory:
     logs: []
 ```
 
-## [ ] TASK-015：Skill-first lightweight architecture
+## [x] TASK-015：Skill-first lightweight architecture
 
-- 当前状态：待复核
+- 当前状态：已完成
 - 优先级：P1
-- 当前负责人：Codex
-- 下一负责人：Codex
-- 下一步：独立复核 CR-001/CR-002 修复，并确认其余 5 项 CLOSED 与两条非范围回退
-- 是否需要 Codex 复核：是
+- 当前负责人：无
+- 下一负责人：无
+- 下一步：无；合并后最终独立复核 PASS / Ready Yes
+- 是否需要 Codex 复核：否（已完成）
 - 创建日期：2026-07-10
 - 最后更新：2026-07-10
 - 来源：用户批准的 Skill-first lightweight architecture 设计与实施计划
 - 关联任务：TASK-014
-- 关联审阅：`.maintain/docs/ai-collaboration/codex-reviews/2026-07-10-skill-first-lightweight-architecture.md`（合并后清理复核 PENDING）
+- 关联审阅：`.maintain/docs/ai-collaboration/codex-reviews/2026-07-10-skill-first-lightweight-architecture.md`（合并后最终独立复核 PASS；7 个 accepted CR 全部 CLOSED；Ready Yes）
 - 设计文档：`.maintain/docs/superpowers/specs/2026-07-10-skill-first-lightweight-architecture-design.md`
 - 实施计划：`.maintain/docs/superpowers/plans/2026-07-10-skill-first-lightweight-architecture.md`
 - 验收摘要：exactly five runtime Skills; init-only external surface; no dependency installation.
-- 当前验证证据：CR-001 discovery-to-cache round-trip focused GREEN，runtime 28/28；CR-002 staged/unstaged sentinel 与普通 whitespace focused GREEN，maintainer 22/22；stdlib discover 88/88、strict validator 0 errors / 0 warnings、Bash/diff checks 通过；非范围提交 `bdc5db1`、`823f350` 已由 `0a63485`、`3504f0f` 回退
-- 复核结果：CR-001/CR-002 为 `FIXED — AWAITING RECHECK`；CR-003 至 CR-007 为 `CLOSED`
-- 阻塞原因：无实现阻塞；待独立 Codex recheck
+- 最终验证证据：独立 focused recheck 11/11、runtime 28/28、maintainer 22/22、stdlib discover 88/88；strict validator 0 errors / 0 warnings；package gate、fresh-clone、Bash/diff checks 全通过；非范围提交 `bdc5db1`、`823f350` 已由 `0a63485`、`3504f0f` 精确回退
+- 复核结果：`TASK015-CR-001` 至 `TASK015-CR-007` 全部 CLOSED；Spec PASS；Ready Yes；新增 Critical/Important 为 0/0
+- 阻塞原因：无
 
 ### 执行项
 
@@ -463,15 +463,12 @@ trajectory:
 - [x] 完成全套自动测试、strict validator、Bash、diff 与禁用行为扫描
 - [x] 完成临时 HOME/fake Hermes/本地仓库 init 双跑 smoke
 - [x] 准备累计 staged-package/fresh-clone 证据与独立 review request
-- [x] 独立 Codex 完成全分支初审并给出 `TASK015-CR-001` 至 `TASK015-CR-007`
-- [x] 实施 7 个 finding 的 TDD 修复与 focused GREEN 验证
-- [x] 独立 Codex 最终复核关闭 5 项、重开 CR-003/007 并新增 CR-008
-- [x] 对 CR-003/007/008 完成独立 RED→GREEN 修复与 focused GREEN 验证
-- [x] 独立 Codex 窄复核关闭 CR-007/008，并重开不安全 compact cache 的 CR-003
-- [x] 删除 compact cache 权限合成，对 CR-003 完成独立 RED→GREEN 修复
+- [x] 独立 Codex 初审并记录 5 个正式 finding
+- [x] 实施正式 finding 与后续 2 个有效 follow-up 的 TDD 修复
+- [x] 完成 capability cache authority、public entry link、validator advisory path 的独立复核
 - [x] 回退两条非范围提交并移除误跟踪 SDD 报告
-- [ ] 独立复核合并后 `main`，关闭 7 个 accepted CR
-- [ ] 最终 reviewer PASS / Ready YES 后完成 TASK-015
+- [x] 独立复核合并后 `main`，关闭 7 个 accepted CR
+- [x] 最终 reviewer PASS / Ready YES 后完成 TASK-015
 
 ### 验收标准
 
@@ -482,7 +479,7 @@ trajectory:
 - [x] init 冲突处理保留用户文件，双跑幂等
 - [x] README 保持三步用户路径
 - [x] 全量本地验证与累计 package 准备完成
-- [ ] 独立 Codex 确认合并后清理并给出 PASS
+- [x] 独立 Codex 确认合并后清理并给出 PASS
 
 ### Trajectory
 
@@ -495,23 +492,23 @@ trajectory:
   skill_versions:
     hercules: 1.0.0
     hercules-review-workflow: 1.0.0
-  score: provisional
-  score_reason: "CR-001 and CR-002 fixes pass locally; independent recheck is pending"
-  actor_path: "Hermes plan -> SDD task agents implement -> Codex reviews -> CR fixes -> local merge -> non-scope cleanup -> Codex recheck pending"
+  score: 1.0
+  score_reason: "merged-main independent recheck closed all seven accepted findings; spec PASS and Ready Yes"
+  actor_path: "Hermes plan -> SDD task agents implement -> Codex reviews -> CR fixes -> local merge -> non-scope cleanup -> final Codex PASS"
   phi:
     capability_preflight: skipped-with-reason-no-external-capability-required
     relevant_capabilities: [verification-before-completion, systematic-debugging]
     effort: xhigh
     claude_result: completed-by-sdd-task-agents
-    codex_result: PENDING-CR001-CR002-recheck
-    ready: false
+    codex_result: PASS-after-merged-main-recheck
+    ready: true
     verification:
       commands: ["python3 .maintain/tests/test_init.py -v", "python3 .maintain/tests/test_runtime_skill_contract.py -v", "python3 .maintain/tests/test_maintainer_boundary.py -v", "python3 .maintain/tests/test_validate_skill_pack_cli.py -v", "python3 .maintain/scripts/validate-skill-pack.py --strict", "bash -n init.sh .maintain/scripts/smoke-fresh-clone.sh .maintain/scripts/check-package.sh", "git diff --check", "temporary HOME/fake hermes/local repo init.sh twice", "rg forbidden behavior scan", "temporary GIT_INDEX_FILE package gate from df377c0", ".maintain/scripts/smoke-fresh-clone.sh"]
       logs: []
       diff_scope: "df377c0 through acceptance-preparation commit: public runtime/init/README, maintainer boundary/tests/docs, TASK-015 and review request"
     cr_ids: [TASK015-CR-001, TASK015-CR-002, TASK015-CR-003, TASK015-CR-004, TASK015-CR-005, TASK015-CR-006, TASK015-CR-007]
     blocker_type: none
-    next_owner: Codex
+    next_owner: none
   source_pointers:
     task_record: ".maintain/docs/ai-collaboration/TASKS.md#task-015"
     review_record: ".maintain/docs/ai-collaboration/codex-reviews/2026-07-10-skill-first-lightweight-architecture.md"

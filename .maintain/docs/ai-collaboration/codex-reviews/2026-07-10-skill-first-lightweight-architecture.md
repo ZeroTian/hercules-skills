@@ -1,21 +1,21 @@
-# TASK-015 Skill-first lightweight architecture — merged-main cleanup recheck
+# TASK-015 Skill-first lightweight architecture — final independent PASS
 
 - Date: 2026-07-10
 - Initial official review: **FAIL** — 5 findings (`Important 3`, `Minor 2`)
-- Current result: **PENDING** — CR-001 and CR-002 are fixed and await independent recheck
-- Ready: **No — CR-001/CR-002 recheck pending**
-- Closure: TASK-015 temporarily returns to `待复核`
+- Current result: **PASS** — all seven accepted findings closed on merged `main`
+- Ready: **Yes**
+- Closure: TASK-015 is complete
 
 ## Accepted findings
 
 ### TASK015-CR-001 — Important — capability behavior and cache authority evidence
 
-- Status: **FIXED — AWAITING RECHECK**
+- Status: **CLOSED**
 - Fix: freshly discovered candidates now emit the same complete normalized record required by cache reuse: role, facility, kind, confirmed surface, authority, evidence, and fingerprint. A discovery-result-to-session-cache round-trip proves same-fingerprint reuse performs zero scans. Compact, incomplete, stale, permission-mismatched, and failed-invocation records still invalidate and use confirmed discovery/fallback. No install/config/auth commands are emitted.
 
 ### TASK015-CR-002 — Important — privacy gate echoed secret-like content
 
-- Status: **FIXED — AWAITING RECHECK**
+- Status: **CLOSED**
 - Fix: staged and unstaged diff checks capture raw Git diagnostics without emitting them and report only redacted category/path/line/count metadata. Isolated sentinel regressions cover both states, and ordinary trailing whitespace still fails the gate.
 
 ### TASK015-CR-003 — Important — navigation validator did not enforce the exact-five runtime
@@ -49,15 +49,16 @@
 - `823f350` changed active maintainer Skills and historical material outside the accepted CR package. It is reverted on `main` by `3504f0f`.
 - The ignored SDD report was accidentally tracked during the interrupted run and is removed from the product package.
 
-## Fresh merged-main evidence before recheck
+## Final merged-main evidence
 
 - Complete stdlib suite: 88/88 passed.
 - Runtime owning suite: 28/28 passed.
 - Maintainer boundary suite: 22/22 passed.
+- Independent focused recheck: 11/11 passed, including discovery-to-cache round-trip and six privacy/diff-check semantics.
 - Strict validator: 0 errors / 0 warnings.
-- Bash syntax and diff checks passed.
+- Package gate and fresh-clone smoke passed; Bash syntax and diff checks passed.
 - Default runtime remains exactly five Skills; the only public root executable is `init.sh`.
 
 ## Closure gate
 
-An independent reviewer must recheck CR-001 and CR-002 and confirm the five closed findings, both cleanup reverts, the untracked-report removal, package gate, and fresh-clone smoke on merged `main`. Only then may this record return to PASS / Ready Yes and TASK-015 to `已完成`.
+The independent merged-main recheck closed CR-001 and CR-002, confirmed CR-003 through CR-007 had no regressions, and found no new Critical or Important issue. Both excluded experiments remain exact inverse cleanups. Spec compliance is PASS and Ready is Yes.
