@@ -393,7 +393,7 @@ trajectory:
 ### Codex 执行记录
 
 - 修改内容：setup preview、provider-neutral doctor/bootstrap、运行时失败诊断契约、回归测试和双语文档
-- 修改文件：见 `docs/superpowers/plans/2026-07-10-setup-runtime-access-ux.md`
+- 修改文件：见 `.maintain/docs/superpowers/plans/2026-07-10-setup-runtime-access-ux.md`
 - 验证命令：`python3 tests/test_setup_doctor_ux.py -v`；`python3 tests/test_validate_skill_pack_cli.py -v`；`bash -n scripts/hercules scripts/install-hercules.sh skills/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh`；`python3 scripts/validate-skill-pack.py --strict`；`scripts/hercules setup --dry-run`；`scripts/hercules setup --dry-run --full`；`scripts/hercules doctor`；`scripts/hercules doctor --json`；`scripts/hercules bootstrap --check`；`git diff --check`
 - 验证结果：全部通过；dry-run 从约 55 秒的大量底层输出降为约 0.3 秒的简洁计划；doctor 不再主动检查 provider 登录且 `blocked=0`；apply 命令可复现选项并区分本地 checkout 与 piped installer
 - 初审结果：FAIL；`TASK014-CR-001` apply 命令丢失选项/错误假设本地 helper；`TASK014-CR-002` 测试未从工具 trace 证明无隐式 probe；`TASK014-CR-003` 架构文档残留 `auth handoff`
@@ -439,7 +439,8 @@ trajectory:
 
 - 当前状态：处理中
 - 当前负责人：Hermes
-- 设计文档：`docs/superpowers/specs/2026-07-10-skill-first-lightweight-architecture-design.md`
+- 设计文档：`.maintain/docs/superpowers/specs/2026-07-10-skill-first-lightweight-architecture-design.md`
+- 实施计划：`.maintain/docs/superpowers/plans/2026-07-10-skill-first-lightweight-architecture.md`
 - 验收摘要：exactly five runtime Skills; init-only external surface; no dependency installation.
 
 ## Trajectory record policy

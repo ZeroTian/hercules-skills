@@ -59,6 +59,26 @@ class RuntimeSkillContractTest(unittest.TestCase):
         )
         self.assertIsNone(re.search(r"required plugins?\s*:", combined, re.I))
 
+    def test_readme_has_one_entry_and_three_step_quickstart(self):
+        text = (REPO_ROOT / "README.md").read_text()
+        commands = (
+            "curl -fsSL https://raw.githubusercontent.com/ZeroTian/hercules-skills/main/init.sh | bash",
+            "hermes --tui",
+            "/skill hercules",
+        )
+        for command in commands:
+            self.assertIn(command, text)
+        for forbidden in (
+            "--full", "--minimal", "doctor --fix", "bootstrap --check",
+            "npm install", "claude plugins install", "codex login",
+        ):
+            self.assertNotIn(forbidden, text)
+
+    def test_only_init_is_a_public_script(self):
+        self.assertTrue((REPO_ROOT / "init.sh").exists())
+        scripts = REPO_ROOT / "scripts"
+        self.assertFalse(scripts.exists() and any(scripts.iterdir()))
+
 
 if __name__ == "__main__":
     unittest.main()
