@@ -437,11 +437,77 @@ trajectory:
 
 ## [ ] TASK-015：Skill-first lightweight architecture
 
-- 当前状态：处理中
-- 当前负责人：Hermes
+- 当前状态：待复核
+- 优先级：P1
+- 当前负责人：Codex
+- 下一负责人：Codex
+- 下一步：由未参与 Tasks 1–7 实施的 Codex 对 `df377c0..验收准备提交` 做全分支独立复核；按稳定 CR ID 修复并窄复核后，才能关闭任务
+- 是否需要 Codex 复核：是
+- 创建日期：2026-07-10
+- 最后更新：2026-07-10
+- 来源：用户批准的 Skill-first lightweight architecture 设计与实施计划
+- 关联任务：TASK-014
+- 关联审阅：`.maintain/docs/ai-collaboration/codex-reviews/2026-07-10-skill-first-lightweight-architecture.md`（PENDING independent review）
 - 设计文档：`.maintain/docs/superpowers/specs/2026-07-10-skill-first-lightweight-architecture-design.md`
 - 实施计划：`.maintain/docs/superpowers/plans/2026-07-10-skill-first-lightweight-architecture.md`
 - 验收摘要：exactly five runtime Skills; init-only external surface; no dependency installation.
+- 验收准备证据：`test_init.py` 8/8、`test_runtime_skill_contract.py` 9/9、`test_maintainer_boundary.py` 14/14、`test_validate_skill_pack_cli.py` 20/20 通过；strict validator 为 0 errors / 0 warnings；三份 Bash 脚本语法与 `git diff --check` 通过；临时 HOME + fake Hermes + 本地仓库真实 `init.sh` 连续运行两次通过，唯一 runtime link 指向恰好五个 Skill；禁用命令扫描 0 命中；临时 `GIT_INDEX_FILE` 从 `df377c0` 构造累计包的 package gate 与 fresh-clone 证据见关联审阅
+- 阻塞原因：无实现阻塞；正式关闭门禁仍等待独立 Codex 全分支复核
+
+### 执行项
+
+- [x] 实现 non-invasive initializer、单一公开 Skill 入口与 demand-led discovery
+- [x] 收缩为恰好五个 runtime Skills，并将维护工具、历史治理与示例移入 `.maintain/`
+- [x] 重写三步 Quickstart 与项目级 instructions
+- [x] 完成全套自动测试、strict validator、Bash、diff 与禁用行为扫描
+- [x] 完成临时 HOME/fake Hermes/本地仓库 init 双跑 smoke
+- [x] 准备累计 staged-package/fresh-clone 证据与独立 review request
+- [ ] 独立 Codex 全分支复核并按稳定 CR ID 闭环所有 P0–P3 finding
+- [ ] 复核 PASS 后将 TASK-015 更新为已完成
+
+### 验收标准
+
+- [x] 默认 runtime 恰好五个 Skills，`hercules` 是唯一公开入口
+- [x] 初始化与 runtime 不安装、配置、认证或管理外部工具/插件
+- [x] discovery 按任务需求触发，保留通用插件探索与能力降级
+- [x] maintainer/example Skills 不可从 runtime 发现
+- [x] init 冲突处理保留用户文件，双跑幂等
+- [x] README 保持三步用户路径
+- [x] 全量本地验证与累计 package 准备完成
+- [ ] 独立 Codex 复核通过
+
+### Trajectory
+
+```yaml
+trajectory:
+  task_id: TASK-015
+  attempt: 1
+  date: 2026-07-10
+  task_type: implementation
+  skill_versions:
+    hercules: 1.0.0
+    hercules-review-workflow: 1.0.0
+  score: provisional
+  score_reason: "fresh acceptance evidence recorded; independent full-branch review still pending"
+  actor_path: "Hermes plan -> SDD task agents implement and review -> Codex acceptance preparation -> independent Codex pending"
+  phi:
+    capability_preflight: skipped-with-reason-no-external-capability-required
+    relevant_capabilities: [verification-before-completion, systematic-debugging]
+    effort: xhigh
+    claude_result: completed-by-sdd-task-agents
+    codex_result: PENDING-independent-review
+    verification:
+      commands: ["python3 .maintain/tests/test_init.py -v", "python3 .maintain/tests/test_runtime_skill_contract.py -v", "python3 .maintain/tests/test_maintainer_boundary.py -v", "python3 .maintain/tests/test_validate_skill_pack_cli.py -v", "python3 .maintain/scripts/validate-skill-pack.py --strict", "bash -n init.sh .maintain/scripts/smoke-fresh-clone.sh .maintain/scripts/check-package.sh", "git diff --check", "temporary HOME/fake hermes/local repo init.sh twice", "rg forbidden behavior scan", "temporary GIT_INDEX_FILE package gate from df377c0", ".maintain/scripts/smoke-fresh-clone.sh"]
+      logs: []
+      diff_scope: "df377c0 through acceptance-preparation commit: public runtime/init/README, maintainer boundary/tests/docs, TASK-015 and review request"
+    cr_ids: []
+    blocker_type: none
+    next_owner: Codex
+  source_pointers:
+    task_record: ".maintain/docs/ai-collaboration/TASKS.md#task-015"
+    review_record: ".maintain/docs/ai-collaboration/codex-reviews/2026-07-10-skill-first-lightweight-architecture.md"
+    logs: []
+```
 
 ## Trajectory record policy
 
