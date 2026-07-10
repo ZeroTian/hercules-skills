@@ -26,8 +26,35 @@ CAPABILITY_CONTRACT = (
     / "capability_matrix.py"
 )
 DOCUMENTED_SKILL_INVOCATION_RE = re.compile(
-    r"(?m)(?<![A-Za-z0-9_/])/skill[ \t]+[a-z][a-z0-9-]*"
+    r"/skill[ \t]+[a-z][a-z0-9-]*"
 )
+MARKDOWN_SKILL_PREFIXES = frozenset({"`", "*", "(", "[", "{", "<", ">", "'", '"', "~"})
+
+
+def documented_skill_invocations(text):
+    invocations = []
+    for match in DOCUMENTED_SKILL_INVOCATION_RE.finditer(text):
+        start = match.start()
+        if start == 0:
+            invocations.append(match.group())
+            continue
+        prefix = text[:start]
+        previous = prefix[-1]
+        if previous.isspace() or previous in MARKDOWN_SKILL_PREFIXES:
+            invocations.append(match.group())
+            continue
+        if previous != "_":
+            continue
+        opener_start = len(prefix)
+        while opener_start and prefix[opener_start - 1] == "_":
+            opener_start -= 1
+        if opener_start == 0:
+            invocations.append(match.group())
+            continue
+        before_opener = prefix[opener_start - 1]
+        if before_opener.isspace() or before_opener in MARKDOWN_SKILL_PREFIXES:
+            invocations.append(match.group())
+    return invocations
 
 
 class RuntimeSkillContractTest(unittest.TestCase):
@@ -99,7 +126,7 @@ class RuntimeSkillContractTest(unittest.TestCase):
         public_docs = [REPO_ROOT / "README.md", *SKILLS.rglob("*.md")]
         invocations = []
         for path in public_docs:
-            invocations.extend(DOCUMENTED_SKILL_INVOCATION_RE.findall(path.read_text()))
+            invocations.extend(documented_skill_invocations(path.read_text()))
         self.assertTrue(invocations)
         self.assertEqual(set(invocations), {"/skill hercules"})
 
@@ -109,6 +136,11 @@ class RuntimeSkillContractTest(unittest.TestCase):
             "`/skill other`",
             "``/skill other``",
             "**/skill other**",
+            "_/skill rogue_",
+            "__/skill rogue__",
+            "___/skill rogue___",
+            "~~/skill other~~",
+            "<code>/skill other</code>",
             "(/skill other)",
             "[/skill other]",
             "> /skill other",
@@ -117,9 +149,23 @@ class RuntimeSkillContractTest(unittest.TestCase):
         for markdown in wrapped_invocations:
             with self.subTest(markdown=markdown):
                 self.assertEqual(
-                    DOCUMENTED_SKILL_INVOCATION_RE.findall(markdown),
-                    ["/skill other"],
+                    documented_skill_invocations(markdown),
+                    ["/skill rogue"] if "rogue" in markdown else ["/skill other"],
                 )
+
+    def test_documented_skill_entry_parser_ignores_urls_and_paths(self):
+        non_invocations = (
+            "https://example.invalid/skill rogue",
+            "/docs/skill rogue",
+            "path_/skill rogue",
+            "path__/skill rogue",
+            "./skill rogue",
+            "../skill rogue",
+            "C:/skill rogue",
+        )
+        for text in non_invocations:
+            with self.subTest(text=text):
+                self.assertEqual(documented_skill_invocations(text), [])
 
     def test_only_init_is_a_public_script(self):
         public_root_executables = {
