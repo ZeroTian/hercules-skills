@@ -7,7 +7,7 @@ license: MIT
 metadata:
   hermes:
     tags: [hercules, git, staging, governance, commit-package, codex-review, ledger]
-    related_skills: [skill-pack-governance-validation, workflow-skill-pack-audit, coding-agent-orchestration]
+    related_skills: [skill-pack-governance-validation, workflow-skill-pack-audit, hercules-collaborative-workflow]
 ---
 
 # Staged Commit Package Governance
@@ -16,7 +16,7 @@ metadata:
 
 Use this class-level skill when Hermes has prepared an intended staged package but must preserve unrelated unstaged user work. The goal is to make the staged index, task ledger, trajectory record, validation evidence, and final report all describe the same package.
 
-This complements `skill-pack-governance-validation`: that skill governs the broad acceptance pass (runtime loading, archived candidate safety, validator/static checks, bootstrap audit-only, staged privacy scan, commit-package readiness); this atom narrows in on the staged-package boundary and ledger-truth cycle — preserving unrelated unstaged work, keeping TASKS/CR ledgers and trajectory records truthful after staging, and driving narrow Codex rechecks when review finds ledger drift. Use them together rather than choosing one: the umbrella proves the pack is usable and safe to package; this atom keeps the staged index, ledger, trajectory, and review record describing the same package during the staging/review cycle.
+This complements `skill-pack-governance-validation`: that Skill governs exact-five runtime, static checks, staged privacy, and fresh-clone readiness; this atom keeps staged index, ledger, trajectory, and review state aligned.
 
 ## When to Use
 
@@ -73,4 +73,4 @@ Prefer count-neutral wording such as “current core skill pack” in future bac
 
 ## References
 
-- `references/round4-staged-package-boundary.md` — concrete Hercules round-4 pattern: staged TASK-007/TASK-008 package, unrelated unstaged Godot reference edit, Codex P2 ledger drift, Hermes repair, narrow Codex PASS recheck.
+- `.maintain/docs/ai-collaboration/history/round4-staged-package-boundary.md` — historical evidence only.

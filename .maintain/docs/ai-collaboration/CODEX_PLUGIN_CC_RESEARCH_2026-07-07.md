@@ -1,5 +1,8 @@
 # codex-plugin-cc Absorption Research
 
+> Status: historical archive. This predates the lightweight runtime; its setup
+> paths are not current maintainer instructions.
+
 Date: 2026-07-07
 Repository: `/mnt/e/code/hercules-skills`
 Scope: absorb OpenAI `openai/codex-plugin-cc` into the Hercules skill pack as an OPTIONAL external Claude Code plugin dependency + Hercules-owned governance policy. Upstream plugin source is NOT vendored.

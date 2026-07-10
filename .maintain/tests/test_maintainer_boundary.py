@@ -241,6 +241,36 @@ class MaintainerDocumentContractTest(unittest.TestCase):
             executable = command.split()[1 if command.startswith("python3 ") else 0]
             self.assertTrue((REPO_ROOT / executable).exists(), executable)
 
+    def test_active_maintainer_skill_assets_do_not_use_retired_surface(self) -> None:
+        retired_patterns = (
+            r"(?<!\.maintain/)docs/ai-collaboration",
+            r"(?<!\.maintain/)scripts/(?:validate-skill-pack\.py|smoke-fresh-clone\.sh|hercules|install-hercules\.sh)",
+            r"(?<!\.maintain/)tests/test_", r"\bbootstrap\b",
+            r"HERCULES_(?:CHECK_ONLY|INSTALL_OPTIONAL)",
+            r"hercules-agent-capability-preflight", r"hercules-collaborative-agent-workflow",
+            r"hermes-collaborative-workflow", r"coding-agent-orchestration",
+            r"cross-agent-review-loop", r"iterative-agent-code-review",
+            r"hercules-project-init-workflow", r"hermes-project-init-orchestration",
+        )
+        skill_root = REPO_ROOT / ".maintain" / "skills"
+        for path in sorted(item for item in skill_root.rglob("*") if item.is_file()):
+            text = path.read_text(encoding="utf-8")
+            for pattern in retired_patterns:
+                with self.subTest(path=path.relative_to(REPO_ROOT), pattern=pattern):
+                    self.assertIsNone(re.search(pattern, text, re.IGNORECASE))
+        management = (skill_root / "hercules-skill-pack-management" / "SKILL.md").read_text(encoding="utf-8")
+        for skill in EXPECTED_RUNTIME_SKILLS:
+            with self.subTest(runtime_skill=skill):
+                self.assertIn(f"skills/{skill}/SKILL.md", management)
+
+    def test_retired_case_studies_live_in_explicit_historical_archive(self) -> None:
+        history = REPO_ROOT / ".maintain" / "docs" / "ai-collaboration" / "history"
+        for name in ("round2-reconciliation-pattern.md", "round4-staged-package-boundary.md"):
+            with self.subTest(path=name):
+                path = history / name
+                self.assertTrue(path.exists(), path)
+                self.assertIn("Status: historical archive", path.read_text(encoding="utf-8"))
+
 
 class MaintainerPackageGateTest(unittest.TestCase):
     @property

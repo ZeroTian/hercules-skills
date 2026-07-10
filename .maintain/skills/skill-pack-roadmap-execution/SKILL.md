@@ -7,14 +7,14 @@ license: MIT
 metadata:
   hermes:
     tags: [hercules, roadmap, tasks, audit, codex, claude, commit, governance]
-    related_skills: [workflow-skill-pack-audit, staged-commit-package-governance, skill-pack-governance-validation, coding-agent-orchestration]
+    related_skills: [workflow-skill-pack-audit, staged-commit-package-governance, skill-pack-governance-validation, hercules-collaborative-workflow]
 ---
 
 # Skill-Pack Roadmap Execution
 
 ## Overview
 
-Use this class-level skill when the user wants Hermes to keep advancing a skill-pack roadmap rather than stop after each task. It covers the operating loop for `docs/ai-collaboration/TASKS.md`: inventory, implementation, validation, independent Codex review, ledger closure, and optional auto-commit.
+Use this class-level skill when the user wants Hermes to keep advancing a skill-pack roadmap rather than stop after each task. It covers `.maintain/docs/ai-collaboration/TASKS.md`: inventory, implementation, validation, independent review, ledger closure, and optional auto-commit.
 
 This skill complements `workflow-skill-pack-audit` and `staged-commit-package-governance`: those cover audit/reconciliation and staged-package truth; this skill covers the continuous roadmap execution mode.
 
@@ -34,7 +34,7 @@ Do not use when the user asks only for planning, only for review, or for a one-o
 1. **Confirm the authorization boundary from memory/session.** Auto-advance and auto-commit require user authorization. Push still requires explicit separate authorization.
 2. **Inspect live state before every task.** Run/read real `git status --short -uall`, recent `git log --oneline`, the active TASKS section, and relevant docs/skills. Do not rely on an agent summary alone.
 3. **Set one active todo.** Use inventory -> implement -> verify -> review -> commit. Keep only one item `in_progress` at a time.
-4. **Delegate implementation when useful.** Claude Code is preferred for substantial docs/skill/script changes. Brief it with exact scope, files, constraints, validation commands, and forbidden actions.
+4. **Delegate implementation when useful.** Select a confirmed local facility using user and project preferences. Brief it with exact scope, files, constraints, validation commands, and forbidden actions.
 5. **Handle partial agent exits.** If Claude hits `max-turns` or exits nonzero after partial edits, inspect `git diff`, read changed files, and finish/fix small in-scope validation or ledger issues directly. Record the max-turns outcome in the trajectory/reflection fields instead of hiding it.
 6. **Verify before review.** Run the relevant local gates and stage only the intended package.
 7. **Use independent Codex review.** Codex review must be read-only unless explicitly asked to write a review record. Give Codex the staged scope, task goal, and exact verification evidence.
@@ -48,9 +48,10 @@ Do not use when the user asks only for planning, only for review, or for a one-o
 For Hercules skill-pack documentation/governance tasks, prefer:
 
 ```bash
-python3 ./tests/test_validate_skill_pack_cli.py -v
-python3 ./scripts/validate-skill-pack.py --strict
-./scripts/hercules package
+python3 -m unittest discover -s .maintain/tests -p 'test_*.py' -v
+python3 .maintain/scripts/validate-skill-pack.py --strict
+.maintain/scripts/check-package.sh
+.maintain/scripts/smoke-fresh-clone.sh
 git diff --check
 git diff --cached --check
 git status --short -uall

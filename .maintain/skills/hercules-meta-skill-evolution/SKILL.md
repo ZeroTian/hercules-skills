@@ -7,7 +7,7 @@ license: MIT
 metadata:
   hermes:
     tags: [hercules, meta-skill, skill-evolution, multi-agent, orchestration, evidence]
-    related_skills: [hercules-collaborative-agent-workflow, hermes-collaborative-workflow, coding-agent-orchestration, cross-agent-review-loop, kanban-orchestrator]
+    related_skills: [hercules-collaborative-workflow, hercules-review-workflow, hercules-capability-discovery]
 ---
 
 # Hercules Meta-Skill Evolution

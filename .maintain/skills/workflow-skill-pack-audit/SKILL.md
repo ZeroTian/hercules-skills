@@ -7,7 +7,7 @@ license: MIT
 metadata:
   hermes:
     tags: [hercules, skills, audit, validation, trajectory, reconciliation]
-    related_skills: [hercules-meta-skill-evolution, hercules-skill-pack-management, coding-agent-orchestration]
+    related_skills: [hercules-meta-skill-evolution, hercules-skill-pack-management, hercules-review-workflow]
 ---
 
 # Workflow Skill Pack Audit
@@ -41,7 +41,7 @@ Do not force every entry skill to be atomic. Entry wrappers are valid when they 
 
 1. Inventory both `git ls-files 'skills/*/SKILL.md'` and visible `find skills -mindepth 2 -maxdepth 2 -name SKILL.md`.
 2. Decide candidate disposition: promote core, archive outside runtime loading, or merge/case-study under an existing skill.
-3. For archived candidates, preserve `SKILL.md` under a non-runtime path such as `docs/ai-collaboration/candidate-skills/<skill>/SKILL.md` and add a README with disposition and promotion path.
+3. For archived candidates, preserve `SKILL.md` under `.maintain/docs/ai-collaboration/candidate-skills/<skill>/SKILL.md` and add a README with disposition and promotion path.
 4. If validator compares docs to `git ls-files`, stage newly promoted core skill files before final validation. Staging is not committing; commit/push still require explicit user request.
 5. Update README, ARCHITECTURE, SKILL_GROUP_AUDIT, TASKS, and any candidate archive docs together.
 6. Run validator and static checks. The desired steady state before review is 0 errors, 0 warnings, 0 reflection signals.
@@ -62,9 +62,9 @@ Exit nonzero only when ERRORS is non-empty. Do not weaken the validator to hide 
 
 - Closing only the headline task after Codex PASS leaves stale governance state. Search for real-task `待复核`, `codex_result: not-launched`, `next_owner: Codex`, and `review_record: "暂无"` before reporting ready.
 - Template examples may contain these strings; distinguish task templates from real task sections.
-- Save Codex review records under `docs/ai-collaboration/codex-reviews/` and link them from TASKS trajectories.
+- Save Codex review records under `.maintain/docs/ai-collaboration/codex-reviews/` and link them from TASKS trajectories.
 - Set completed trajectories to `codex_result: PASS`, `score: 1.0`, and `next_owner: none` only after real PASS evidence.
 
 ## References
 
-- `references/round2-reconciliation-pattern.md` — concrete pattern from the Hercules round-2 reconciliation: promote two core skills, archive non-core candidates, stage before validator, and close TASKS after Codex PASS.
+- `.maintain/docs/ai-collaboration/history/round2-reconciliation-pattern.md` — historical evidence only.
