@@ -11,3 +11,6 @@ __pycache__/
 
 # Isolated development worktrees
 .worktrees/
+
+# Local subagent-driven development ledger
+.superpowers/

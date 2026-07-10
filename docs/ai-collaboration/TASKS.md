@@ -435,6 +435,13 @@ trajectory:
     logs: []
 ```
 
+## [ ] TASK-015：Skill-first lightweight architecture
+
+- 当前状态：处理中
+- 当前负责人：Hermes
+- 设计文档：`docs/superpowers/specs/2026-07-10-skill-first-lightweight-architecture-design.md`
+- 验收摘要：exactly five runtime Skills; init-only external surface; no dependency installation.
+
 ## Trajectory record policy
 
 Every formal Claude/Codex collaboration task in this ledger should be able to leave reflection data. Use the trajectory shape from `skills/hercules-meta-skill-evolution/templates/trajectory-record.md`.
