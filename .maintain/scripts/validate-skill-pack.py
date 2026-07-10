@@ -539,7 +539,7 @@ def scan_reflection_signals(report: Report) -> None:
     if signals_present:
         report.signal(
             "consider generating an evidence package "
-            "(hercules-meta-skill-evolution/templates/evidence-package.md) and, if a "
+            "(.maintain/skills/hercules-meta-skill-evolution/templates/evidence-package.md) and, if a "
             "recurring weakness is confirmed, patch the implicated workflow skill"
         )
 

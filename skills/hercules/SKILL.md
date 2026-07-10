@@ -18,6 +18,8 @@ This is the single public entry. Translate the user task into task capability ro
 
 ## Routing
 
+Use the [runtime routing reference](references/runtime-routing.md) as the role-to-destination navigation table for this decision.
+
 1. Preserve explicit user preferences and project instructions.
 2. Classify task capability roles: implementation, review, browser, research, parallel execution, data access, or project initialization.
 3. Load `hercules-capability-discovery` only for roles whose local capability evidence is missing or stale.

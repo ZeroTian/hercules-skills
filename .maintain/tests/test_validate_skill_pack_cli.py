@@ -50,6 +50,22 @@ class ValidateSkillPackCliTest(unittest.TestCase):
         self.assertEqual(payload["summary"]["exit_code"], 0)
         self.assertTrue(payload["summary"]["strict"])
 
+    def test_reflection_signal_evidence_package_path_resolves(self) -> None:
+        result = self.run_validator("--strict", "--json")
+        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+        payload = json.loads(result.stdout)
+        expected = (
+            ".maintain/skills/hercules-meta-skill-evolution/"
+            "templates/evidence-package.md"
+        )
+        signals = "\n".join(payload["signals"])
+        self.assertIn(expected, signals)
+        self.assertNotIn(
+            "(hercules-meta-skill-evolution/templates/evidence-package.md)",
+            signals,
+        )
+        self.assertTrue((REPO_ROOT / expected).is_file())
+
 
 class FreshCloneSmokeScriptTest(unittest.TestCase):
     def test_smoke_script_exists_and_is_executable(self) -> None:

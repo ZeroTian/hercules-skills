@@ -70,6 +70,15 @@ class RuntimeSkillContractTest(unittest.TestCase):
         for phrase in ("single public entry", "task capability roles", "session capability cache", "fallback"):
             self.assertIn(phrase, text)
 
+    def test_public_entry_links_runtime_routing_reference(self):
+        text = self.text("hercules")
+        link = re.search(
+            r"\[[^\]]+\]\((references/runtime-routing\.md)\)",
+            text,
+        )
+        self.assertIsNotNone(link)
+        self.assertTrue((SKILLS / "hercules" / link.group(1)).is_file())
+
     def test_discovery_is_demand_led_and_provider_neutral(self):
         text = self.text("hercules-capability-discovery")
         for phrase in ("demand-led", "shallow discovery", "deep plugin exploration", "ephemeral capability map"):
@@ -358,6 +367,74 @@ class CapabilityMatrixBehaviorTest(unittest.TestCase):
             route="comet-tools",
             deep_inspection=("comet-tools",),
         )
+
+    def test_fresh_route_cache_is_reused_without_discovery(self):
+        decision = self.decide(
+            demand={"role": "implementation", "authority": "write-capable"},
+            facilities=[],
+            cache={
+                "fingerprint": "v1",
+                "routes": {"implementation": "claude"},
+            },
+        )
+        self.assert_route(decision, route="claude")
+        self.assertEqual(decision["discovery"]["scanned"], [])
+        self.assertEqual(
+            decision["capability_map"]["implementation"],
+            [{
+                "role": "implementation",
+                "facility": "claude",
+                "kind": "cached",
+                "confirmed_surface": ["implementation"],
+                "authority": "write-capable",
+                "evidence": "fresh-session-cache",
+                "fingerprint": "v1",
+            }],
+        )
+
+    def test_fresh_normalized_cache_record_preserves_confirmed_evidence(self):
+        cached_record = {
+            "role": "implementation",
+            "facility": "claude",
+            "kind": "cli",
+            "confirmed_surface": ["implementation"],
+            "authority": "write-capable",
+            "evidence": "executable-version",
+            "fingerprint": "v1",
+        }
+        decision = self.decide(
+            demand={"role": "implementation", "authority": "write-capable"},
+            facilities=[],
+            cache={
+                "fingerprint": "v1",
+                "routes": {"implementation": cached_record},
+            },
+        )
+        self.assert_route(decision, route="claude")
+        self.assertEqual(decision["discovery"]["scanned"], [])
+        self.assertEqual(
+            decision["capability_map"]["implementation"],
+            [cached_record],
+        )
+
+    def test_fresh_cache_missing_required_role_is_invalidated_then_falls_back(self):
+        decision = self.decide(
+            demand={"role": "implementation", "authority": "write-capable"},
+            facilities=[{
+                "name": "hermes",
+                "kind": "agent",
+                "capabilities": ["implementation"],
+                "authority": "write-capable",
+                "evidence": "local-runtime",
+            }],
+            cache={
+                "fingerprint": "v1",
+                "routes": {"review": "codex"},
+            },
+        )
+        self.assert_route(decision, route="hermes", invalidated=True)
+        self.assertEqual(decision["invalidation_reason"], "cache-missing-role")
+        self.assertEqual(decision["discovery"]["scanned"], ["hermes"])
 
     def test_stale_cache_is_invalidated_after_capability_change(self):
         decision = self.decide(
