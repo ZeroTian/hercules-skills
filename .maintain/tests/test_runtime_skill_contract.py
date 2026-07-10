@@ -25,6 +25,9 @@ CAPABILITY_CONTRACT = (
     / "references"
     / "capability_matrix.py"
 )
+DOCUMENTED_SKILL_INVOCATION_RE = re.compile(
+    r"(?m)(?<![A-Za-z0-9_/])/skill[ \t]+[a-z][a-z0-9-]*"
+)
 
 
 class RuntimeSkillContractTest(unittest.TestCase):
@@ -96,11 +99,27 @@ class RuntimeSkillContractTest(unittest.TestCase):
         public_docs = [REPO_ROOT / "README.md", *SKILLS.rglob("*.md")]
         invocations = []
         for path in public_docs:
-            invocations.extend(
-                re.findall(r"(?m)(?<!\S)/skill\s+[a-z][a-z0-9-]*", path.read_text())
-            )
+            invocations.extend(DOCUMENTED_SKILL_INVOCATION_RE.findall(path.read_text()))
         self.assertTrue(invocations)
         self.assertEqual(set(invocations), {"/skill hercules"})
+
+    def test_documented_skill_entry_parser_handles_markdown_wrappers(self):
+        wrapped_invocations = (
+            "/skill other",
+            "`/skill other`",
+            "``/skill other``",
+            "**/skill other**",
+            "(/skill other)",
+            "[/skill other]",
+            "> /skill other",
+            "- `/skill other`",
+        )
+        for markdown in wrapped_invocations:
+            with self.subTest(markdown=markdown):
+                self.assertEqual(
+                    DOCUMENTED_SKILL_INVOCATION_RE.findall(markdown),
+                    ["/skill other"],
+                )
 
     def test_only_init_is_a_public_script(self):
         public_root_executables = {
