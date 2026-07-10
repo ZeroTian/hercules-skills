@@ -68,12 +68,7 @@ The script checks and installs where possible. Claude plugin marketplace/plugin 
 | Claude OMC plugin | `claude plugins list` | `claude plugins install --scope user oh-my-claudecode@omc` — only with `HERCULES_INSTALL_OPTIONAL=1` |
 | Claude `codex` plugin (optional) | `claude plugins list` | `claude plugins install --scope user codex@openai-codex` — only with `HERCULES_INSTALL_OPTIONAL=1` |
 
-It does **not** automate interactive auth. If auth is missing, it reports the required commands:
-
-```bash
-claude auth login --console
-codex login
-```
+It does not inspect or modify Claude/Codex provider authentication. Native login, API keys, external gateways, and cloud-provider credentials remain user-managed. Provider access is diagnosed only when a real delegated invocation fails.
 
 Claude plugin installation, including `superpowers`, `oh-my-claudecode`, `playwright`, `context7`, `pyright-lsp`, and the OpenAI `codex` Claude plugin (`codex@openai-codex`, from the `openai/codex-plugin-cc` marketplace) can be installed by running with:
 
@@ -83,7 +78,7 @@ HERCULES_YES=1 HERCULES_INSTALL_OPTIONAL=1 bash ~/.hermes/skills/hercules/hercul
 
 The `codex` Claude plugin is **not** the Codex CLI. It is an optional in-Claude plugin that exposes `/codex:*` slash commands and a `codex:codex-rescue` agent. It is never installed by default. When present, the bootstrap deep inventory lists its `/codex:*` commands and reports whether `agents/codex-rescue.md` is available.
 
-Completion criterion: `claude`, `codex`, required Hermes skills, and any explicitly requested Claude plugins are present or the script has reported a real blocker such as missing Node/npm or missing auth.
+Completion criterion: `claude`, `codex`, required Hermes skills, and any explicitly requested Claude plugins are present or the script has reported a local installation blocker such as missing Node/npm. Provider access remains unprobed until real use.
 
 ## Step 1 — Classify Task Complexity
 
@@ -114,7 +109,6 @@ Run when Claude Code will be used and the current session lacks a fresh inventor
 
 ```bash
 claude --version
-claude auth status --text || true
 claude mcp list || true
 claude plugins list || claude plugin list || true
 claude agents || true
@@ -122,7 +116,7 @@ claude agents || true
 
 Capture:
 
-- Version and auth state.
+- Version and locally visible capabilities; provider access is not probed.
 - Enabled plugins, especially `superpowers`, `oh-my-claudecode`, `playwright`, `context7`, `pyright-lsp`, `frontend-design`, `skill-creator`, and the optional OpenAI `codex` Claude plugin (`codex@openai-codex`, distinct from the Codex CLI).
 - Connected MCP servers, especially project-specific ones like `godot`, browser/playwright, design, video, database, GitHub, or custom MCPs.
 - Custom agents if listed or configured.
@@ -141,7 +135,6 @@ Run when Codex will be used and the current session lacks a fresh inventory:
 
 ```bash
 codex --version
-codex login status || true
 codex mcp list || true
 codex plugin list || true
 codex features list || true
@@ -155,7 +148,7 @@ sed -n '1,220p' ~/.codex/config.toml
 
 Capture:
 
-- Version and login state.
+- Version and locally visible capabilities; provider access is not probed.
 - Current model and `model_reasoning_effort` from config.
 - Enabled MCP servers such as `godot`, `google-search`, `sequentialthinking`, `node_repl`, `video-watcher`, `aseprite`.
 - Feature flags that matter to the task, such as browser/computer-use capabilities.
@@ -278,7 +271,7 @@ To reuse this workflow on another machine:
 3. Run the bootstrap script above to install/check Claude Code, Codex, required Claude plugins, and external skill dependencies.
 4. Start a fresh Hermes session and load it by name: `hercules-agent-capability-preflight`.
 
-Migration guarantee boundary: the bootstrap/dependency doctor is a best-effort declared-dependency and live-capability scanner, not an omniscient proof that every transitive plugin feature, per-project MCP server, credential, external binary, OS package, or interactive auth state exists. A target machine is only “ready” after both dependency checks and task-specific executable smoke tests pass. Missing auth, broken MCP servers, optional plugins, project-local tools, private credentials, and plugin-internal feature changes must be reported as blockers rather than papered over.
+Migration guarantee boundary: the bootstrap/dependency doctor is a best-effort declared-dependency and live-capability scanner, not an omniscient proof that every transitive plugin feature, per-project MCP server, credential, external binary, OS package, or provider state exists. Setup readiness means the local components are present. Provider, credential, MCP, and project-tool failures become blockers only when a real task invocation observes them; report the sanitized cause and user-run checks without modifying provider configuration.
 
 Keep bundled Hermes skills unmodified and outside this pack:
 

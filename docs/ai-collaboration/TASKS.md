@@ -349,6 +349,92 @@ trajectory:
     logs: []
 ```
 
+## [x] TASK-014：setup/doctor UX 与运行时 provider 边界
+
+- 当前状态：已完成
+- 优先级：P1
+- 当前负责人：无
+- 下一负责人：无
+- 下一步：无；第二次 Codex narrow recheck PASS，4 个 CR 全部关闭
+- 是否需要 Codex 复核：是
+- 创建日期：2026-07-10
+- 最后更新：2026-07-10
+- 来源：用户反馈：dry-run 输出不可读，且不应主动干预 Claude/Codex 登录
+- 关联任务：TASK-010
+- 关联审阅：`docs/ai-collaboration/codex-reviews/2026-07-10-task014-setup-runtime-access-ux.md`
+- 验证证据：TDD RED：初次 3 tests / 3 failures，证明 dry-run 输出、doctor 登录探测与运行时诊断契约问题；初审后新增 2 个回归测试并观察 2 failures，证明 apply 命令丢参数且 piped installer 输出不可复用；首次 recheck 后为 custom/piped doctor 路径新增断言并观察 2 failures；GREEN：`python3 tests/test_setup_doctor_ux.py -v` 5/5 通过；既有 validator tests 6/6 通过；三份 Shell 脚本 `bash -n` 通过；strict validator 0 errors / 0 warnings；实际 custom-path dry-run 输出完整且正确转义的 apply/doctor 命令；doctor JSON `blocked=0`；bootstrap check 输出简洁；`git diff --check` 通过
+- 阻塞原因：无
+
+### 目标
+
+让 setup/dry-run 输出简洁可读；setup、doctor、preflight 不探测或修改 Claude/Codex provider 登录状态；仅在真实调用失败后输出脱敏原因和中立检查方法。
+
+### 执行项
+
+- [x] 记录用户批准的 UX/provider 边界设计与实施计划
+- [x] 新增 dry-run、doctor、运行时诊断契约回归测试并验证 RED
+- [x] dry-run 改为简洁计划，跳过 bootstrap 深度能力清单
+- [x] doctor/bootstrap 移除 Claude/Codex 主动登录检查
+- [x] 深度插件/MCP/feature inventory 改为 `HERCULES_VERBOSE=1` 显式开启
+- [x] 主协作 Skill 增加运行时调用失败诊断契约
+- [x] 同步 README、安装治理 Skill 与 references
+- [x] 完成全量测试、strict validator、实际 dry-run/doctor 验证
+- [x] 完成独立 Codex narrow recheck
+
+### 验收标准
+
+- [x] `setup --dry-run` 不出现登录命令、插件清单、MCP 健康宽表或 Codex feature 清单
+- [x] `doctor` 不调用 Claude/Codex login-status 命令，不因未探测 provider 状态 BLOCKED
+- [x] Claude/Codex 真实调用失败时有统一、脱敏、provider-neutral 的诊断契约
+- [x] 不读取、不打印、不修改用户凭证
+- [x] 全量验证通过
+- [x] 独立复核通过
+
+### Codex 执行记录
+
+- 修改内容：setup preview、provider-neutral doctor/bootstrap、运行时失败诊断契约、回归测试和双语文档
+- 修改文件：见 `docs/superpowers/plans/2026-07-10-setup-runtime-access-ux.md`
+- 验证命令：`python3 tests/test_setup_doctor_ux.py -v`；`python3 tests/test_validate_skill_pack_cli.py -v`；`bash -n scripts/hercules scripts/install-hercules.sh skills/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh`；`python3 scripts/validate-skill-pack.py --strict`；`scripts/hercules setup --dry-run`；`scripts/hercules setup --dry-run --full`；`scripts/hercules doctor`；`scripts/hercules doctor --json`；`scripts/hercules bootstrap --check`；`git diff --check`
+- 验证结果：全部通过；dry-run 从约 55 秒的大量底层输出降为约 0.3 秒的简洁计划；doctor 不再主动检查 provider 登录且 `blocked=0`；apply 命令可复现选项并区分本地 checkout 与 piped installer
+- 初审结果：FAIL；`TASK014-CR-001` apply 命令丢失选项/错误假设本地 helper；`TASK014-CR-002` 测试未从工具 trace 证明无隐式 probe；`TASK014-CR-003` 架构文档残留 `auth handoff`
+- 首次 recheck：CR-001~003 已关闭；新增 `TASK014-CR-004`，指出 custom/piped 场景固定的 `scripts/hercules doctor` 不可用或检查错仓库
+- 修复结果：重建安全转义的 apply 命令；增加 fake-tool trace 与 piped/custom-option 测试；清理残留措辞；doctor 命令改为安全转义的目标仓库绝对路径并增加断言
+- 第二次 recheck：`TASK014-CR-004` 已关闭；最终 PASS，无剩余 P0-P3 finding
+- 遗留问题：无
+
+### Trajectory
+
+```yaml
+trajectory:
+  task_id: TASK-014
+  attempt: 1
+  date: 2026-07-10
+  task_type: implementation
+  skill_versions:
+    portable-skill-pack-installation: 1.1.0
+    cli-installer-ux-governance: 1.0.0
+    hermes-collaborative-workflow: 1.0.0
+  score: 1.0
+  actor_path: "User decision -> Codex direct TDD implementation -> verification -> independent Codex review"
+  phi:
+    capability_preflight: skipped-with-reason-user-required-no-proactive-provider-probe
+    relevant_capabilities: [test-driven-development, writing-plans, executing-plans]
+    effort: high
+    claude_result: not-launched-user-addressed-Codex-directly
+    codex_result: PASS-after-TASK014-CR-001-through-004
+    verification:
+      commands: ["python3 tests/test_setup_doctor_ux.py -v", "python3 tests/test_validate_skill_pack_cli.py -v", "bash -n scripts/hercules scripts/install-hercules.sh skills/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh", "python3 scripts/validate-skill-pack.py --strict", "scripts/hercules setup --dry-run", "scripts/hercules setup --dry-run --full", "scripts/hercules doctor", "scripts/hercules doctor --json", "scripts/hercules bootstrap --check", "git diff --check"]
+      logs: []
+      diff_scope: "setup/doctor/bootstrap scripts, installer/workflow skills, README, tests, design/plan, TASKS"
+    cr_ids: [TASK014-CR-001, TASK014-CR-002, TASK014-CR-003, TASK014-CR-004]
+    blocker_type: none
+    next_owner: none
+  source_pointers:
+    task_record: "docs/ai-collaboration/TASKS.md#task-014"
+    review_record: "docs/ai-collaboration/codex-reviews/2026-07-10-task014-setup-runtime-access-ux.md"
+    logs: []
+```
+
 ## Trajectory record policy
 
 Every formal Claude/Codex collaboration task in this ledger should be able to leave reflection data. Use the trajectory shape from `skills/hercules-meta-skill-evolution/templates/trajectory-record.md`.

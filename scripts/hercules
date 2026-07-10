@@ -155,7 +155,7 @@ run_package() {
 #   ok       satisfied
 #   warn     usable but not ideal
 #   fixable  can be repaired by doctor --fix
-#   blocked  requires user action, auth, network, or manual setup
+#   blocked  requires user action for a core local setup or validation failure
 DOCTOR_JSON=0
 DOCTOR_STRICT=0
 DOCTOR_OK=0
@@ -198,23 +198,6 @@ check_command() {
     record_check ok "$cmd" "present${version:+: $version}"
   else
     record_check fixable "$cmd" "missing; install with doctor --fix (package: $package_hint)"
-  fi
-}
-
-check_auth() {
-  if have_cmd claude; then
-    if claude auth status --text >/dev/null 2>&1; then
-      record_check ok "claude auth" "ready"
-    else
-      record_check blocked "claude auth" "run: claude auth login --console"
-    fi
-  fi
-  if have_cmd codex; then
-    if codex login status >/dev/null 2>&1; then
-      record_check ok "codex auth" "ready"
-    else
-      record_check blocked "codex auth" "run: codex login"
-    fi
   fi
 }
 
@@ -329,7 +312,9 @@ run_doctor_dashboard() {
   if [ "$DOCTOR_JSON" != "1" ]; then section "Agent CLIs"; fi
   check_command claude "@anthropic-ai/claude-code"
   check_command codex "@openai/codex"
-  check_auth
+  if [ "$DOCTOR_JSON" != "1" ]; then
+    printf '  INFO     provider access — not probed; credentials remain user-managed\n'
+  fi
 
   if [ "$DOCTOR_JSON" != "1" ]; then section "Required Hermes skills"; fi
   check_required_skill subagent-driven-development

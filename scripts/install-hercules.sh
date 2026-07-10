@@ -5,7 +5,7 @@ set -euo pipefail
 # Safe defaults:
 # - Installs/checks OS basics, Hermes, Claude Code CLI, Codex CLI, required skills/plugins.
 # - Installs Hercules by symlinking ~/.hermes/skills/hercules -> <repo>/skills.
-# - Does not automate interactive auth; prints claude/codex/hermes login/setup commands.
+# - Leaves all third-party provider/authentication configuration to the user.
 # - Optional token-spending/state-changing Claude plugins are installed only with --optional.
 
 REPO_URL=${HERCULES_REPO_URL:-https://github.com/ZeroTian/hercules-skills.git}
@@ -13,9 +13,14 @@ BRANCH=${HERCULES_BRANCH:-main}
 REPO_DIR=${HERCULES_REPO_DIR:-$HOME/code/hercules-skills}
 INSTALL_MODE=${HERCULES_INSTALL_MODE:-symlink} # symlink|copy
 REPO_DIR_EXPLICIT=0
+REPO_URL_EXPLICIT=0
+BRANCH_EXPLICIT=0
+INSTALL_MODE_EXPLICIT=0
+SCRIPT_FROM_CHECKOUT=0
 YES=${HERCULES_YES:-0}
 CHECK_ONLY=${HERCULES_CHECK_ONLY:-0}
 INSTALL_OPTIONAL=${HERCULES_INSTALL_OPTIONAL:-0}
+VERBOSE=${HERCULES_VERBOSE:-0}
 SKIP_OS_PACKAGES=${HERCULES_SKIP_OS_PACKAGES:-0}
 SKIP_HERMES_INSTALL=${HERCULES_SKIP_HERMES_INSTALL:-0}
 SKIP_BOOTSTRAP=${HERCULES_SKIP_BOOTSTRAP:-0}
@@ -59,14 +64,12 @@ No options:
 
 Environment knobs:
   HERCULES_REPO_URL, HERCULES_BRANCH, HERCULES_REPO_DIR, HERCULES_INSTALL_MODE
-  HERCULES_YES=1, HERCULES_CHECK_ONLY=1, HERCULES_INSTALL_OPTIONAL=1
+  HERCULES_YES=1, HERCULES_CHECK_ONLY=1, HERCULES_INSTALL_OPTIONAL=1, HERCULES_VERBOSE=1
   HERCULES_SKIP_OS_PACKAGES=1, HERCULES_SKIP_HERMES_INSTALL=1, HERCULES_SKIP_BOOTSTRAP=1
   NPM_REGISTRY=https://registry.npmmirror.com
 
-This script cannot complete interactive auth. If needed, run after install:
-  hermes setup
-  claude auth login --console
-  codex login
+Provider credentials and login state are user-managed. Hercules does not inspect,
+open, or modify Claude/Codex authentication during setup or doctor checks.
 USAGE
 }
 
@@ -115,7 +118,7 @@ EOF
 
 run_cmd() {
   if [ "$CHECK_ONLY" = "1" ]; then
-    log "CHECK_ONLY: would run: $*"
+    log "PLAN: $*"
     return 0
   fi
   "$@"
@@ -123,7 +126,7 @@ run_cmd() {
 
 run_shell() {
   if [ "$CHECK_ONLY" = "1" ]; then
-    log "CHECK_ONLY: would run shell: $*"
+    log "PLAN shell: $*"
     return 0
   fi
   sh -c "$*"
@@ -148,10 +151,10 @@ parse_args() {
       --minimal) YES=1; INSTALL_OPTIONAL=0 ;;
       --dry-run|--check|--check-only) CHECK_ONLY=1 ;;
       --optional) INSTALL_OPTIONAL=1 ;;
-      --copy) INSTALL_MODE=copy ;;
-      --symlink) INSTALL_MODE=symlink ;;
-      --repo-url) shift; REPO_URL="${1:?missing value for --repo-url}" ;;
-      --branch) shift; BRANCH="${1:?missing value for --branch}" ;;
+      --copy) INSTALL_MODE=copy; INSTALL_MODE_EXPLICIT=1 ;;
+      --symlink) INSTALL_MODE=symlink; INSTALL_MODE_EXPLICIT=1 ;;
+      --repo-url) shift; REPO_URL="${1:?missing value for --repo-url}"; REPO_URL_EXPLICIT=1 ;;
+      --branch) shift; BRANCH="${1:?missing value for --branch}"; BRANCH_EXPLICIT=1 ;;
       --repo-dir) shift; REPO_DIR="${1:?missing value for --repo-dir}"; REPO_DIR_EXPLICIT=1 ;;
       --skip-os-packages) SKIP_OS_PACKAGES=1 ;;
       --skip-hermes-install) SKIP_HERMES_INSTALL=1 ;;
@@ -174,10 +177,55 @@ detect_repo_from_script() {
   script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd 2>/dev/null || true)
   if [ -n "$script_dir" ]; then
     repo_root=$(cd -- "$script_dir/.." 2>/dev/null && pwd 2>/dev/null || true)
-    if [ "$REPO_DIR_EXPLICIT" != "1" ] && [ -d "$repo_root/.git" ] && [ -d "$repo_root/skills" ]; then
-      REPO_DIR="$repo_root"
+    if [ -d "$repo_root/.git" ] && [ -d "$repo_root/skills" ]; then
+      SCRIPT_FROM_CHECKOUT=1
+      if [ "$REPO_DIR_EXPLICIT" != "1" ]; then
+        REPO_DIR="$repo_root"
+      fi
     fi
   fi
+}
+
+print_apply_arg() {
+  printf ' %q' "$1"
+}
+
+print_apply_command() {
+  local setup_mode="--minimal"
+  if [ "$INSTALL_OPTIONAL" = "1" ]; then setup_mode="--full"; fi
+
+  if [ "$SCRIPT_FROM_CHECKOUT" = "1" ]; then
+    printf '  scripts/hercules setup'
+  else
+    printf '  curl -fsSL https://raw.githubusercontent.com/ZeroTian/hercules-skills/main/scripts/install-hercules.sh | bash -s --'
+  fi
+
+  print_apply_arg "$setup_mode"
+  if [ "$INSTALL_MODE" = "copy" ]; then
+    print_apply_arg "--copy"
+  elif [ "$INSTALL_MODE_EXPLICIT" = "1" ]; then
+    print_apply_arg "--symlink"
+  fi
+  if [ "$REPO_URL_EXPLICIT" = "1" ]; then
+    print_apply_arg "--repo-url"
+    print_apply_arg "$REPO_URL"
+  fi
+  if [ "$BRANCH_EXPLICIT" = "1" ]; then
+    print_apply_arg "--branch"
+    print_apply_arg "$BRANCH"
+  fi
+  if [ "$REPO_DIR_EXPLICIT" = "1" ]; then
+    print_apply_arg "--repo-dir"
+    print_apply_arg "$REPO_DIR"
+  fi
+  if [ "$SKIP_OS_PACKAGES" = "1" ]; then print_apply_arg "--skip-os-packages"; fi
+  if [ "$SKIP_HERMES_INSTALL" = "1" ]; then print_apply_arg "--skip-hermes-install"; fi
+  if [ "$SKIP_BOOTSTRAP" = "1" ]; then print_apply_arg "--skip-bootstrap"; fi
+  printf '\n'
+}
+
+print_doctor_command() {
+  printf '  %q doctor\n' "$REPO_DIR/scripts/hercules"
 }
 
 install_os_basics() {
@@ -198,7 +246,7 @@ install_os_basics() {
   fi
 
   if [ "$CHECK_ONLY" = "1" ]; then
-    log "CHECK_ONLY: would install missing OS packages with apt-get/brew where supported"
+    log "PLAN: install missing base commands with apt-get/brew where supported"
     return 0
   fi
 
@@ -226,8 +274,8 @@ configure_node_registry() {
     return 0
   fi
   if [ "$CHECK_ONLY" = "1" ]; then
-    log "CHECK_ONLY: would set npm registry to $NPM_REGISTRY"
-    if have_cmd pnpm; then log "CHECK_ONLY: would set pnpm registry to $NPM_REGISTRY"; fi
+    log "PLAN: set npm registry to $NPM_REGISTRY"
+    if have_cmd pnpm; then log "PLAN: set pnpm registry to $NPM_REGISTRY"; fi
     return 0
   fi
   npm config set registry "$NPM_REGISTRY" >/dev/null || true
@@ -245,7 +293,7 @@ install_hermes_if_missing() {
     return 0
   fi
   if [ "$CHECK_ONLY" = "1" ]; then
-    log "CHECK_ONLY: would install Hermes Agent using the official installer"
+    log "PLAN: install Hermes Agent with its official installer"
     return 0
   fi
   if [ "$YES" != "1" ] && ! confirm "Install Hermes Agent using the official installer?"; then
@@ -293,7 +341,7 @@ backup_existing_runtime_dir() {
   fi
   if [ -L "$runtime" ]; then
     if [ "$CHECK_ONLY" = "1" ]; then
-      log "CHECK_ONLY: existing symlink would be replaced: $runtime -> $(readlink "$runtime" || true)"
+      log "PLAN: replace existing symlink: $runtime -> $(readlink "$runtime" || true)"
     else
       log "removing existing symlink: $runtime -> $(readlink "$runtime" || true)"
     fi
@@ -321,7 +369,7 @@ install_skills() {
     log "copying Hercules skills to $runtime"
     run_cmd mkdir -p "$runtime"
     if [ "$CHECK_ONLY" = "1" ]; then
-      log "CHECK_ONLY: would copy $src/. to $runtime/"
+      log "PLAN: copy $src/. to $runtime/"
     else
       cp -a "$src/." "$runtime/"
     fi
@@ -336,7 +384,7 @@ install_skills() {
 
 run_repo_validation() {
   if [ "$CHECK_ONLY" = "1" ]; then
-    log "CHECK_ONLY: would run repository validation in $REPO_DIR"
+    log "PLAN: validate repository at $REPO_DIR"
     return 0
   fi
   if [ -x "$REPO_DIR/scripts/hercules" ]; then
@@ -354,11 +402,17 @@ run_dependency_bootstrap() {
     return 0
   fi
   local bootstrap="$REPO_DIR/skills/hercules-agent-capability-preflight/scripts/bootstrap-hercules-workflow.sh"
-  if [ ! -f "$bootstrap" ]; then
-    if [ "$CHECK_ONLY" = "1" ]; then
-      log "CHECK_ONLY: would run Hercules dependency bootstrap at $bootstrap"
-      return 0
+  if [ "$CHECK_ONLY" = "1" ]; then
+    log "PLAN: check/install Claude Code, Codex CLI, and required Hermes skills"
+    if [ "$INSTALL_OPTIONAL" = "1" ]; then
+      log "PLAN: align optional Claude plugins for full setup"
+    else
+      log "SKIP: optional Claude plugin changes (minimal setup)"
     fi
+    log "Provider access is not probed; authentication remains user-managed"
+    return 0
+  fi
+  if [ ! -f "$bootstrap" ]; then
     warn "bootstrap script not found: $bootstrap"
     return 0
   fi
@@ -366,21 +420,39 @@ run_dependency_bootstrap() {
   HERCULES_YES="$YES" \
   HERCULES_CHECK_ONLY="$CHECK_ONLY" \
   HERCULES_INSTALL_OPTIONAL="$INSTALL_OPTIONAL" \
+  HERCULES_VERBOSE="$VERBOSE" \
   NPM_REGISTRY="$NPM_REGISTRY" \
   bash "$bootstrap"
 }
 
 print_next_steps() {
+  if [ "$CHECK_ONLY" = "1" ]; then
+    cat <<'EOF'
+
+Preview complete. No changes were made.
+
+Apply this plan:
+EOF
+    print_apply_command
+    cat <<'EOF'
+
+Inspect the current machine:
+EOF
+    print_doctor_command
+    return 0
+  fi
+
   cat <<EOF
 
 [hercules-install] Done.
 
-Next steps for a fresh machine:
-  1. If Hermes has not been configured yet: hermes setup
-  2. If Claude Code auth is missing:    claude auth login --console
-  3. If Codex auth is missing:          codex login
-  4. Start a fresh Hermes session:       hermes --tui
-  5. Load Hercules preflight:            /skill hercules-agent-capability-preflight
+Provider access:
+  Claude/Codex credentials and login state remain user-managed.
+  Hercules reports actionable diagnostics only if a real invocation fails.
+
+Next steps:
+  1. Start a fresh Hermes session: hermes --tui
+  2. Load Hercules preflight:      /skill hercules-agent-capability-preflight
 
 Useful checks:
   cd "$REPO_DIR"
@@ -405,6 +477,20 @@ main() {
   fi
   detect_repo_from_script
   refresh_path
+
+  if [ "$CHECK_ONLY" = "1" ]; then
+    local preview_mode="minimal"
+    if [ "$INSTALL_OPTIONAL" = "1" ]; then preview_mode="full"; fi
+    cat <<EOF
+Hercules Setup Preview
+======================
+Mode: $preview_mode
+Safety: DRY RUN — no files, settings, plugins, or credentials will be changed.
+
+Planned actions
+---------------
+EOF
+  fi
 
   log "starting install (check_only=$CHECK_ONLY yes=$YES optional=$INSTALL_OPTIONAL mode=$INSTALL_MODE)"
   log "repo_url=$REPO_URL"

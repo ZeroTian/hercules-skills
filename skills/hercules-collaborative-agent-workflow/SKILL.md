@@ -68,7 +68,7 @@ Installed local custom workflow skills may already live under `hercules/`; bundl
 
 ### Owner-Driven Auto-Dispatch Policy
 
-In Hermes-managed ledgers, `当前负责人` / `下一负责人` / `next_owner` are executable routing signals: Claude/Codex ownership means Hermes launches that CLI in the same turn, not that the user is told to run it. See `hermes-collaborative-workflow#Owner-Driven Auto-Dispatch` for the full actor matrix and the only valid stop-before-dispatch reasons (tool unavailable, auth/preflight failure, destructive/user-decision boundary, or a recorded blocker).
+In Hermes-managed ledgers, `当前负责人` / `下一负责人` / `next_owner` are executable routing signals: Claude/Codex ownership means Hermes launches that CLI in the same turn, not that the user is told to run it. See `hermes-collaborative-workflow#Owner-Driven Auto-Dispatch` for the full actor matrix and the only valid stop-before-dispatch reasons (tool unavailable, an observed runtime invocation failure, destructive/user-decision boundary, or a recorded blocker).
 
 ## Capability and Effort Policy
 
@@ -98,6 +98,10 @@ Effort defaults:
 6. **Delegate review to Codex when needed.** Use read-only review unless explicitly allowing task/review record writes. Include exact criteria and update rules.
 7. **Verify Codex output.** Read modified records, check checkbox truth, and confirm PASS/FAIL evidence.
 8. **Loop or stop.** If Codex rejects, route original CR back to Claude. If PASS, close task records. If blocked, record blocker and next owner.
+
+## Runtime Invocation Failure Contract
+
+Follow `hermes-collaborative-workflow#Runtime Invocation Failure Contract` for both Claude Code and Codex CLI. Setup, doctor, and preflight must not inspect or modify provider login state. Attempt the real delegated work with the user's existing provider configuration; only after that invocation fails should Hermes classify the sanitized error, provide provider-neutral checks, and record a blocker. Never expose secrets or turn one native login flow into a mandatory dependency.
 
 ## Brief Requirements
 

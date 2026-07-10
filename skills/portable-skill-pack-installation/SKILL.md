@@ -1,6 +1,6 @@
 ---
 name: portable-skill-pack-installation
-description: "Use when making a Hermes/Hercules skill pack installable on another machine: one-command installer modes, setup/doctor UX, dependency alignment, dry-run safety, runtime symlink/copy install, auth handoff, and validation/review gates."
+description: "Use when making a Hermes/Hercules skill pack installable on another machine: one-command installer modes, setup/doctor UX, dependency alignment, dry-run safety, runtime symlink/copy install, provider-neutral runtime handoff, and validation/review gates."
 version: 1.1.0
 author: Hercules / Hermes Agent
 license: MIT
@@ -51,7 +51,7 @@ Use when:
 3. **Keep dry-run pure.** In `--dry-run` / `--check` mode, never clone, pull, install, write npm/pnpm registry, alter symlinks, create backups, or execute repo-local scripts that would be absent because clone is a no-op. Log the would-run action and return success.
 4. **Separate required and optional dependencies.** Required path may align Hermes, repo checkout, runtime skills, Node/npm, Claude Code CLI, Codex CLI, and required external Hermes skills. Claude marketplace/plugin installation must be gated behind `--full`, `--optional`, or `HERCULES_INSTALL_OPTIONAL=1` unless the user explicitly asked for plugin mutation.
 5. **Handle runtime installation explicitly.** Prefer symlink for active development (`~/.hermes/skills/hercules -> <repo>/skills`) and copy mode for consumption-only machines. Back up pre-existing non-symlink runtime directories outside `~/.hermes/skills/` to avoid duplicate skill discovery.
-6. **Do not automate interactive auth.** Report post-install steps for `hermes setup`, `claude auth login --console`, and `codex login` when needed. In `doctor`, classify missing auth as `BLOCKED`, not silently fixed.
+6. **Leave provider access user-managed.** Setup and doctor check that Claude/Codex executables exist but do not inspect login state, API keys, gateways, or cloud-provider credentials. Diagnose provider access only after a real invocation fails, then report the sanitized cause and checks without modifying credentials.
 7. **End with a dashboard summary.** Installation logs are allowed, but the final output should clearly distinguish `OK`, `WARN`, `FIXABLE`, and `BLOCKED` items and give the next command.
 8. **Expose machine-readable checks.** Provide `doctor --json` for CI/agent automation and `doctor --strict` for release gates.
 9. **Update reader docs and governance counts together.** If the installer package promotes a new runtime skill, update README, architecture/navigation/audit docs, and search for stale hard-coded skill counts.
@@ -67,6 +67,8 @@ Use when:
 - [ ] `./scripts/hercules doctor --json` emits valid JSON with top-level `status`, `counts`, and `checks`.
 - [ ] `./scripts/hercules doctor` is read-only unless `--fix` is supplied.
 - [ ] Default bootstrap with `HERCULES_CHECK_ONLY=1 HERCULES_INSTALL_OPTIONAL=0` emits no `claude plugins install` and no `claude plugins marketplace add`.
+- [ ] Default dry-run emits a concise plan and no plugin/MCP/feature inventory or provider-login checks.
+- [ ] `doctor` does not call Claude/Codex login-status commands or classify unprobed provider state as `BLOCKED`.
 - [ ] Full dependency alignment is documented as `--full`; minimal install is documented as `--minimal`; audit-only is documented as `--dry-run`.
 - [ ] Installer executable bit is staged (`git ls-files -s ./scripts/install-hercules.sh` shows `100755`).
 - [ ] Validator, package readiness, whitespace checks, and staged privacy scan pass.
@@ -78,7 +80,7 @@ Use when:
 2. **Optional plugin drift.** A delegated bootstrap may still install Claude plugins before the outer installer’s optional gate. Recheck the inner script, not just the wrapper.
 3. **Executable bit mismatch.** A local script may run during development but be staged as `100644`; fresh clone direct execution then fails.
 4. **Stale skill counts.** Adding a packaging/installer skill requires updating not just the primary inventory but later evidence paragraphs and audit summaries.
-5. **Overclaiming auth automation.** Login steps remain interactive; the installer can detect/report but should not pretend to complete auth.
+5. **Treating one login method as mandatory.** Native login, API keys, external gateways, and cloud providers are user choices. Do not probe them during setup/doctor; diagnose only an observed runtime failure.
 6. **Ambiguous flag names.** `--optional` is precise for dependency governance but weak for user onboarding. Prefer `--full` in public docs and keep `--optional` as a compatibility/advanced flag.
 7. **Doctor with side effects.** A `doctor` command that installs packages without `--fix` breaks user trust. Keep default diagnosis read-only.
 

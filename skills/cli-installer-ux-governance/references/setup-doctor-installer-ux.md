@@ -32,7 +32,9 @@ Keep implementation aliases for compatibility, but avoid making them the public 
 - `doctor --fix` may repair minimal dependencies.
 - `doctor --fix --full` may additionally install optional plugin dependencies.
 - `--dry-run` must skip both side effects and confirmation prompts.
-- Missing auth is `BLOCKED`, not fixable.
+- `--dry-run` must show a concise action plan, not plugin/MCP/feature inventories.
+- Setup and doctor do not probe or modify third-party provider/login state.
+- Only an observed real invocation failure can produce a provider-access blocker.
 
 ## Review checks
 
@@ -44,3 +46,4 @@ Ask the independent reviewer to verify:
 4. Optional plugins are not installed by minimal setup.
 5. JSON output is valid and useful for CI/agent automation.
 6. README shows product-level commands before implementation flags.
+7. Provider credentials are not inspected, printed, modified, or treated as a setup prerequisite.

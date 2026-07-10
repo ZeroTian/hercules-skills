@@ -28,6 +28,7 @@ Preserve compatibility aliases when they already exist:
 - `doctor --fix --full`: additionally aligns optional Claude/plugin dependencies.
 - `doctor --json`: machine-readable for CI/agent automation.
 - `doctor --strict`: release gate; warnings/fixable/blockers produce nonzero exit.
+- Provider/login state is not probed. A real Claude/Codex invocation owns provider-access diagnosis.
 
 ## Safety rules
 
@@ -38,6 +39,13 @@ Preserve compatibility aliases when they already exist:
 - write npm/pnpm registry config;
 - create backups or alter symlinks;
 - execute repo-local scripts that would be missing because clone was skipped.
+- dump plugin, MCP, feature, or deep-capability inventories by default.
+
+The preview should end with a short “no changes were made” statement and the exact command that applies the selected plan. Keep deep inventories behind an explicit verbose mode.
+
+## Provider boundary
+
+Setup and doctor may verify that Claude Code and Codex CLI executables exist. They must not inspect or change native login, API keys, external gateways, cloud-provider credentials, or private tokens. If a real workflow invocation fails, report the sanitized observed error and provider-neutral checks; never infer a blocker from an unprobed login state.
 
 Optional Claude plugins must remain gated behind explicit full/optional mode.
 
@@ -57,6 +65,7 @@ scripts/hercules setup --dry-run --repo-dir "$tmp" --skip-os-packages --skip-her
 test ! -e "$tmp"
 
 scripts/hercules doctor --json | python3 -m json.tool >/dev/null
+python3 tests/test_setup_doctor_ux.py -v
 python3 scripts/validate-skill-pack.py --strict
 scripts/hercules package
 git diff --check

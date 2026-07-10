@@ -6,7 +6,8 @@ set -euo pipefail
 # - Installs missing CLI packages with npm global install.
 # - Installs missing Hermes hub skills.
 # - Installs/enables Claude plugin marketplaces/plugins only when HERCULES_INSTALL_OPTIONAL=1.
-# - Does not perform interactive auth; reports required login commands instead.
+# - Does not inspect or modify third-party provider/authentication state.
+# - Prints deep plugin/MCP/feature inventories only with HERCULES_VERBOSE=1.
 #
 # Env knobs:
 #   HERCULES_YES=1              run installs without prompting
@@ -14,11 +15,13 @@ set -euo pipefail
 #   HERCULES_SKIP_REGISTRY=1    do not change npm/pnpm registry
 #   HERCULES_INSTALL_OPTIONAL=1 install Claude plugins/marketplaces too
 #                              (superpowers, oh-my-claudecode, playwright, context7, pyright-lsp, codex@openai-codex)
+#   HERCULES_VERBOSE=1          print deep plugin/MCP/feature inventories
 
 YES=${HERCULES_YES:-0}
 CHECK_ONLY=${HERCULES_CHECK_ONLY:-0}
 SKIP_REGISTRY=${HERCULES_SKIP_REGISTRY:-0}
 INSTALL_OPTIONAL=${HERCULES_INSTALL_OPTIONAL:-0}
+VERBOSE=${HERCULES_VERBOSE:-0}
 NPM_REGISTRY=${NPM_REGISTRY:-https://registry.npmmirror.com}
 
 log() { printf '[hercules-bootstrap] %s\n' "$*"; }
@@ -34,7 +37,7 @@ confirm() {
 
 run_install() {
   if [ "$CHECK_ONLY" = "1" ]; then
-    log "CHECK_ONLY: would run: $*"
+    log "PLAN: $*"
     return 0
   fi
   if [ "$YES" = "1" ] || confirm "Run: $* ?"; then
@@ -53,8 +56,8 @@ ensure_node_toolchain() {
   fi
   if [ "$SKIP_REGISTRY" != "1" ]; then
     if [ "$CHECK_ONLY" = "1" ]; then
-      log "CHECK_ONLY: would set npm registry to $NPM_REGISTRY"
-      if have_cmd pnpm; then log "CHECK_ONLY: would set pnpm registry to $NPM_REGISTRY"; fi
+      log "PLAN: set npm registry to $NPM_REGISTRY"
+      if have_cmd pnpm; then log "PLAN: set pnpm registry to $NPM_REGISTRY"; fi
       return 0
     fi
     npm config set registry "$NPM_REGISTRY" >/dev/null || true
@@ -140,16 +143,6 @@ ensure_claude_plugin() {
   # Enable if installed but disabled.
   if plugin_present "$display"; then
     claude plugins enable "$display" >/dev/null 2>&1 || true
-  fi
-}
-
-report_auth() {
-  log "Auth status checks"
-  if have_cmd claude; then
-    claude auth status --text 2>/dev/null || warn "Claude auth not ready. Run: claude auth login --console or run claude once interactively."
-  fi
-  if have_cmd codex; then
-    codex login status 2>/dev/null || warn "Codex auth not ready. Run: codex login"
   fi
 }
 
@@ -258,9 +251,13 @@ main() {
     fi
   fi
 
-  report_auth
-  report_capabilities
-  report_plugin_deep_inventory
+  if [ "$VERBOSE" = "1" ]; then
+    report_capabilities
+    report_plugin_deep_inventory
+  else
+    log "deep capability inventory skipped (set HERCULES_VERBOSE=1 for troubleshooting)"
+  fi
+  log "provider access not probed; authentication remains user-managed"
   log "done"
 }
 

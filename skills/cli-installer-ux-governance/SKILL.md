@@ -1,6 +1,6 @@
 ---
 name: cli-installer-ux-governance
-description: "Use when designing or reviewing productized CLI installer UX: setup/doctor/status commands, full/minimal/dry-run modes, read-only diagnosis, repair boundaries, auth handoff, and independent review checks."
+description: "Use when designing or reviewing productized CLI installer UX: setup/doctor/status commands, full/minimal/dry-run modes, read-only diagnosis, repair boundaries, provider-neutral runtime handoff, and independent review checks."
 version: 1.0.0
 author: Hercules / Hermes Agent
 license: MIT
@@ -26,7 +26,7 @@ Use when:
 - documenting one-command installation for another machine;
 - deciding whether a CLI flow is intuitive enough for open-source users;
 - checking that dry-run and doctor modes are safe and non-mutating;
-- aligning required dependencies, optional plugins, and manual auth steps.
+- aligning required dependencies, optional plugins, and user-managed provider boundaries.
 
 ## Procedure
 
@@ -60,10 +60,10 @@ Use when:
    OK       satisfied
    WARN     usable but incomplete
    FIXABLE  doctor --fix can repair
-   BLOCKED  user must handle auth/credentials/network/manual step
+   BLOCKED  an observed core setup or runtime operation failed
    ```
 
-7. **Keep auth manual.** Detect and report missing auth, but do not automate `hermes setup`, `claude auth login --console`, `codex login`, API keys, or private tokens.
+7. **Keep provider access outside setup.** Do not inspect, validate, or modify Claude/Codex login state, API keys, gateways, or cloud credentials during setup or doctor. When a real invocation fails, report a sanitized cause and provider-neutral checks.
 8. **Expose automation outputs.** Add `doctor --json` for CI/agent automation and `doctor --strict` for release gates.
 9. **Review and verify.** Run shell syntax, dry-run smoke against a nonexistent path, JSON validation, package validator, whitespace checks, and independent Codex review.
 
@@ -75,7 +75,7 @@ Use when:
 - [ ] Plain `doctor` does not write logs or other artifacts.
 - [ ] Dry-run mode does not ask confirmation questions.
 - [ ] Optional plugins are gated behind `--full`, `--optional`, or an explicit env flag.
-- [ ] Missing auth is reported as `BLOCKED` / manual handoff.
+- [ ] Unprobed provider/login state does not appear as `BLOCKED`; only a real failed invocation can create that blocker.
 - [ ] README and governance docs use product-level commands and aligned skill/dependency counts.
 - [ ] Codex review checks safety, UX mappings, idempotency, docs consistency, executable bits, and no secrets.
 
@@ -84,7 +84,7 @@ Use when:
 1. **Doctor that writes temp logs.** Even a fixed `/tmp` validation log violates the “read-only doctor” promise. Keep output in memory or tell users what command to run.
 2. **Dry-run that prompts.** Preview mode should be non-interactive; users choose it specifically to avoid changes and decisions.
 3. **`--optional` as the public happy path.** It is precise for dependency governance but reads as “not recommended.” Use `--full` in README and keep `--optional` as an advanced alias.
-4. **Overclaiming setup completion.** Interactive auth and private credentials remain manual blockers.
+4. **Conflating installation with provider access.** Setup completion covers local components. Provider access remains user-managed and is diagnosed only after a real invocation fails.
 5. **Summary hidden in logs.** Always end with a short actionable state and next command.
 
 ## References

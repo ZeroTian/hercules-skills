@@ -168,6 +168,29 @@ A good Codex brief includes:
 
 Hermes then verifies Codex output: exit code, review completeness, task/review file changes, checkbox truth, and key command evidence.
 
+## Runtime Invocation Failure Contract
+
+Hercules does not inspect or change Claude Code or Codex CLI authentication during setup, doctor, or capability preflight. Launch the selected CLI normally with the user's existing provider configuration. Only diagnose provider access after a real task invocation fails.
+
+For every failed Claude/Codex invocation:
+
+1. Capture the component, attempted operation, exit code, and a sanitized stderr summary.
+2. Classify the observed failure as one of: executable missing, provider/authentication rejection, endpoint/DNS/TLS/proxy/network failure, quota/rate limit, model/provider configuration, permission/sandbox failure, or unknown.
+3. Give checks appropriate to the observed category and acknowledge that native login, API keys, external gateways, and cloud providers are all user-managed options. Do not prescribe one authentication method as mandatory.
+4. Never print secret values, open a login flow, edit provider settings, or write credentials.
+5. Record a blocker only when the real invocation failed; do not infer a blocker from an unprobed login state.
+
+Use this report shape:
+
+```text
+Component: Claude Code | Codex CLI
+Operation: <real command/task that failed>
+Observed error: <sanitized summary>
+Likely category: <category>
+Checks: <provider-neutral commands/settings to inspect>
+Hercules changes: none; provider credentials were not inspected or modified
+```
+
 ## Open-Ended Research Delegation
 
 For broad online research across papers, blogs, videos, repositories, or competing technical approaches:

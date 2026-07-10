@@ -88,7 +88,7 @@ scripts/hercules doctor
 scripts/hercules doctor --fix --full
 ```
 
-The installer does not automate interactive auth. After it finishes, run `hermes setup`, `claude auth login --console`, or `codex login` if any of those are still missing. Use `scripts/hercules doctor` for a read-only dashboard of what is ready, fixable, or blocked.
+`setup --dry-run` prints a concise action plan and does not run plugin/MCP/feature inventories. Setup and doctor check local components only; they do not inspect or modify Claude/Codex login state, API keys, external gateways, or cloud-provider credentials. If a real delegated invocation fails, Hercules reports the sanitized cause and provider-neutral checks while leaving provider configuration to the user.
 
 From a checkout of this repository:
 
@@ -314,7 +314,7 @@ scripts/hercules doctor
 scripts/hercules doctor --fix --full
 ```
 
-安装脚本不会自动完成交互式登录。如果结束后仍缺认证，请运行 `hermes setup`、`claude auth login --console` 或 `codex login`。使用 `scripts/hercules doctor` 可以查看只读仪表盘，区分已就绪、警告、可自动修复和必须手动处理的项。
+`setup --dry-run` 只输出简洁的操作计划，不运行插件、MCP、feature 或深度能力清单。Setup 和 doctor 只检查本地组件，不探测、不修改 Claude/Codex 登录状态、API Key、外部网关或云厂商凭证。真实委派调用失败时，Hercules 才会报告脱敏后的原因和中立检查方法，具体 provider 配置始终由用户管理。
 
 ```bash
 git clone https://github.com/ZeroTian/hercules-skills.git
