@@ -1,12 +1,13 @@
-# TASK-015 Skill-first lightweight architecture — pending narrow recheck
+# TASK-015 Skill-first lightweight architecture — final independent PASS
 
 - Date: 2026-07-10
 - Initial review range: `df377c0..4742721`
 - Initial verdict: **FAIL**
-- Repair commits: `3ee0d9a`, `823f350`, `d18a026`, `bdc5db1`, `56df17f`, `e42f4f2`, `444ff02`, plus the final cache-integrity commit
-- Latest independent recheck range: `df377c0..444ff02`; result **FAIL** — 7 closed, CR-003 reopened
-- Current verdict: **PENDING independent narrow recheck of CR-003**
-- Closure: TASK-015 remains `待复核`; this is not a PASS record
+- Repair commits: `3ee0d9a`, `823f350`, `d18a026`, `bdc5db1`, `56df17f`, `e42f4f2`, `444ff02`, `0b56986`
+- Final independent recheck range: `df377c0..0b56986`; result **PASS** — 8 closed / 0 open
+- Current verdict: **PASS**
+- Ready: **YES**
+- Closure: TASK-015 is complete
 
 ## Findings
 
@@ -24,7 +25,7 @@
 
 ### TASK015-CR-003 — Important — compact cache bypassed authority evidence
 
-- Status: **FIXED — AWAITING RECHECK**
+- Status: **CLOSED**
 - Recheck evidence: a compact string route for `review-only-tool` plus a write-capable demand fabricated implementation surface, write authority, and evidence, then routed without discovery.
 - Fix: cache reuse now accepts only complete normalized records whose role, facility, confirmed surface, authority, evidence, and fingerprint satisfy the current demand. Compact/incomplete/read-only records become `invalid-cache-record` and use existing task-relevant discovery/fallback; missing-role, stale-fingerprint, and invocation-failure behavior is unchanged. The contract still emits no install/config/auth commands.
 - RED→GREEN: the reviewer compact-cache symptom failed by routing the unproven facility; after removing string synthesis, compact and read-only records invalidate while normalized fresh reuse and all fallback paths pass in the focused 7-case set.
@@ -70,4 +71,4 @@
 
 ## Closure gate
 
-CR-001, CR-002, CR-004, CR-005, CR-006, CR-007, and CR-008 are closed by independent rechecks. CR-003 is fixed by the implementation worker but remains open until an independent Codex recheck accepts it. Do not mark this record PASS or TASK-015 complete before that recheck.
+The final independent recheck at `0b56986` closed CR-003 after reproducing the original compact-cache symptom and verifying the normalized-cache boundary. CR-001 through CR-008 are all closed; spec compliance is PASS and Ready is YES.
