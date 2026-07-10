@@ -1,7 +1,5 @@
 # README and License Boundary Case Study
 
-Status: historical archive
-
 Date: 2026-07-09
 Repository: `ZeroTian/hercules-skills`
 
@@ -13,7 +11,7 @@ The user asked to turn the Hercules skill pack into a standard open-source proje
 
 - OpenAI `codex-plugin-cc` was checked via authoritative upstream metadata and is Apache-2.0.
 - Hercules does **not** vendor `codex-plugin-cc` source, prompts, commands, hooks, scripts, or plugin internals.
-- Hercules treated it as an optional external capability source and recorded policy and safety classification without vendoring it. The current runtime performs no setup action for it.
+- Hercules treats it as an optional external dependency (`codex@openai-codex`) and records governance policy, safety classification, and bootstrap checks around it.
 - Because the relationship is ideas/policy/optional-dependency rather than vendored source, Hercules can keep its own project license.
 - MIT was selected for continuity with existing Hercules skill metadata and low-friction reuse.
 

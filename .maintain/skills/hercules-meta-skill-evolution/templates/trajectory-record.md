@@ -9,8 +9,8 @@ trajectory:
   date: YYYY-MM-DD
   task_type: implementation | review | research | project-init | debugging | docs | other
   skill_versions:
-    hercules-collaborative-workflow: 1.0.0
-    hercules-capability-discovery: 1.0.0
+    hercules-collaborative-agent-workflow: 1.0.0
+    coding-agent-orchestration: 1.0.0
   score: provisional   # 1.0 / 0.8 / 0.6 / 0.3 / 0.0, or leave blank until judged
   score_reason: "short evidence-based reason"
   actor_path: "Hermes -> Claude -> Hermes verify -> Codex"
