@@ -44,8 +44,33 @@ if [ -e "$HERCULES_HOME/.git" ]; then
     die "$HERCULES_HOME is not on the configured Hercules branch; no files were changed."
   [ "$CURRENT_BRANCH" = "$BRANCH" ] ||
     die "$HERCULES_HOME is on branch $CURRENT_BRANCH, expected $BRANCH; no files were changed."
-  git -C "$HERCULES_HOME" fetch origin "$BRANCH"
-  git -C "$HERCULES_HOME" merge --ff-only "origin/$BRANCH"
+  [ -z "$(git -C "$HERCULES_HOME" status --porcelain=v1 --untracked-files=all)" ] || die "$HERCULES_HOME has local changes; no files were changed."
+  LOCAL_HEAD=$(git -C "$HERCULES_HOME" rev-parse HEAD) || die "$HERCULES_HOME HEAD could not be inspected; no files were changed."
+  TRACKING_REF="refs/remotes/origin/$BRANCH"
+  TRACKING_HEAD=$(git -C "$HERCULES_HOME" rev-parse --verify "$TRACKING_REF" 2>/dev/null || true)
+  PREFLIGHT_ROOT=$(mktemp -d "${TMPDIR:-/tmp}/hercules-init.XXXXXX") || die "a temporary Git preflight directory could not be created; no files were changed."
+  PREFLIGHT_REPO="$PREFLIGHT_ROOT/repository"
+  cleanup_preflight() { rm -rf "$PREFLIGHT_ROOT"; }
+  trap cleanup_preflight EXIT HUP INT TERM
+  git clone --quiet --no-checkout --single-branch --branch "$BRANCH" "$REPO_URL" "$PREFLIGHT_REPO" || die "the configured Hercules branch could not be inspected; no files were changed."
+  REMOTE_HEAD=$(git -C "$PREFLIGHT_REPO" rev-parse HEAD) || die "the configured Hercules branch has no inspectable HEAD; no files were changed."
+  git -C "$PREFLIGHT_REPO" fetch --quiet "$HERCULES_HOME" "refs/heads/$BRANCH:refs/hercules-preflight/local" || die "$HERCULES_HOME local branch could not be inspected; no files were changed."
+  if [ -n "$TRACKING_HEAD" ]; then
+    git -C "$PREFLIGHT_REPO" fetch --quiet "$HERCULES_HOME" "$TRACKING_REF:refs/hercules-preflight/tracking" || die "$HERCULES_HOME remote-tracking branch could not be inspected; no files were changed."
+    git -C "$PREFLIGHT_REPO" merge-base --is-ancestor "$TRACKING_HEAD" "$REMOTE_HEAD" || die "$HERCULES_HOME remote history was rewritten; no files were changed."
+  fi
+  git -C "$PREFLIGHT_REPO" merge-base --is-ancestor "$LOCAL_HEAD" "$REMOTE_HEAD" || die "$HERCULES_HOME does not fast-forward to origin/$BRANCH; no files were changed."
+  git -C "$HERCULES_HOME" fetch --quiet --no-write-fetch-head "$PREFLIGHT_REPO" "refs/heads/$BRANCH"
+  [ -z "$(git -C "$HERCULES_HOME" status --porcelain=v1 --untracked-files=all)" ] || die "$HERCULES_HOME changed during preflight; refs and worktree were preserved."
+  git -C "$HERCULES_HOME" merge-base --is-ancestor HEAD "$REMOTE_HEAD" || die "$HERCULES_HOME changed during preflight; refs and worktree were preserved."
+  git -C "$HERCULES_HOME" merge --ff-only "$REMOTE_HEAD"
+  if [ -n "$TRACKING_HEAD" ]; then
+    git -C "$HERCULES_HOME" update-ref "$TRACKING_REF" "$REMOTE_HEAD" "$TRACKING_HEAD"
+  else
+    git -C "$HERCULES_HOME" update-ref "$TRACKING_REF" "$REMOTE_HEAD"
+  fi
+  cleanup_preflight
+  trap - EXIT HUP INT TERM
 elif [ -e "$HERCULES_HOME" ]; then
   die "$HERCULES_HOME exists but is not a Hercules Git checkout; no files were changed."
 else

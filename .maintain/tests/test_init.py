@@ -58,6 +58,24 @@ class InitScriptTest(unittest.TestCase):
         skill.write_text("# updated\n")
         self.commit_all(self.source, "update fixture")
 
+    def configure_identity(self, repo):
+        self.git("-C", repo, "config", "user.email", "test@example.com")
+        self.git("-C", repo, "config", "user.name", "Test")
+
+    def advance_installed(self):
+        self.configure_identity(self.hercules_home)
+        target = self.hercules_home / "skills" / "hercules" / "SKILL.md"
+        target.write_text("# local update\n")
+        self.commit_all(self.hercules_home, "local update")
+
+    def rewrite_source(self):
+        self.git("-C", self.source, "checkout", "--orphan", "rewritten")
+        self.git("-C", self.source, "rm", "-rf", ".")
+        (self.source / "skills" / "hercules").mkdir(parents=True)
+        (self.source / "skills" / "hercules" / "SKILL.md").write_text("# rewritten history\n")
+        self.commit_all(self.source, "rewrite fixture")
+        self.git("-C", self.source, "branch", "-M", "main")
+
     def repo_state(self, repo):
         return {
             "head": self.git("-C", repo, "rev-parse", "HEAD").stdout,
@@ -261,6 +279,51 @@ class InitScriptTest(unittest.TestCase):
         self.assertEqual(conflict.read_text(), "keep")
         self.assertFalse((conflict / "hercules").is_symlink())
         self.assert_no_git_actions("fetch", "merge")
+
+    def test_divergent_checkout_stops_without_repo_state_mutation(self):
+        self.clone_source()
+        self.advance_installed()
+        self.advance_source()
+        before_state = self.repo_state(self.hercules_home)
+        result = self.run_init()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("does not fast-forward", result.stderr)
+        self.assertEqual(self.repo_state(self.hercules_home), before_state)
+
+    def test_dirty_checkout_stops_without_repo_state_mutation(self):
+        for dirty_kind in ("tracked", "untracked"):
+            with self.subTest(dirty_kind=dirty_kind):
+                if self.hercules_home.exists():
+                    shutil.rmtree(self.hercules_home)
+                self.clone_source()
+                target = (self.hercules_home / "skills" / "hercules" / "SKILL.md" if dirty_kind == "tracked" else self.hercules_home / "untracked.txt")
+                target.write_text(f"{dirty_kind} change\n")
+                before_state = self.repo_state(self.hercules_home)
+                result = self.run_init()
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("local changes", result.stderr)
+                self.assertEqual(self.repo_state(self.hercules_home), before_state)
+
+    def test_remote_rewrite_stops_without_repo_state_mutation(self):
+        self.clone_source()
+        self.advance_source()
+        self.git("-C", self.hercules_home, "fetch", "origin", "main")
+        self.rewrite_source()
+        before_state = self.repo_state(self.hercules_home)
+        result = self.run_init()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("remote history was rewritten", result.stderr)
+        self.assertEqual(self.repo_state(self.hercules_home), before_state)
+
+    def test_remote_fast_forward_updates_checkout_and_tracking_ref(self):
+        self.clone_source()
+        self.advance_source()
+        expected = self.git("-C", self.source, "rev-parse", "HEAD").stdout.strip()
+        result = self.run_init()
+        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+        self.assertEqual(self.git("-C", self.hercules_home, "rev-parse", "HEAD").stdout.strip(), expected)
+        self.assertEqual(self.git("-C", self.hercules_home, "rev-parse", "refs/remotes/origin/main").stdout.strip(), expected)
+        self.assertEqual(self.git("-C", self.hercules_home, "status", "--porcelain=v1", "--untracked-files=all").stdout, "")
 
 
 if __name__ == "__main__":
