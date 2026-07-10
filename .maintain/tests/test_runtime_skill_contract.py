@@ -230,7 +230,28 @@ class CapabilityMatrixBehaviorTest(unittest.TestCase):
         self.assertEqual(decision["blocker"], blocker)
         self.assertEqual(decision["cache_invalidated"], invalidated)
         self.assertEqual(decision["deep_inspection"], list(deep_inspection))
+        self.assertEqual(
+            set(decision["capability_map"]), set(decision["discovery"]["roles"])
+        )
+        for observable in ("route", "capability_map", "fallback", "failure", "blocker"):
+            self.assertIn(observable, decision)
         self.assert_safe_decision(decision)
+
+    def test_design_environment_matrix_is_table_driven(self):
+        scenarios = (
+            ("Hermes only", self.test_hermes_only_routes_to_hermes),
+            ("Claude only with no plugins", self.test_claude_only_without_plugins_routes_to_claude),
+            ("Codex only", self.test_codex_only_routes_to_codex),
+            ("Claude and Codex together", self.test_claude_and_codex_honor_explicit_preference),
+            ("arbitrary plugins and MCP", self.test_arbitrary_plugins_and_mcp_route_by_confirmed_task_fit),
+            ("task-relevant deep inspection", self.test_task_relevant_unknown_plugin_is_deep_inspected_before_selection),
+            ("stale cache", self.test_stale_cache_is_invalidated_after_capability_change),
+            ("provider rejection", self.test_provider_access_rejection_invalidates_and_falls_back),
+            ("no viable capability", self.test_no_viable_capability_returns_concise_blocker),
+        )
+        for environment, scenario in scenarios:
+            with self.subTest(environment=environment):
+                scenario()
 
     def test_hermes_only_routes_to_hermes(self):
         decision = self.decide(
