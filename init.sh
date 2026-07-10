@@ -20,8 +20,8 @@ require_directory_ancestors() {
   done
 }
 
-have git || die "Git is required but was not found. Install Git using its official instructions, then rerun init."
-have hermes || die "Hermes is required but was not found. Install Hermes using its official instructions, then rerun init."
+have git || die "Git is required but was not found. Hercules 未安装或修改任何内容。 Official Git documentation: https://git-scm.com/downloads"
+have hermes || die "Hermes is required but was not found. Hercules 未安装或修改任何内容。 Official Hermes documentation: https://hermes-agent.nousresearch.com/docs/getting-started/quickstart"
 
 EXPECTED_SOURCE="$HERCULES_HOME/skills"
 if [ -d "$EXPECTED_SOURCE" ]; then

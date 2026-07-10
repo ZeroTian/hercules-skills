@@ -14,7 +14,7 @@ metadata:
 
 This demand-led workflow combines shallow discovery, deep plugin exploration, and an ephemeral capability map.
 
-Use the record in `references/capability-map.md` and the evidence rules in `references/plugin-exploration.md`.
+Use the record in `references/capability-map.md`, the evidence rules in `references/plugin-exploration.md`, and the normalized decision contract in `references/capability_matrix.py`. Feed that contract the current task demand plus facility, cache, and real invocation evidence; consume its route, fallback, blocker, cache invalidation, and deep-inspection decisions. The contract is a non-executable deterministic reference, not a public command.
 
 ## Demand-led discovery
 Start from task capability roles. Do not inventory every CLI, plugin, MCP, Skill, or agent at session startup.

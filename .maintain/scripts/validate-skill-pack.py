@@ -310,6 +310,29 @@ def check_skill_navigation(report: Report) -> None:
             ".maintain/docs/ai-collaboration/SKILL_NAVIGATION.md"
         )
         return
+    actual = set(rows)
+    if actual != EXPECTED_RUNTIME_SKILLS:
+        report.error(
+            "navigation runtime skill scope drift: "
+            f"missing={sorted(EXPECTED_RUNTIME_SKILLS - actual)}, "
+            f"extra={sorted(actual - EXPECTED_RUNTIME_SKILLS)}"
+        )
+    if rows.get("hercules") != [("entry/composite", "core")]:
+        report.error(
+            "SKILL_NAVIGATION.md: hercules must have exactly one "
+            "entry/composite row with core maturity"
+        )
+    for skill in sorted(EXPECTED_RUNTIME_SKILLS - {"hercules"}):
+        values = rows.get(skill, [])
+        if (
+            len(values) != 1
+            or values[0][0] not in {"atom", "specialized atom"}
+            or values[0][1] != "core"
+        ):
+            report.error(
+                "SKILL_NAVIGATION.md: internal runtime skill must have exactly "
+                f"one internal row with core maturity: {skill}"
+            )
     duplicated = {skill: len(values) for skill, values in rows.items() if len(values) > 1}
     if duplicated:
         report.warn(

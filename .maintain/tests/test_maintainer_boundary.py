@@ -28,6 +28,31 @@ def load_validator_module():
 
 
 class MaintainerBoundaryContractTest(unittest.TestCase):
+    def navigation_rows(self, roles: dict[str, str]) -> str:
+        lines = [
+            "# Skill Navigation",
+            "",
+            "| Skill | Role | Maturity | Primary use | Notes |",
+            "|---|---|---|---|---|",
+        ]
+        lines.extend(
+            f"| `{skill}` | {role} | core | fixture | fixture |"
+            for skill, role in sorted(roles.items())
+        )
+        return "\n".join(lines) + "\n"
+
+    def navigation_report(self, roles: dict[str, str]):
+        validator = load_validator_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            docs = Path(tmp)
+            (docs / "SKILL_NAVIGATION.md").write_text(
+                self.navigation_rows(roles), encoding="utf-8"
+            )
+            report = validator.Report()
+            with mock.patch.object(validator, "DOCS_COLLAB", docs):
+                validator.check_skill_navigation(report)
+        return report
+
     def test_validator_targets_maintainer_docs(self) -> None:
         validator = load_validator_module()
         self.assertEqual(
@@ -55,6 +80,45 @@ class MaintainerBoundaryContractTest(unittest.TestCase):
             check(report)
         self.assertTrue(
             any("exact runtime skill scope drift" in error for error in report.errors),
+            report.errors,
+        )
+
+    def test_validator_rejects_missing_navigation_row(self) -> None:
+        roles = {skill: "atom" for skill in EXPECTED_RUNTIME_SKILLS}
+        roles["hercules"] = "entry/composite"
+        roles.pop("hercules-project-init")
+        report = self.navigation_report(roles)
+        self.assertTrue(
+            any("navigation runtime skill scope drift" in error for error in report.errors),
+            report.errors,
+        )
+
+    def test_validator_rejects_extra_navigation_row(self) -> None:
+        roles = {skill: "atom" for skill in EXPECTED_RUNTIME_SKILLS}
+        roles["hercules"] = "entry/composite"
+        roles["unexpected-runtime-skill"] = "atom"
+        report = self.navigation_report(roles)
+        self.assertTrue(
+            any("navigation runtime skill scope drift" in error for error in report.errors),
+            report.errors,
+        )
+
+    def test_validator_rejects_wrong_entry_roles(self) -> None:
+        roles = {skill: "atom" for skill in EXPECTED_RUNTIME_SKILLS}
+        roles["hercules-capability-discovery"] = "entry/composite"
+        report = self.navigation_report(roles)
+        self.assertTrue(
+            any(
+                "hercules must have exactly one entry/composite row" in error
+                for error in report.errors
+            ),
+            report.errors,
+        )
+        self.assertTrue(
+            any(
+                "internal runtime skill must have exactly one internal row" in error
+                for error in report.errors
+            ),
             report.errors,
         )
 
@@ -237,12 +301,16 @@ class MaintainerPackageGateTest(unittest.TestCase):
             check=False,
         )
         self.assertNotEqual(result.returncode, 0)
-        self.assertIn("sensitive staged filename detected", result.stderr)
+        self.assertEqual(
+            result.stderr,
+            "redacted category=sensitive-filename path=.env line=- count=1\n",
+        )
 
     def test_gate_rejects_secret_like_staged_content(self) -> None:
         self.assertTrue(self.gate_path.exists())
         repo = self.make_gate_repo()
-        secret_like_fixture = "api" + "_key = placeholder\n"
+        sentinel_value = "DISTINCTIVE-DO-NOT-ECHO-7f3d92"
+        secret_like_fixture = "api" + f"_key = {sentinel_value}\n"
         (repo / "notes.md").write_text(secret_like_fixture, encoding="utf-8")
         subprocess.run(["git", "add", "notes.md"], cwd=repo, check=True)
         result = subprocess.run(
@@ -253,7 +321,13 @@ class MaintainerPackageGateTest(unittest.TestCase):
             check=False,
         )
         self.assertNotEqual(result.returncode, 0)
-        self.assertIn("api_key", result.stderr)
+        output = result.stdout + result.stderr
+        self.assertEqual(
+            result.stderr,
+            "redacted category=api-key path=notes.md line=1 count=1\n",
+        )
+        self.assertNotIn(sentinel_value, output)
+        self.assertNotIn(secret_like_fixture.strip(), output)
 
     def test_gate_rejects_plus_prefixed_secret_like_staged_content(self) -> None:
         self.assertTrue(self.gate_path.exists())
@@ -278,7 +352,49 @@ class MaintainerPackageGateTest(unittest.TestCase):
                     check=False,
                 )
                 self.assertNotEqual(result.returncode, 0)
-                self.assertIn("token", result.stderr)
+                self.assertEqual(
+                    result.stderr,
+                    "redacted category=token path=plus-prefixed.txt line=1 count=1\n",
+                )
+
+    def test_gate_reports_redacted_match_count_and_lines(self) -> None:
+        self.assertTrue(self.gate_path.exists())
+        repo = self.make_gate_repo()
+        sentinel = "COUNT-SENTINEL-58cc1a"
+        (repo / "notes.md").write_text(
+            "to" + "ken = " + sentinel + "\n" + "to" + "ken = second-value\n",
+            encoding="utf-8",
+        )
+        subprocess.run(["git", "add", "notes.md"], cwd=repo, check=True)
+        result = subprocess.run(
+            ["bash", ".maintain/scripts/check-package.sh"],
+            cwd=repo,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(
+            result.stderr,
+            "redacted category=token path=notes.md line=1,2 count=2\n",
+        )
+        self.assertNotIn(sentinel, result.stdout + result.stderr)
+
+    def test_gate_ignores_secret_like_unstaged_content(self) -> None:
+        self.assertTrue(self.gate_path.exists())
+        repo = self.make_gate_repo()
+        notes = repo / "notes.md"
+        notes.write_text("safe staged content\n", encoding="utf-8")
+        subprocess.run(["git", "add", "notes.md"], cwd=repo, check=True)
+        notes.write_text("to" + "ken = unstaged-only\n", encoding="utf-8")
+        result = subprocess.run(
+            ["bash", ".maintain/scripts/check-package.sh"],
+            cwd=repo,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
 
     def test_gate_allows_removing_secret_like_content(self) -> None:
         self.assertTrue(self.gate_path.exists())

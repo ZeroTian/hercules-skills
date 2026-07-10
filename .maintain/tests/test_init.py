@@ -75,6 +75,18 @@ class InitScriptTest(unittest.TestCase):
             ),
         }
 
+    def filesystem_snapshot(self):
+        snapshot = []
+        for path in sorted(self.root.rglob("*")):
+            relative = str(path.relative_to(self.root))
+            if path.is_symlink():
+                snapshot.append((relative, "symlink", os.readlink(path)))
+            elif path.is_file():
+                snapshot.append((relative, "file", path.read_bytes()))
+            else:
+                snapshot.append((relative, "directory", None))
+        return snapshot
+
     def assert_no_git_actions(self, *actions):
         commands = self.git_log.read_text().splitlines() if self.git_log.exists() else []
         for action in actions:
@@ -97,7 +109,7 @@ class InitScriptTest(unittest.TestCase):
 
     def run_init(self, env=None):
         return subprocess.run(
-            ["bash", str(INIT)], cwd=REPO_ROOT, env=env or self.env(),
+            ["/bin/bash", str(INIT)], cwd=REPO_ROOT, env=env or self.env(),
             text=True, capture_output=True, check=False,
         )
 
@@ -118,10 +130,39 @@ class InitScriptTest(unittest.TestCase):
     def test_missing_hermes_stops_before_clone(self):
         env = self.env()
         env["PATH"] = "/usr/bin:/bin"
+        before = self.filesystem_snapshot()
         result = self.run_init(env)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("Hermes is required but was not found", result.stderr)
+        self.assertIn(
+            "https://hermes-agent.nousresearch.com/docs/getting-started/quickstart",
+            result.stderr,
+        )
+        self.assertIn("Hercules 未安装或修改任何内容", result.stderr)
         self.assertFalse(self.hercules_home.exists())
+        self.assertFalse(self.hermes_home.exists())
+        self.assertEqual(self.filesystem_snapshot(), before)
+
+    def test_missing_git_stops_without_mutation(self):
+        hermes_only_bin = self.root / "hermes-only-bin"
+        hermes_only_bin.mkdir()
+        (hermes_only_bin / "hermes").write_text(
+            "#!/bin/sh\necho hermes-test\n", encoding="utf-8"
+        )
+        (hermes_only_bin / "hermes").chmod(0o755)
+        env = self.env()
+        env["PATH"] = str(hermes_only_bin)
+        before = self.filesystem_snapshot()
+
+        result = self.run_init(env)
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("Git is required but was not found", result.stderr)
+        self.assertIn("https://git-scm.com/downloads", result.stderr)
+        self.assertIn("Hercules 未安装或修改任何内容", result.stderr)
+        self.assertFalse(self.hercules_home.exists())
+        self.assertFalse(self.hermes_home.exists())
+        self.assertEqual(self.filesystem_snapshot(), before)
 
     def test_existing_real_runtime_directory_is_preserved(self):
         runtime = self.hermes_home / "skills" / "hercules"
