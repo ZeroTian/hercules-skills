@@ -441,18 +441,18 @@ trajectory:
 - 优先级：P1
 - 当前负责人：Codex
 - 下一负责人：Codex
-- 下一步：由独立 Codex 窄复核 `TASK015-CR-003`、`TASK015-CR-007`、`TASK015-CR-008` 的修复证据；仅复核 PASS 后才能关闭任务
+- 下一步：由独立 Codex 窄复核 `TASK015-CR-003` 的缓存权限完整性修复；仅复核 PASS 后才能关闭任务
 - 是否需要 Codex 复核：是
 - 创建日期：2026-07-10
 - 最后更新：2026-07-10
 - 来源：用户批准的 Skill-first lightweight architecture 设计与实施计划
 - 关联任务：TASK-014
-- 关联审阅：`.maintain/docs/ai-collaboration/codex-reviews/2026-07-10-skill-first-lightweight-architecture.md`（最终复核 FAIL；5 个 CR 已 CLOSED，CR-003/007/008 均 FIXED — AWAITING RECHECK）
+- 关联审阅：`.maintain/docs/ai-collaboration/codex-reviews/2026-07-10-skill-first-lightweight-architecture.md`（最新窄复核 FAIL；7 个 CR 已 CLOSED，CR-003 为 FIXED — AWAITING RECHECK）
 - 设计文档：`.maintain/docs/superpowers/specs/2026-07-10-skill-first-lightweight-architecture-design.md`
 - 实施计划：`.maintain/docs/superpowers/plans/2026-07-10-skill-first-lightweight-architecture.md`
 - 验收摘要：exactly five runtime Skills; init-only external surface; no dependency installation.
-- 修复后验证证据：CR-003 cache/fallback targeted 6/6、runtime owning suite 26/26、validator CLI 28/28、完整 stdlib discover 88/88 通过；CR-007 链接测试与 strict 引用校验通过；CR-008 advisory 路径测试通过；strict validator 为 0 errors / 0 warnings；Bash、diff、public forbidden、active stale-surface、exact-five 与 root executable 扫描通过；最终 staged package gate 输出 `maintainer package checks passed`；唯一 root executable 为 `init.sh`，runtime 仍恰好五个 Skills
-- 复核结果：`TASK015-CR-001/002/004/005/006` 已 CLOSED；`TASK015-CR-003/007` 被 REOPENED，新增 `TASK015-CR-008`，三项均已实施修复但未经独立复核关闭
+- 修复后验证证据：CR-003 compact/read-only/normalized/fallback targeted 7/7、runtime owning suite 27/27、完整 stdlib discover 89/89 通过；strict validator 为 0 errors / 0 warnings；Bash、diff、public forbidden、exact-five 与 root executable 扫描通过；最终 staged package gate 输出 `maintainer package checks passed`；唯一 root executable 为 `init.sh`，runtime 仍恰好五个 Skills
+- 复核结果：`TASK015-CR-001/002/004/005/006/007/008` 已 CLOSED；`TASK015-CR-003` 因 compact cache 伪造 authority/evidence 再次 REOPENED，现已实施修复但未经独立复核关闭
 - 阻塞原因：无实现阻塞；正式关闭门禁仍等待独立 Codex 窄复核
 
 ### 执行项
@@ -467,7 +467,9 @@ trajectory:
 - [x] 实施 7 个 finding 的 TDD 修复与 focused GREEN 验证
 - [x] 独立 Codex 最终复核关闭 5 项、重开 CR-003/007 并新增 CR-008
 - [x] 对 CR-003/007/008 完成独立 RED→GREEN 修复与 focused GREEN 验证
-- [ ] 独立 Codex 窄复核并关闭 CR-003/007/008
+- [x] 独立 Codex 窄复核关闭 CR-007/008，并重开不安全 compact cache 的 CR-003
+- [x] 删除 compact cache 权限合成，对 CR-003 完成独立 RED→GREEN 修复
+- [ ] 独立 Codex 窄复核并关闭 CR-003
 - [ ] 复核 PASS 后将 TASK-015 更新为已完成
 
 ### 验收标准
@@ -479,7 +481,7 @@ trajectory:
 - [x] init 冲突处理保留用户文件，双跑幂等
 - [x] README 保持三步用户路径
 - [x] 全量本地验证与累计 package 准备完成
-- [ ] 独立 Codex 窄复核 CR-003/007/008 并给出 PASS
+- [ ] 独立 Codex 窄复核 CR-003 并给出 PASS
 
 ### Trajectory
 
@@ -493,14 +495,14 @@ trajectory:
     hercules: 1.0.0
     hercules-review-workflow: 1.0.0
   score: provisional
-  score_reason: "independent final recheck closed five findings, reopened CR-003/007, and added CR-008; the three open findings are fixed and awaiting narrow recheck"
-  actor_path: "Hermes plan -> SDD task agents implement -> Codex initial FAIL -> finding fixes -> Codex final recheck FAIL -> CR-003/007/008 fixes -> narrow recheck pending"
+  score_reason: "latest narrow recheck closed seven findings and reopened unsafe compact-cache handling in CR-003; the integrity fix awaits narrow recheck"
+  actor_path: "Hermes plan -> SDD task agents implement -> Codex reviews -> CR-003/007/008 fixes -> Codex narrow recheck FAIL -> compact-cache integrity fix -> CR-003 recheck pending"
   phi:
     capability_preflight: skipped-with-reason-no-external-capability-required
     relevant_capabilities: [verification-before-completion, systematic-debugging]
     effort: xhigh
     claude_result: completed-by-sdd-task-agents
-    codex_result: FAIL-final-recheck-three-fixes-awaiting-independent-recheck
+    codex_result: FAIL-latest-recheck-CR003-fix-awaiting-independent-recheck
     verification:
       commands: ["python3 .maintain/tests/test_init.py -v", "python3 .maintain/tests/test_runtime_skill_contract.py -v", "python3 .maintain/tests/test_maintainer_boundary.py -v", "python3 .maintain/tests/test_validate_skill_pack_cli.py -v", "python3 .maintain/scripts/validate-skill-pack.py --strict", "bash -n init.sh .maintain/scripts/smoke-fresh-clone.sh .maintain/scripts/check-package.sh", "git diff --check", "temporary HOME/fake hermes/local repo init.sh twice", "rg forbidden behavior scan", "temporary GIT_INDEX_FILE package gate from df377c0", ".maintain/scripts/smoke-fresh-clone.sh"]
       logs: []

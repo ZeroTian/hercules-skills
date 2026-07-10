@@ -368,29 +368,53 @@ class CapabilityMatrixBehaviorTest(unittest.TestCase):
             deep_inspection=("comet-tools",),
         )
 
-    def test_fresh_route_cache_is_reused_without_discovery(self):
+    def test_compact_cache_without_authority_evidence_is_invalidated(self):
         decision = self.decide(
             demand={"role": "implementation", "authority": "write-capable"},
             facilities=[],
             cache={
                 "fingerprint": "v1",
-                "routes": {"implementation": "claude"},
+                "routes": {"implementation": "review-only-tool"},
             },
         )
-        self.assert_route(decision, route="claude")
-        self.assertEqual(decision["discovery"]["scanned"], [])
-        self.assertEqual(
-            decision["capability_map"]["implementation"],
-            [{
-                "role": "implementation",
-                "facility": "claude",
-                "kind": "cached",
-                "confirmed_surface": ["implementation"],
-                "authority": "write-capable",
-                "evidence": "fresh-session-cache",
-                "fingerprint": "v1",
-            }],
+        self.assert_route(
+            decision,
+            route=None,
+            blocker="No confirmed safe capability for implementation.",
+            invalidated=True,
         )
+        self.assertEqual(decision["invalidation_reason"], "invalid-cache-record")
+        self.assertEqual(decision["discovery"]["scanned"], [])
+        self.assertEqual(decision["capability_map"]["implementation"], [])
+
+    def test_read_only_cache_record_cannot_satisfy_write_demand(self):
+        decision = self.decide(
+            demand={"role": "implementation", "authority": "write-capable"},
+            facilities=[{
+                "name": "hermes",
+                "kind": "agent",
+                "capabilities": ["implementation"],
+                "authority": "write-capable",
+                "evidence": "local-runtime",
+            }],
+            cache={
+                "fingerprint": "v1",
+                "routes": {
+                    "implementation": {
+                        "role": "implementation",
+                        "facility": "review-only-tool",
+                        "kind": "cli",
+                        "confirmed_surface": ["implementation"],
+                        "authority": "read-only",
+                        "evidence": "executable-version",
+                        "fingerprint": "v1",
+                    }
+                },
+            },
+        )
+        self.assert_route(decision, route="hermes", invalidated=True)
+        self.assertEqual(decision["invalidation_reason"], "invalid-cache-record")
+        self.assertEqual(decision["discovery"]["scanned"], ["hermes"])
 
     def test_fresh_normalized_cache_record_preserves_confirmed_evidence(self):
         cached_record = {

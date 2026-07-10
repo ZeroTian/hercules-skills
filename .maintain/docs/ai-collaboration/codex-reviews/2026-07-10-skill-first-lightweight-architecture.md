@@ -3,9 +3,9 @@
 - Date: 2026-07-10
 - Initial review range: `df377c0..4742721`
 - Initial verdict: **FAIL**
-- Repair commits: `3ee0d9a`, `823f350`, `d18a026`, `bdc5db1`, `56df17f`, `e42f4f2`, plus the final recheck-fix commit
-- Independent recheck range: `df377c0..e42f4f2`; result **FAIL** — 5 closed, 2 reopened, 1 new Minor
-- Current verdict: **PENDING independent narrow recheck of CR-003, CR-007, and CR-008**
+- Repair commits: `3ee0d9a`, `823f350`, `d18a026`, `bdc5db1`, `56df17f`, `e42f4f2`, `444ff02`, plus the final cache-integrity commit
+- Latest independent recheck range: `df377c0..444ff02`; result **FAIL** — 7 closed, CR-003 reopened
+- Current verdict: **PENDING independent narrow recheck of CR-003**
 - Closure: TASK-015 remains `待复核`; this is not a PASS record
 
 ## Findings
@@ -22,12 +22,12 @@
 - Fix: the gate emits only redacted category/path/line/count metadata. Distinctive sentinel values and matching lines never appear in stdout/stderr; deletion and unstaged-only cases remain allowed.
 - RED→GREEN: redacted-output regressions failed against verbatim output and now pass in the maintainer boundary suite.
 
-### TASK015-CR-003 — Important — fresh session cache was not consumed
+### TASK015-CR-003 — Important — compact cache bypassed authority evidence
 
 - Status: **FIXED — AWAITING RECHECK**
-- Recheck evidence: with a matching fingerprint and `routes={"implementation": "claude"}`, the model ignored the fresh route and returned `route=null` plus a blocker; a fresh cache lacking the requested role was not invalidated.
-- Fix: fresh compact or normalized route records are consumed without discovery, normalized into role/facility/confirmed-surface/authority/evidence/fingerprint records, and returned in the capability map. Missing-role, stale-fingerprint, and invocation-failure cases invalidate the cache and retain facility fallback. The contract still returns no install/config/auth commands.
-- RED→GREEN: the two independent-symptom regressions and a normalized-record regression failed before implementation; the focused cache/fallback set now passes 6/6 and the owning runtime suite passes 26/26.
+- Recheck evidence: a compact string route for `review-only-tool` plus a write-capable demand fabricated implementation surface, write authority, and evidence, then routed without discovery.
+- Fix: cache reuse now accepts only complete normalized records whose role, facility, confirmed surface, authority, evidence, and fingerprint satisfy the current demand. Compact/incomplete/read-only records become `invalid-cache-record` and use existing task-relevant discovery/fallback; missing-role, stale-fingerprint, and invocation-failure behavior is unchanged. The contract still emits no install/config/auth commands.
+- RED→GREEN: the reviewer compact-cache symptom failed by routing the unproven facility; after removing string synthesis, compact and read-only records invalidate while normalized fresh reuse and all fallback paths pass in the focused 7-case set.
 
 ### TASK015-CR-004 — Important — active maintainer workflows referenced retired paths/runtime
 
@@ -49,27 +49,25 @@
 
 ### TASK015-CR-007 — Minor — entry did not link routing reference
 
-- Status: **FIXED — AWAITING RECHECK**
+- Status: **CLOSED**
 - Recheck evidence: the reference file existed but `skills/hercules/SKILL.md`, runtime tests, and the validator path did not mention it.
 - Fix: `skills/hercules/SKILL.md` now links `[runtime routing reference](references/runtime-routing.md)` at the routing decision point. A regression test parses the Markdown link and resolves the target; strict linked-reference validation also covers it.
 - RED→GREEN: the navigation/reference test failed against the orphaned file and now passes.
 
 ### TASK015-CR-008 — Minor — strict advisory emitted a non-resolving maintainer path
 
-- Status: **FIXED — AWAITING RECHECK**
+- Status: **CLOSED**
 - Recheck evidence: strict output recommended `hercules-meta-skill-evolution/templates/evidence-package.md`, which does not exist at repository root.
 - Fix: the advisory now emits `.maintain/skills/hercules-meta-skill-evolution/templates/evidence-package.md`. A CLI regression test reads the JSON signal, rejects the old path, and proves the emitted target exists.
 - RED→GREEN: the advisory-path test failed on the stale path and now passes; the owning validator CLI suite passes 28/28.
 
 ## Final verification evidence
 
-- Targeted CR-003 cache/fallback set: 6/6 passed; runtime owning suite: 26/26 passed.
-- Targeted CR-007 link test and strict linked-reference validation: passed.
-- Targeted CR-008 advisory-path test; validator CLI owning suite: 28/28 passed.
-- Complete stdlib discovery suite: 88/88 passed; strict validator: 0 errors / 0 warnings.
-- Bash syntax, diff, public forbidden-behavior, active stale-surface, exact-five, and root-executable scans: clean.
+- Targeted CR-003 cache-integrity/fallback set: 7/7 passed.
+- Runtime owning suite: 27/27 passed; complete stdlib discovery suite: 89/89 passed.
+- Strict validator: 0 errors / 0 warnings; Bash, diff, public forbidden-behavior, exact-five, and root-executable scans are clean.
 - Final staged package gate: passed with `maintainer package checks passed`.
 
 ## Closure gate
 
-CR-001, CR-002, CR-004, CR-005, and CR-006 are closed by the independent recheck. CR-003, CR-007, and CR-008 are fixed by the implementation worker but remain open until an independent Codex recheck accepts them. Do not mark this record PASS or TASK-015 complete before that recheck.
+CR-001, CR-002, CR-004, CR-005, CR-006, CR-007, and CR-008 are closed by independent rechecks. CR-003 is fixed by the implementation worker but remains open until an independent Codex recheck accepts it. Do not mark this record PASS or TASK-015 complete before that recheck.

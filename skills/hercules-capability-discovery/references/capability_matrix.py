@@ -24,16 +24,6 @@ def _authority_fits(required, offered):
 
 
 def _normalize_cached_route(cached, *, role, required_authority, fingerprint):
-    if isinstance(cached, str) and cached:
-        return {
-            "role": role,
-            "facility": cached,
-            "kind": "cached",
-            "confirmed_surface": [role],
-            "authority": required_authority,
-            "evidence": "fresh-session-cache",
-            "fingerprint": fingerprint,
-        }
     if not isinstance(cached, dict):
         return None
     record = {
