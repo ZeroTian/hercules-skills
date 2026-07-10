@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import importlib.util
+import re
 import shutil
 import subprocess
 import tempfile
@@ -83,6 +84,100 @@ class MaintainerBoundaryContractTest(unittest.TestCase):
                 self.assertFalse((REPO_ROOT / rel).exists())
 
 
+class MaintainerDocumentContractTest(unittest.TestCase):
+    def current_document_text(self) -> str:
+        active_docs = (
+            REPO_ROOT / ".maintain" / "docs" / "ai-collaboration" / "README.md",
+            REPO_ROOT / ".maintain" / "docs" / "ai-collaboration" / "ARCHITECTURE.md",
+            REPO_ROOT / ".maintain" / "docs" / "ai-collaboration" / "SKILL_NAVIGATION.md",
+        )
+        texts = [path.read_text(encoding="utf-8") for path in active_docs]
+
+        candidate = (
+            REPO_ROOT
+            / ".maintain"
+            / "docs"
+            / "ai-collaboration"
+            / "candidate-skills"
+            / "README.md"
+        ).read_text(encoding="utf-8")
+        if "## Historical disposition" in candidate and "## How to promote" in candidate:
+            current_prefix = candidate.split("## Historical disposition", 1)[0]
+            current_suffix = candidate.split("## How to promote", 1)[1]
+            candidate = current_prefix + "\n## How to promote" + current_suffix
+        texts.append(candidate)
+
+        tasks = (
+            REPO_ROOT / ".maintain" / "docs" / "ai-collaboration" / "TASKS.md"
+        ).read_text(encoding="utf-8")
+        texts.append(tasks.split("## Trajectory record policy", 1)[-1])
+
+        positioning = (
+            REPO_ROOT / ".maintain" / "docs" / "WHY_HERCULES.md"
+        ).read_text(encoding="utf-8")
+        texts.append(positioning.split("## Historical snapshot", 1)[0])
+        return "\n".join(texts)
+
+    def test_active_maintainer_documents_do_not_advertise_retired_paths(self) -> None:
+        text = self.current_document_text()
+        stale_patterns = (
+            r"(?<!\.maintain/)docs/ai-collaboration",
+            r"(?<!\.maintain/)docs/WHY_HERCULES\.md",
+            r"(?<!\.maintain/)scripts/(?:validate-skill-pack\.py|smoke-fresh-clone\.sh|hercules|install-hercules\.sh)",
+            r"(?<!\.maintain/)tests/(?:test_validate_skill_pack_cli|test_setup_doctor_ux)\.py",
+            r"Runtime core skills \(25\)",
+            r"25 tracked skills",
+        )
+        for pattern in stale_patterns:
+            with self.subTest(pattern=pattern):
+                self.assertIsNone(re.search(pattern, text), pattern)
+
+    def test_current_navigation_matches_exact_five_runtime_skills(self) -> None:
+        validator = load_validator_module()
+        navigation = (
+            REPO_ROOT
+            / ".maintain"
+            / "docs"
+            / "ai-collaboration"
+            / "SKILL_NAVIGATION.md"
+        )
+        self.assertEqual(
+            set(validator.parse_skill_navigation(navigation)),
+            EXPECTED_RUNTIME_SKILLS,
+        )
+
+    def test_current_architecture_names_all_five_runtime_skill_paths(self) -> None:
+        architecture = (
+            REPO_ROOT / ".maintain" / "docs" / "ai-collaboration" / "ARCHITECTURE.md"
+        ).read_text(encoding="utf-8")
+        self.assertIn("exactly five runtime Skills", architecture)
+        for skill in EXPECTED_RUNTIME_SKILLS:
+            with self.subTest(skill=skill):
+                self.assertIn(f"skills/{skill}/SKILL.md", architecture)
+
+    def test_advertised_current_paths_and_commands_resolve(self) -> None:
+        text = self.current_document_text()
+        advertised_paths = {
+            match.rstrip(".,;:")
+            for match in re.findall(r"`((?:\.maintain|skills)/[^`\n]+)`", text)
+            if not re.search(r"[<>{}*]", match)
+        }
+        self.assertTrue(advertised_paths)
+        for rel in sorted(advertised_paths):
+            with self.subTest(path=rel):
+                self.assertTrue((REPO_ROOT / rel).exists(), rel)
+
+        commands = (
+            "python3 .maintain/scripts/validate-skill-pack.py --strict",
+            ".maintain/scripts/check-package.sh",
+        )
+        for command in commands:
+            with self.subTest(command=command):
+                self.assertIn(command, text)
+            executable = command.split()[1 if command.startswith("python3 ") else 0]
+            self.assertTrue((REPO_ROOT / executable).exists(), executable)
+
+
 class MaintainerPackageGateTest(unittest.TestCase):
     @property
     def gate_path(self) -> Path:
@@ -159,6 +254,31 @@ class MaintainerPackageGateTest(unittest.TestCase):
         )
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("api_key", result.stderr)
+
+    def test_gate_rejects_plus_prefixed_secret_like_staged_content(self) -> None:
+        self.assertTrue(self.gate_path.exists())
+        for prefix in ("+", "++"):
+            with self.subTest(prefix=prefix):
+                repo = self.make_gate_repo()
+                secret_like_fixture = prefix + "to" + "ken = placeholder\n"
+                (repo / "plus-prefixed.txt").write_text(
+                    secret_like_fixture,
+                    encoding="utf-8",
+                )
+                subprocess.run(
+                    ["git", "add", "plus-prefixed.txt"],
+                    cwd=repo,
+                    check=True,
+                )
+                result = subprocess.run(
+                    ["bash", ".maintain/scripts/check-package.sh"],
+                    cwd=repo,
+                    text=True,
+                    capture_output=True,
+                    check=False,
+                )
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("token", result.stderr)
 
     def test_gate_allows_removing_secret_like_content(self) -> None:
         self.assertTrue(self.gate_path.exists())

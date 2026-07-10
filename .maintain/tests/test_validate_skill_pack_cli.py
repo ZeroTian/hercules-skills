@@ -7,6 +7,7 @@ from pathlib import Path
 
 from test_maintainer_boundary import (
     MaintainerBoundaryContractTest,
+    MaintainerDocumentContractTest,
     MaintainerPackageGateTest,
 )
 

@@ -444,7 +444,7 @@ trajectory:
 
 ## Trajectory record policy
 
-Every formal Claude/Codex collaboration task in this ledger should be able to leave reflection data. Use the trajectory shape from `skills/hercules-meta-skill-evolution/templates/trajectory-record.md`.
+Every formal Claude/Codex collaboration task in this ledger should be able to leave reflection data. Use the trajectory shape from `.maintain/skills/hercules-meta-skill-evolution/templates/trajectory-record.md`.
 
 Minimal fields to capture per attempt:
 
@@ -481,8 +481,8 @@ Rules:
 - Add the block as a `### Trajectory` subsection at the end of each task record.
 - Keep records compact. Link to logs instead of pasting them. Do not record secrets, tokens, cookies, or private paths.
 - Scores are provisional sorting hints, not objective truth. If a field is unknown, write `unknown` or omit it; do not invent evidence.
-- The validation script (`scripts/validate-skill-pack.py`) flags open formal tasks that lack a trajectory block as a reflection signal (non-failing).
-- When repeated CR IDs, `max-turns`, `blocked/阻塞`, or `repair-loop/需修改` signals accumulate, consider generating an evidence package via `skills/hercules-meta-skill-evolution/templates/evidence-package.md` and patching only the implicated workflow module.
+- The validation script (`.maintain/scripts/validate-skill-pack.py`) flags open formal tasks that lack a trajectory block as a reflection signal (non-failing).
+- When repeated CR IDs, `max-turns`, `blocked/阻塞`, or `repair-loop/需修改` signals accumulate, consider generating an evidence package via `.maintain/skills/hercules-meta-skill-evolution/templates/evidence-package.md` and patching only the implicated workflow module.
 
 ## Task template
 
@@ -571,7 +571,7 @@ trajectory:
     blocker_type: none
     next_owner: Codex
   source_pointers:
-    task_record: "docs/ai-collaboration/TASKS.md#task-xxx"
+    task_record: ".maintain/docs/ai-collaboration/TASKS.md#task-xxx"
     review_record: "暂无"
     logs: []
 ```

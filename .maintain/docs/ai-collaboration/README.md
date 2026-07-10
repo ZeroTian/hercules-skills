@@ -1,27 +1,28 @@
 # AI Collaboration
 
-This directory records collaboration state for the Hercules skills repository.
+This directory contains current maintainer governance plus immutable historical
+evidence for the Hercules repository.
 
-It is an index for humans and agents. Long operational rules live in the actor-scoped files at the repository root:
+## Current sources
 
-- `HERMES.md` — Hermes orchestration rules
-- `CLAUDE.md` — Claude Code execution rules
-- `AGENTS.md` — Codex review rules
+- `.maintain/docs/ai-collaboration/TASKS.md` — live ledger, trajectory policy,
+  and task template.
+- `.maintain/docs/ai-collaboration/ARCHITECTURE.md` — current repository and
+  exact-five runtime boundary.
+- `.maintain/docs/ai-collaboration/SKILL_NAVIGATION.md` — current navigation for
+  the five runtime Skills.
+- `.maintain/docs/ai-collaboration/candidate-skills/README.md` — current archive
+  and candidate disposition procedure.
+- `.maintain/docs/ai-collaboration/decisions/` — durable policy decisions.
 
-## Files
+## Historical evidence
 
-- `TASKS.md` — live task ledger and task template (with trajectory record policy)
-- `ARCHITECTURE.md` — repository structure and boundaries
-- `SKILL_NAVIGATION.md` — compact role/maturity navigation map for runtime Hercules skills
-- `PROJECT_AUDIT.md` — initialization/audit snapshot with evidence
-- `SKILL_GROUP_AUDIT.md` — skill-group redundancy/atomicity audit, composition map, and runnable gaps
-- `USABILITY_VALIDATION.md` — practical smoke-test evidence for runtime layout, skill loading, bootstrap audit-only, and real Claude/Codex workflow use
-- `tasks/` — archived completed task records split out of the live ledger
-- `codex-reviews/` — stable Codex review records
-- `decisions/` — ADR-style durable decisions
+`PROJECT_AUDIT.md`, `SKILL_GROUP_AUDIT.md`,
+`SKILL_GROUP_DEEP_RESEARCH_2026-07-05.md`, `USABILITY_VALIDATION.md`,
+`OPTIMIZATION_ROADMAP.md`, `CODEX_PLUGIN_CC_RESEARCH_2026-07-07.md`, `tasks/`,
+and `codex-reviews/` preserve earlier snapshots and commands. Paths and runtime
+counts inside dated records describe repository state at that time; they are
+not current maintainer instructions.
 
-## Current workflow
-
-Hermes coordinates work, Claude Code implements substantial changes, and Codex CLI independently reviews review-required work.
-
-README files should stay concise and reader-facing. Detailed rules belong in the files above.
+Use `.maintain/docs/ai-collaboration/ARCHITECTURE.md` for current commands and
+boundaries.

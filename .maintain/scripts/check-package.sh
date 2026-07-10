@@ -14,7 +14,11 @@ if git diff --cached --name-only | grep -Ei '(^|/)(\.env|.*secret.*|.*token.*|.*
 fi
 
 hits=$(git diff --cached --unified=0 --no-color \
-  | grep -E '^\+([^+]|$)' \
+  | awk '
+      /^diff --git / { in_hunk = 0; next }
+      /^@@ / { in_hunk = 1; next }
+      in_hunk && /^\+/ { print substr($0, 2) }
+    ' \
   | grep -Ein '(BEGIN (RSA|OPENSSH|EC) PRIVATE KEY|api[_-]?key[[:space:]]*[:=]|secret[[:space:]]*[:=]|token[[:space:]]*[:=])' \
   || true)
 if [ -n "$hits" ]; then

@@ -1,5 +1,19 @@
 # Why Hercules
 
+This file preserves the pre-contraction positioning note as historical context.
+For the current exact-five runtime and maintainer entry points, use
+`.maintain/docs/ai-collaboration/SKILL_NAVIGATION.md` and
+`.maintain/docs/ai-collaboration/ARCHITECTURE.md`. The current validation entry
+is `python3 .maintain/scripts/validate-skill-pack.py --strict`.
+
+## Historical snapshot
+
+The content below records the earlier plugin-governance model and its paths as
+they existed at that time. It is not a current installation or maintenance
+guide.
+
+# Why Hercules (historical)
+
 This is a reader-facing positioning note. It explains how Hercules relates to the OpenAI `codex-plugin-cc` Claude Code plugin accurately and without overclaiming. It is not an install guide; for install and validation steps see `README.md`.
 
 ## TL;DR

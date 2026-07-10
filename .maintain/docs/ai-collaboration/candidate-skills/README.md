@@ -8,7 +8,13 @@ Hermes loads skills only from `skills/<skill>/SKILL.md` at the repository
 root, so a `SKILL.md` file under this directory is never discovered as a
 live skill.
 
-## Why these are archived
+## Historical disposition
+
+The table below is an immutable snapshot of the earlier reconciliation
+decisions. Skill names and paths in the reasons describe the repository at the
+time of those decisions; they are not current runtime or command references.
+
+### Why these were archived
 
 Each candidate was visible-untracked under `skills/` during the audit. The
 reconciliation round (see `docs/ai-collaboration/SKILL_GROUP_AUDIT.md`)
@@ -27,26 +33,25 @@ decided per candidate:
 
 ## How to promote a candidate later
 
-1. Decide whether the candidate is truly a new core atom or whether its
-   unique content should be merged into an existing skill's `references/`
-   or `templates/`.
-2. If it should be a standalone core skill, move the directory back:
-   ```bash
-   mkdir -p skills/<candidate>
-   mv docs/ai-collaboration/candidate-skills/<candidate>/SKILL.md skills/<candidate>/SKILL.md
-   ```
-3. Add the skill name to the core skill lists in `README.md` and
-   `docs/ai-collaboration/ARCHITECTURE.md`.
-4. Fix any broken intra-file references (e.g. missing `references/*.md`
-   links) noted in `docs/ai-collaboration/TASKS.md`.
-5. Run `python3 scripts/validate-skill-pack.py` and confirm zero errors.
-6. Leave the task in `待复核` for Codex review before considering the
-   promotion complete.
+The current runtime invariant is exactly five Skills. A candidate must not be
+moved directly into `skills/` as a routine maintenance action.
+
+1. Prefer merging reusable content into one of the five runtime Skills or
+   preserving it under `.maintain/skills/`, `.maintain/examples/`, or this
+   archive.
+2. Treat adding a sixth runtime Skill as an explicit product-architecture
+   change. Start with a failing exact-runtime contract test and obtain review.
+3. If that architecture change is approved, update
+   `.maintain/scripts/validate-skill-pack.py`,
+   `.maintain/docs/ai-collaboration/SKILL_NAVIGATION.md`, and
+   `.maintain/docs/ai-collaboration/ARCHITECTURE.md` together.
+4. Run `python3 .maintain/scripts/validate-skill-pack.py --strict` and
+   `.maintain/scripts/check-package.sh` before requesting Codex review.
 
 ## Layout
 
 ```text
-docs/ai-collaboration/candidate-skills/
+.maintain/docs/ai-collaboration/candidate-skills/
 ├── README.md                                  (this file)
 ├── artifact-driven-evaluation-loops/SKILL.md
 ├── artifact-handoff-orchestration/SKILL.md
