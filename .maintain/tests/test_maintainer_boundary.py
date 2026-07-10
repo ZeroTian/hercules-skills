@@ -329,6 +329,88 @@ class MaintainerPackageGateTest(unittest.TestCase):
         self.assertNotIn(sentinel_value, output)
         self.assertNotIn(secret_like_fixture.strip(), output)
 
+    def test_gate_redacts_staged_secret_like_trailing_whitespace(self) -> None:
+        repo = self.make_gate_repo()
+        sentinel = "STAGED-WHITESPACE-SENTINEL-a91f4c"
+        fixture = "api" + "_key = " + sentinel + " \n"
+        (repo / "staged-notes.md").write_text(fixture, encoding="utf-8")
+        subprocess.run(["git", "add", "staged-notes.md"], cwd=repo, check=True)
+
+        result = subprocess.run(
+            ["bash", ".maintain/scripts/check-package.sh"],
+            cwd=repo,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(
+            result.stderr,
+            "redacted category=trailing-whitespace path=staged-notes.md line=1 count=1\n",
+        )
+        self.assertNotIn(sentinel, result.stdout + result.stderr)
+        self.assertNotIn(fixture.strip(), result.stdout + result.stderr)
+
+    def test_gate_redacts_unstaged_secret_like_trailing_whitespace(self) -> None:
+        repo = self.make_gate_repo()
+        notes = repo / "unstaged-notes.md"
+        notes.write_text("safe baseline\n", encoding="utf-8")
+        subprocess.run(["git", "add", "unstaged-notes.md"], cwd=repo, check=True)
+        subprocess.run(
+            [
+                "git",
+                "-c",
+                "user.name=Hercules Test",
+                "-c",
+                "user.email=hercules-test@example.invalid",
+                "commit",
+                "-qm",
+                "baseline",
+            ],
+            cwd=repo,
+            check=True,
+        )
+        sentinel = "UNSTAGED-WHITESPACE-SENTINEL-6ce208"
+        fixture = "to" + "ken = " + sentinel + " \n"
+        notes.write_text(fixture, encoding="utf-8")
+
+        result = subprocess.run(
+            ["bash", ".maintain/scripts/check-package.sh"],
+            cwd=repo,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(
+            result.stderr,
+            "redacted category=trailing-whitespace path=unstaged-notes.md line=1 count=1\n",
+        )
+        self.assertNotIn(sentinel, result.stdout + result.stderr)
+        self.assertNotIn(fixture.strip(), result.stdout + result.stderr)
+
+    def test_gate_rejects_non_secret_trailing_whitespace_with_redacted_output(self) -> None:
+        repo = self.make_gate_repo()
+        (repo / "formatting.md").write_text("ordinary text \n", encoding="utf-8")
+        subprocess.run(["git", "add", "formatting.md"], cwd=repo, check=True)
+
+        result = subprocess.run(
+            ["bash", ".maintain/scripts/check-package.sh"],
+            cwd=repo,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(
+            result.stderr,
+            "redacted category=trailing-whitespace path=formatting.md line=1 count=1\n",
+        )
+        self.assertNotIn("ordinary text", result.stdout + result.stderr)
+
     def test_gate_rejects_plus_prefixed_secret_like_staged_content(self) -> None:
         self.assertTrue(self.gate_path.exists())
         for prefix in ("+", "++"):

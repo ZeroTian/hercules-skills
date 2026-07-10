@@ -108,10 +108,13 @@ def decide_route(*, demand, facilities, cache=None, invocation=None, evidence=No
                 continue
             candidates.append(facility)
             capability_records.append({
+                "role": role,
                 "facility": facility["name"],
                 "kind": facility.get("kind", "unknown"),
+                "confirmed_surface": list(confirmed),
                 "authority": facility.get("authority", "read-only"),
                 "evidence": facility.get("evidence", "local-metadata"),
+                "fingerprint": fingerprint,
             })
 
     preferred = demand.get("user_preference") or demand.get("project_preference")

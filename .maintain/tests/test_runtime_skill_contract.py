@@ -441,6 +441,49 @@ class CapabilityMatrixBehaviorTest(unittest.TestCase):
             [cached_record],
         )
 
+    def test_discovered_record_round_trips_through_session_cache_without_scanning(self):
+        first = self.decide(
+            demand={"role": "implementation", "authority": "write-capable"},
+            facilities=[{
+                "name": "hermes",
+                "kind": "agent",
+                "capabilities": ["implementation"],
+                "authority": "write-capable",
+                "evidence": "local-runtime",
+            }],
+            fingerprint="session-v1",
+        )
+        discovered_record = first["capability_map"]["implementation"][0]
+        self.assertEqual(
+            discovered_record,
+            {
+                "role": "implementation",
+                "facility": "hermes",
+                "kind": "agent",
+                "confirmed_surface": ["implementation"],
+                "authority": "write-capable",
+                "evidence": "local-runtime",
+                "fingerprint": "session-v1",
+            },
+        )
+
+        reused = self.decide(
+            demand={"role": "implementation", "authority": "write-capable"},
+            facilities=[],
+            cache={
+                "fingerprint": "session-v1",
+                "routes": {"implementation": discovered_record},
+            },
+            fingerprint="session-v1",
+        )
+
+        self.assert_route(reused, route="hermes")
+        self.assertEqual(reused["discovery"]["scanned"], [])
+        self.assertEqual(
+            reused["capability_map"]["implementation"],
+            [discovered_record],
+        )
+
     def test_fresh_cache_missing_required_role_is_invalidated_then_falls_back(self):
         decision = self.decide(
             demand={"role": "implementation", "authority": "write-capable"},
