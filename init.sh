@@ -8,6 +8,17 @@ HERMES_HOME=${HERMES_HOME:-$HOME/.hermes}
 
 die() { printf 'Hercules init: %s\n' "$*" >&2; exit 1; }
 have() { command -v "$1" >/dev/null 2>&1; }
+require_directory_ancestors() {
+  local path=$1 parent
+  while [ "$path" != "/" ] && [ "$path" != "." ]; do
+    if { [ -e "$path" ] || [ -L "$path" ]; } && [ ! -d "$path" ]; then
+      die "$path blocks the Hermes runtime path and was preserved; no files were changed."
+    fi
+    parent=$(dirname "$path")
+    [ "$parent" != "$path" ] || break
+    path=$parent
+  done
+}
 
 have git || die "Git is required but was not found. Install Git using its official instructions, then rerun init."
 have hermes || die "Hermes is required but was not found. Install Hermes using its official instructions, then rerun init."
@@ -17,13 +28,22 @@ if [ -d "$EXPECTED_SOURCE" ]; then
   EXPECTED_SOURCE=$(cd "$EXPECTED_SOURCE" && pwd -P)
 fi
 RUNTIME="$HERMES_HOME/skills/hercules"
+require_directory_ancestors "$(dirname "$RUNTIME")"
 if [ -L "$RUNTIME" ]; then
   [ "$(readlink "$RUNTIME")" = "$EXPECTED_SOURCE" ] || die "$RUNTIME is an unrelated symlink; no files were changed."
 elif [ -e "$RUNTIME" ]; then
   die "$RUNTIME already exists and was preserved; move it manually before rerunning init."
 fi
 
-if [ -d "$HERCULES_HOME/.git" ]; then
+if [ -e "$HERCULES_HOME/.git" ]; then
+  ORIGIN_URL=$(git -C "$HERCULES_HOME" remote get-url origin 2>/dev/null) ||
+    die "$HERCULES_HOME is not a Hercules Git checkout with an origin; no files were changed."
+  [ "$ORIGIN_URL" = "$REPO_URL" ] ||
+    die "$HERCULES_HOME origin does not match the configured Hercules repository; no files were changed."
+  CURRENT_BRANCH=$(git -C "$HERCULES_HOME" symbolic-ref --quiet --short HEAD 2>/dev/null) ||
+    die "$HERCULES_HOME is not on the configured Hercules branch; no files were changed."
+  [ "$CURRENT_BRANCH" = "$BRANCH" ] ||
+    die "$HERCULES_HOME is on branch $CURRENT_BRANCH, expected $BRANCH; no files were changed."
   git -C "$HERCULES_HOME" fetch origin "$BRANCH"
   git -C "$HERCULES_HOME" merge --ff-only "origin/$BRANCH"
 elif [ -e "$HERCULES_HOME" ]; then

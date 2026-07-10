@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import os
+import shlex
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -19,16 +21,67 @@ class InitScriptTest(unittest.TestCase):
         self.hermes_home = self.root / "hermes-home"
         self.bin = self.root / "bin"
         self.bin.mkdir()
+        self.real_git = shutil.which("git")
+        self.assertIsNotNone(self.real_git)
+        self.git_log = self.root / "git-commands.log"
+        (self.bin / "git").write_text(
+            "#!/bin/sh\n"
+            "printf '%s\\n' \"$*\" >> \"$INIT_GIT_LOG\"\n"
+            f"exec {shlex.quote(self.real_git)} \"$@\"\n"
+        )
+        (self.bin / "git").chmod(0o755)
         (self.bin / "hermes").write_text("#!/bin/sh\necho hermes-test\n")
         (self.bin / "hermes").chmod(0o755)
 
         (self.source / "skills" / "hercules").mkdir(parents=True)
         (self.source / "skills" / "hercules" / "SKILL.md").write_text("# test\n")
-        subprocess.run(["git", "init", "-b", "main", str(self.source)], check=True, capture_output=True)
-        subprocess.run(["git", "-C", str(self.source), "config", "user.email", "test@example.com"], check=True)
-        subprocess.run(["git", "-C", str(self.source), "config", "user.name", "Test"], check=True)
-        subprocess.run(["git", "-C", str(self.source), "add", "."], check=True)
-        subprocess.run(["git", "-C", str(self.source), "commit", "-m", "fixture"], check=True, capture_output=True)
+        self.git("init", "-b", "main", self.source)
+        self.git("-C", self.source, "config", "user.email", "test@example.com")
+        self.git("-C", self.source, "config", "user.name", "Test")
+        self.commit_all(self.source, "fixture")
+
+    def git(self, *args):
+        return subprocess.run(
+            [self.real_git, *(str(arg) for arg in args)],
+            text=True, capture_output=True, check=True,
+        )
+
+    def commit_all(self, repo, message):
+        self.git("-C", repo, "add", ".")
+        self.git("-C", repo, "commit", "-m", message)
+
+    def clone_source(self):
+        self.git("clone", "--branch", "main", self.source, self.hercules_home)
+
+    def advance_source(self):
+        skill = self.source / "skills" / "hercules" / "SKILL.md"
+        skill.write_text("# updated\n")
+        self.commit_all(self.source, "update fixture")
+
+    def repo_state(self, repo):
+        return {
+            "head": self.git("-C", repo, "rev-parse", "HEAD").stdout,
+            "refs": self.git(
+                "-C", repo, "for-each-ref",
+                "--format=%(refname):%(objectname)",
+            ).stdout,
+            "status": self.git(
+                "-C", repo, "status", "--porcelain=v1", "--untracked-files=all",
+            ).stdout,
+            "fetch_head": (
+                (repo / ".git" / "FETCH_HEAD").read_bytes()
+                if (repo / ".git" / "FETCH_HEAD").exists()
+                else None
+            ),
+        }
+
+    def assert_no_git_actions(self, *actions):
+        commands = self.git_log.read_text().splitlines() if self.git_log.exists() else []
+        for action in actions:
+            self.assertFalse(
+                any(action in command.split() for command in commands),
+                f"unexpected git {action}: {commands}",
+            )
 
     def env(self):
         env = os.environ.copy()
@@ -38,6 +91,7 @@ class InitScriptTest(unittest.TestCase):
             "HERMES_HOME": str(self.hermes_home),
             "HERCULES_REPO_URL": str(self.source),
             "HERCULES_BRANCH": "main",
+            "INIT_GIT_LOG": str(self.git_log),
         })
         return env
 
@@ -77,6 +131,95 @@ class InitScriptTest(unittest.TestCase):
         result = self.run_init()
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual(marker.read_text(), "keep")
+
+    def test_unrelated_git_checkout_is_preserved_without_fetch_or_merge(self):
+        unrelated = self.root / "unrelated"
+        (unrelated / "skills").mkdir(parents=True)
+        (unrelated / "skills" / "foreign.txt").write_text("foreign-v1")
+        self.git("init", "-b", "main", unrelated)
+        self.git("-C", unrelated, "config", "user.email", "test@example.com")
+        self.git("-C", unrelated, "config", "user.name", "Test")
+        self.commit_all(unrelated, "unrelated fixture")
+        self.git("clone", "--branch", "main", unrelated, self.hercules_home)
+
+        (unrelated / "skills" / "foreign.txt").write_text("foreign-v2")
+        self.commit_all(unrelated, "unrelated update")
+
+        runtime = self.hermes_home / "skills" / "hercules"
+        runtime.parent.mkdir(parents=True)
+        runtime.symlink_to((self.hercules_home / "skills").resolve(), target_is_directory=True)
+        before_state = self.repo_state(self.hercules_home)
+        before_file = (self.hercules_home / "skills" / "foreign.txt").read_text()
+        before_link = os.readlink(runtime)
+
+        result = self.run_init()
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(self.repo_state(self.hercules_home), before_state)
+        self.assertEqual(
+            (self.hercules_home / "skills" / "foreign.txt").read_text(),
+            before_file,
+        )
+        self.assertEqual(os.readlink(runtime), before_link)
+        self.assert_no_git_actions("fetch", "merge")
+
+    def test_hercules_checkout_on_wrong_branch_is_preserved_without_update(self):
+        self.clone_source()
+        self.git("-C", self.hercules_home, "checkout", "-b", "other")
+        self.advance_source()
+        runtime = self.hermes_home / "skills" / "hercules"
+        runtime.parent.mkdir(parents=True)
+        runtime.symlink_to(
+            (self.hercules_home / "skills").resolve(), target_is_directory=True,
+        )
+        before_state = self.repo_state(self.hercules_home)
+        before_file = (self.hercules_home / "skills" / "hercules" / "SKILL.md").read_text()
+        before_link = os.readlink(runtime)
+
+        result = self.run_init()
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(self.repo_state(self.hercules_home), before_state)
+        self.assertEqual(
+            (self.hercules_home / "skills" / "hercules" / "SKILL.md").read_text(),
+            before_file,
+        )
+        self.assertEqual(os.readlink(runtime), before_link)
+        self.assert_no_git_actions("fetch", "merge")
+
+    def test_runtime_parent_file_stops_before_fresh_clone(self):
+        self.hermes_home.mkdir()
+        conflict = self.hermes_home / "skills"
+        conflict.write_text("keep")
+
+        result = self.run_init()
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertFalse(self.hercules_home.exists())
+        self.assertEqual(conflict.read_text(), "keep")
+        self.assertFalse((conflict / "hercules").is_symlink())
+        self.assert_no_git_actions("clone", "fetch", "merge")
+
+    def test_runtime_parent_file_stops_before_existing_checkout_update(self):
+        self.clone_source()
+        self.advance_source()
+        self.hermes_home.mkdir()
+        conflict = self.hermes_home / "skills"
+        conflict.write_text("keep")
+        before_state = self.repo_state(self.hercules_home)
+        before_file = (self.hercules_home / "skills" / "hercules" / "SKILL.md").read_text()
+
+        result = self.run_init()
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(self.repo_state(self.hercules_home), before_state)
+        self.assertEqual(
+            (self.hercules_home / "skills" / "hercules" / "SKILL.md").read_text(),
+            before_file,
+        )
+        self.assertEqual(conflict.read_text(), "keep")
+        self.assertFalse((conflict / "hercules").is_symlink())
+        self.assert_no_git_actions("fetch", "merge")
 
 
 if __name__ == "__main__":
