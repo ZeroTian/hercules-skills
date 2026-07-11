@@ -515,6 +515,76 @@ trajectory:
     logs: []
 ```
 
+## [x] TASK-016：Hercules true single public Skill entry
+
+- 当前状态：已完成
+- 优先级：P1
+- 当前负责人：无
+- 下一负责人：无
+- 下一步：无；独立复核 PASS
+- 是否需要 Codex 复核：否（已完成）
+- 创建日期：2026-07-11
+- 最后更新：2026-07-11
+- 来源：用户确认的真实单 Skill 入口优化
+- 关联任务：TASK-015
+- 关联审阅：`.maintain/docs/ai-collaboration/codex-reviews/2026-07-11-single-public-skill-entry.md`
+- 设计文档：`.maintain/docs/superpowers/specs/2026-07-11-single-public-skill-entry-design.md`
+- 实施计划：`.maintain/docs/superpowers/plans/2026-07-11-single-public-skill-entry.md`
+- 验收摘要：one discoverable `SKILL.md`; one `/hercules` command; four internal reference workflows; corrected init/README UX
+- 验证证据：full stdlib discover 96/96；runtime 31/31；init 10/10；strict 0 errors / 0 warnings；package、staged fresh-clone、Bash、diff checks 通过；真实 Hermes 扫描仅 `{'/hercules': 'hercules'}`
+- 复核结果：初审 FAIL（`TASK016-CR-001`、`TASK016-CR-002`）；修复后独立窄复核 PASS，无新 finding
+- 阻塞原因：无
+
+### 执行项
+
+- [x] 将四个内部 Skill 迁入 `skills/hercules/references/`
+- [x] 保留 `/hercules` 的任务能力路由与无侵入 fallback 边界
+- [x] 修正 README 与 `init.sh` 的真实 Hermes 调用方式
+- [x] 将 validator、维护文档和治理规则改为 exact-one
+- [x] 增加内部断链、嵌套 rogue Skill 和治理一致性回归测试
+- [x] 完成完整门禁、真实 Hermes 扫描和独立复核
+
+### 验收标准
+
+- [x] `find skills -name SKILL.md` 仅返回 `skills/hercules/SKILL.md`
+- [x] Hermes 仅生成 `/hercules`
+- [x] 四个内部工作流仍由公共 router 链接
+- [x] 初始化不改变既有 symlink 目标，不安装或认证第三方能力
+- [x] 当前文档不再宣传 `/skill hercules` 或 retired workflow commands
+- [x] 独立 reviewer PASS
+
+### Trajectory
+
+```yaml
+trajectory:
+  task_id: TASK-016
+  attempt: 1
+  date: 2026-07-11
+  task_type: implementation
+  skill_versions:
+    hercules: 1.1.0
+  score: 1.0
+  actor_path: "User approval -> Codex TDD implementation -> local verification -> independent Codex review -> CR fixes -> recheck"
+  phi:
+    capability_preflight: skipped-with-reason-local-repository-only
+    relevant_capabilities: [writing-plans, writing-skills, test-driven-development, verification-before-completion]
+    effort: xhigh
+    claude_result: not-launched
+    codex_result: PASS
+    ready: true
+    verification:
+      commands: ["python3 -m unittest discover -s .maintain/tests -p test_*.py -v", "python3 .maintain/scripts/validate-skill-pack.py --strict", "bash .maintain/scripts/check-package.sh", "bash .maintain/scripts/smoke-fresh-clone.sh", "find skills -name SKILL.md -print", "Hermes scan_skill_commands"]
+      logs: []
+      diff_scope: "single public Skill runtime, internal references, init/README UX, validator/tests, current governance"
+    cr_ids: [TASK016-CR-001, TASK016-CR-002]
+    blocker_type: none
+    next_owner: none
+  source_pointers:
+    task_record: ".maintain/docs/ai-collaboration/TASKS.md#task-016"
+    review_record: ".maintain/docs/ai-collaboration/codex-reviews/2026-07-11-single-public-skill-entry.md"
+    logs: []
+```
+
 ## Trajectory record policy
 
 Every formal Claude/Codex collaboration task in this ledger should be able to leave reflection data. Use the trajectory shape from `.maintain/skills/hercules-meta-skill-evolution/templates/trajectory-record.md`.

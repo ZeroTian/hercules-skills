@@ -1,15 +1,3 @@
----
-name: hercules-review-workflow
-description: "Use when a task needs verification, contains unresolved review findings, or has an explicit reviewer-independence requirement."
-version: 1.0.0
-author: Hercules / Hermes Agent
-license: MIT
-metadata:
-  hermes:
-    tags: [hercules, review, verification, independence]
-    related_skills: [hercules, hercules-capability-discovery, hercules-collaborative-workflow]
----
-
 # Hercules Review Workflow
 
 ## Purpose
@@ -34,7 +22,7 @@ Determine the independence requirement from the user request, project instructio
 2. Select an available reviewer with sufficient read-only capability; exclude the implementation actor only when independence is required.
 3. Provide the exact artifact or diff, acceptance criteria, known risks, and existing verification evidence.
 4. Require inspection of actual artifacts and task-appropriate checks rather than accepting implementation self-report.
-5. Normalize actionable findings using [review-loop.md](references/review-loop.md).
+5. Normalize actionable findings using the [review loop](review-loop.md).
 6. On FAIL, return the stable findings to a confirmed write-capable implementation route and re-review the resulting change.
 7. On PASS, obtain fresh verification evidence and report the reviewer, independence status, scope, checks, and outcome.
 

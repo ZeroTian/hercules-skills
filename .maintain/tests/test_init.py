@@ -122,6 +122,14 @@ class InitScriptTest(unittest.TestCase):
         for forbidden in ("npm ", "pnpm ", "brew ", "apt ", "claude ", "codex ", "login", "plugin install"):
             self.assertNotIn(forbidden, result.stdout + result.stderr)
 
+    def test_success_output_uses_real_hermes_command(self):
+        result = self.run_init()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("hermes --tui", result.stdout)
+        self.assertIn("/hercules <your task>", result.stdout)
+        self.assertIn("/reload-skills", result.stdout)
+        self.assertNotIn("/skill hercules", result.stdout)
+
     def test_rerun_is_idempotent(self):
         self.assertEqual(self.run_init().returncode, 0)
         second = self.run_init()

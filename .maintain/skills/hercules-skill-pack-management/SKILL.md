@@ -20,19 +20,19 @@ Current preferred layout:
 
 ```text
 Repository: /mnt/e/code/hercules-skills/
-Skills:     /mnt/e/code/hercules-skills/skills/<skill>/SKILL.md
-Runtime:    ~/.hermes/skills/hercules/<skill>/SKILL.md
+Skill:      /mnt/e/code/hercules-skills/skills/hercules/SKILL.md
+Runtime:    ~/.hermes/skills/hercules/hercules/SKILL.md
 Symlink:    ~/.hermes/skills/hercules -> /mnt/e/code/hercules-skills/skills
 Remote:     https://github.com/ZeroTian/hercules-skills
 ```
 
-Do not use the older double-nested layout:
+The runtime contains exactly one discoverable Skill:
 
 ```text
-/mnt/e/code/hercules-skills/skills/hercules/<skill>/SKILL.md
+/mnt/e/code/hercules-skills/skills/hercules/SKILL.md
 ```
 
-For this repository, `hercules` is already the project/repository identity; adding another `skills/hercules/` layer inside the repo is confusing unless the repo later becomes a multi-category skill monorepo.
+Capability discovery, collaboration, review, and project initialization are ordinary files under `skills/hercules/references/`; they must not contain Skill frontmatter or become separate runtime commands.
 
 ## When to Use
 
@@ -47,7 +47,7 @@ Use when the user asks to:
 ## Procedure
 
 1. **Inspect first.** Check the symlink, resolved target, repo status, and visible `SKILL.md` files before editing.
-2. **Keep repo layout flat under `skills/`.** Store skills as `skills/<skill>/SKILL.md`; keep README, `.git/`, release docs, and scripts outside the runtime skill directory.
+2. **Keep one runtime Skill.** Store the public router at `skills/hercules/SKILL.md` and its internal workflows under `skills/hercules/references/`; keep README, `.git/`, release docs, and maintainer scripts outside the runtime directory.
 3. **Point runtime symlink at the skills directory, not repo root.** Preferred active-development link:
 
    ```bash
@@ -66,15 +66,15 @@ Use when the user asks to:
 ## Pitfalls
 
 1. **Linking to repo root.** `~/.hermes/skills/hercules -> /mnt/e/code/hercules-skills` exposes README and Git metadata to the runtime skill directory and can confuse skill loading.
-2. **Double nesting by habit.** `skills/hercules/<skill>` only makes sense for a multi-category repository; for `hercules-skills`, use `skills/<skill>`.
+2. **Accidental extra commands.** Any additional `SKILL.md` under `skills/` becomes another Hermes command; internal workflows belong in `skills/hercules/references/`.
 3. **Backup ambiguity.** Keeping `hercules.backup.*` inside `~/.hermes/skills/` can make `skill_view` fail with duplicate skill-name ambiguity.
 4. **Memory-only migration.** Do not rely on model memory to reconstruct the workflow pack; copy or symlink the actual `SKILL.md` files.
 
 ## Verification Checklist
 
 - [ ] `~/.hermes/skills/hercules` resolves to `/mnt/e/code/hercules-skills/skills`
-- [ ] `skills/<skill>/SKILL.md` exists for all expected Hercules skills
-- [ ] No `skills/hercules/<skill>` double nesting remains unless deliberately reintroduced for a multi-category repo
+- [ ] `find skills -name SKILL.md` returns only `skills/hercules/SKILL.md`
+- [ ] Internal workflows exist under `skills/hercules/references/` without Skill frontmatter
 - [ ] Backups are outside `~/.hermes/skills/`
 - [ ] Representative Hercules skills load without ambiguity
 - [ ] Frontmatter validation passes

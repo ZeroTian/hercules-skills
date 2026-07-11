@@ -1,20 +1,8 @@
----
-name: hercules-capability-discovery
-description: "Internal demand-led discovery of task-relevant local capabilities, evidence, authority, freshness, and provider-neutral fallbacks."
-version: 1.0.0
-author: Hercules / Hermes Agent
-license: MIT
-metadata:
-  hermes:
-    tags: [hercules, capability-discovery, routing, provider-neutral]
-    related_skills: [hercules, hercules-collaborative-workflow, hercules-review-workflow, hercules-project-init]
----
-
 # Hercules Capability Discovery
 
 This demand-led workflow combines shallow discovery, deep plugin exploration, and an ephemeral capability map.
 
-Use the record in `references/capability-map.md`, the evidence rules in `references/plugin-exploration.md`, and the normalized decision contract in `references/capability_matrix.py`. Feed that contract the current task demand plus facility, cache, and real invocation evidence; consume its route, fallback, blocker, cache invalidation, and deep-inspection decisions. The contract is a non-executable deterministic reference, not a public command.
+Use [capability-map.md](capability-map.md) for the record shape, [plugin-exploration.md](plugin-exploration.md) for deep inspection, and `capability_matrix.py` for the deterministic decision contract. Feed that contract the current task demand plus facility, cache, and real invocation evidence; consume its route, fallback, blocker, cache invalidation, and deep-inspection decisions. The contract is a non-executable deterministic reference, not a public command.
 
 ## Demand-led discovery
 Start from task capability roles. Do not inventory every CLI, plugin, MCP, Skill, or agent at session startup.

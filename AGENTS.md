@@ -12,7 +12,7 @@ Codex is the independent reviewer and acceptance gate for this repository.
 
 ## Product invariant
 
-The runtime surface is exactly these five Skills: `hercules`, `hercules-capability-discovery`, `hercules-collaborative-workflow`, `hercules-review-workflow`, and `hercules-project-init`. Keep `hercules` as the single public entry and do not add environment-management behavior.
+The runtime surface is exactly one runtime Skill: `skills/hercules/SKILL.md`. Keep `hercules` as the single public entry, keep internal workflows under `skills/hercules/references/` without Skill frontmatter, and do not add environment-management behavior.
 
 ## Maintainer guidance
 

@@ -7,27 +7,24 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SKILLS = REPO_ROOT / "skills"
-CORE = {
-    "hercules",
-    "hercules-capability-discovery",
-    "hercules-collaborative-workflow",
-    "hercules-review-workflow",
-    "hercules-project-init",
+PUBLIC_SKILL = "hercules"
+PUBLIC_RUNTIME_SKILLS = {PUBLIC_SKILL}
+PUBLIC_REFERENCES = SKILLS / PUBLIC_SKILL / "references"
+INTERNAL_WORKFLOW_REFERENCES = {
+    "capability-discovery.md",
+    "collaborative-workflow.md",
+    "review-workflow.md",
+    "project-init.md",
 }
-QUICKSTART_COMMANDS = (
+TERMINAL_QUICKSTART = (
     "curl -fsSL https://raw.githubusercontent.com/ZeroTian/hercules-skills/main/init.sh | bash",
     "hermes --tui",
-    "/skill hercules",
 )
-CAPABILITY_CONTRACT = (
-    SKILLS
-    / "hercules-capability-discovery"
-    / "references"
-    / "capability_matrix.py"
+CAPABILITY_CONTRACT = PUBLIC_REFERENCES / "capability_matrix.py"
+HERCULES_COMMAND_RE = re.compile(
+    r"(?m)(?<![A-Za-z0-9_/])/(hercules(?:-[a-z0-9-]+)?)"
 )
-DOCUMENTED_SKILL_INVOCATION_RE = re.compile(
-    r"/skill[ \t]+[a-z][a-z0-9-]*"
-)
+DOCUMENTED_SKILL_INVOCATION_RE = re.compile(r"/skill[ \t]+[a-z][a-z0-9-]*")
 MARKDOWN_SKILL_PREFIXES = frozenset({"`", "*", "(", "[", "{", "<", ">", "'", '"', "~"})
 
 
@@ -61,9 +58,16 @@ class RuntimeSkillContractTest(unittest.TestCase):
     def text(self, name):
         return (SKILLS / name / "SKILL.md").read_text()
 
-    def test_default_runtime_contains_exactly_five_skills(self):
+    def reference_text(self, name):
+        return (PUBLIC_REFERENCES / name).read_text(encoding="utf-8")
+
+    def test_runtime_contains_exactly_one_discoverable_skill(self):
+        skill_files = sorted(SKILLS.rglob("SKILL.md"))
+        self.assertEqual(skill_files, [SKILLS / PUBLIC_SKILL / "SKILL.md"])
+
+    def test_default_runtime_contains_only_public_skill(self):
         actual = {path.parent.name for path in SKILLS.glob("*/SKILL.md")}
-        self.assertEqual(actual, CORE)
+        self.assertEqual(actual, PUBLIC_RUNTIME_SKILLS)
 
     def test_public_entry_routes_by_task_need(self):
         text = self.text("hercules")
@@ -79,10 +83,28 @@ class RuntimeSkillContractTest(unittest.TestCase):
         self.assertIsNotNone(link)
         self.assertTrue((SKILLS / "hercules" / link.group(1)).is_file())
 
-    def test_discovery_is_demand_led_and_provider_neutral(self):
-        text = self.text("hercules-capability-discovery")
+    def test_public_router_links_all_internal_workflows(self):
+        text = self.text(PUBLIC_SKILL)
+        linked = set(re.findall(r"references/([a-z-]+\.md)", text))
+        self.assertTrue(INTERNAL_WORKFLOW_REFERENCES <= linked)
+        for name in INTERNAL_WORKFLOW_REFERENCES:
+            self.assertTrue((PUBLIC_REFERENCES / name).is_file(), name)
+
+    def test_retired_internal_skill_commands_are_not_discoverable(self):
+        for name in (
+            "hercules-capability-discovery",
+            "hercules-collaborative-workflow",
+            "hercules-review-workflow",
+            "hercules-project-init",
+        ):
+            self.assertFalse((SKILLS / name / "SKILL.md").exists(), name)
+
+    def test_capability_discovery_is_an_internal_reference(self):
+        self.assertFalse((SKILLS / "hercules-capability-discovery").exists())
+        text = self.reference_text("capability-discovery.md")
         for phrase in ("demand-led", "shallow discovery", "deep plugin exploration", "ephemeral capability map"):
             self.assertIn(phrase, text)
+        self.assertFalse(text.startswith("---"))
         for forbidden in (
             "npm install", "pnpm add", "brew install", "apt-get install",
             "claude plugins install", "marketplace add", "claude auth", "codex login",
@@ -90,30 +112,39 @@ class RuntimeSkillContractTest(unittest.TestCase):
             self.assertNotIn(forbidden, text)
 
     def test_collaboration_consumes_confirmed_capabilities(self):
-        text = self.text("hercules-collaborative-workflow")
+        text = self.reference_text("collaborative-workflow.md")
+        self.assertFalse(text.startswith("---"))
         for phrase in ("confirmed capability map", "user and project preference", "sanitized failure category", "fallback"):
             self.assertIn(phrase, text)
 
     def test_review_requires_independence_only_when_task_requires_it(self):
-        text = self.text("hercules-review-workflow")
+        text = self.reference_text("review-workflow.md")
+        self.assertFalse(text.startswith("---"))
         self.assertIn("independence requirement", text)
         self.assertIn("available reviewer", text)
         self.assertNotIn("Codex is always required", text)
 
     def test_project_init_is_project_scoped(self):
-        text = self.text("hercules-project-init")
+        text = self.reference_text("project-init.md")
+        self.assertFalse(text.startswith("---"))
         for phrase in ("project-scoped", "do not install", "preserve existing instructions"):
             self.assertIn(phrase, text)
 
     def test_no_plugin_is_declared_required(self):
         combined = "\n".join(
-            path.read_text() for path in SKILLS.glob("*/SKILL.md") if path.parent.name in CORE
+            path.read_text() for path in SKILLS.rglob("*.md")
         )
         self.assertIsNone(re.search(r"required plugins?\s*:", combined, re.I))
 
-    def test_readme_has_one_entry_and_three_step_quickstart(self):
+    def test_readme_has_one_entry_and_real_hermes_invocation(self):
         text = (REPO_ROOT / "README.md").read_text()
-        for heading in ("Quickstart", "快速开始"):
+        self.assertIn("single adaptive Hermes Skill", text)
+        self.assertIn("一个自适应的 Hermes Skill", text)
+        sections = {
+            "Quickstart": "/hercules <your task>",
+            "快速开始": "/hercules <你的任务>",
+        }
+        for heading, invocation in sections.items():
             with self.subTest(heading=heading):
                 block = re.search(
                     rf"^### {heading}\s*$\n+```bash\n(?P<commands>.*?)\n```",
@@ -123,21 +154,31 @@ class RuntimeSkillContractTest(unittest.TestCase):
                 self.assertIsNotNone(block, heading)
                 self.assertEqual(
                     tuple(block.group("commands").splitlines()),
-                    QUICKSTART_COMMANDS,
+                    TERMINAL_QUICKSTART,
                 )
+                section = text[block.end():]
+                next_heading = re.search(r"^## ", section, re.MULTILINE)
+                if next_heading:
+                    section = section[:next_heading.start()]
+                self.assertIn(invocation, section)
         for forbidden in (
             "--full", "--minimal", "doctor --fix", "bootstrap --check",
             "npm install", "claude plugins install", "codex login",
         ):
             self.assertNotIn(forbidden, text)
 
-    def test_every_documented_skill_entry_is_hercules(self):
-        public_docs = [REPO_ROOT / "README.md", *SKILLS.rglob("*.md")]
-        invocations = []
-        for path in public_docs:
-            invocations.extend(documented_skill_invocations(path.read_text()))
-        self.assertTrue(invocations)
-        self.assertEqual(set(invocations), {"/skill hercules"})
+    def test_only_public_hercules_command_is_documented(self):
+        text = "\n".join(
+            path.read_text(encoding="utf-8")
+            for path in [
+                REPO_ROOT / "README.md",
+                REPO_ROOT / "init.sh",
+                *SKILLS.rglob("*.md"),
+            ]
+        )
+        commands = {f"/{name}" for name in HERCULES_COMMAND_RE.findall(text)}
+        self.assertEqual(commands, {"/hercules"})
+        self.assertNotIn("/skill hercules", text)
 
     def test_documented_skill_entry_parser_handles_markdown_wrappers(self):
         wrapped_invocations = (

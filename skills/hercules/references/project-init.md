@@ -1,15 +1,3 @@
----
-name: hercules-project-init
-description: "Use when initializing or updating repository-local AI instructions while existing project rules, tool-specific files, and unrelated work must remain intact."
-version: 1.0.0
-author: Hercules / Hermes Agent
-license: MIT
-metadata:
-  hermes:
-    tags: [hercules, project-init, instructions, boundaries]
-    related_skills: [hercules, hercules-collaborative-workflow]
----
-
 # Hercules Project Init
 
 ## Purpose
@@ -20,7 +8,7 @@ Create the smallest project-scoped instruction change that satisfies the user's 
 
 1. Confirm the repository root, requested rules, approved files, and existing user changes.
 2. Inspect existing `AGENTS.md`, `CLAUDE.md`, and tool-specific project instructions before proposing changes.
-3. Map each requested rule to the narrowest project-scoped file using [instruction-boundaries.md](references/instruction-boundaries.md).
+3. Map each requested rule to the narrowest project-scoped file using [instruction boundaries](instruction-boundaries.md).
 4. Identify content to preserve, conflicts requiring a user decision, and the exact files that would change.
 5. Merge only the requested project rules; preserve existing instructions and unrelated files.
 6. do not install tools, plugins, Skills, dependencies, or write global configuration.

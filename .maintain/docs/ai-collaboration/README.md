@@ -8,9 +8,9 @@ evidence for the Hercules repository.
 - `.maintain/docs/ai-collaboration/TASKS.md` — live ledger, trajectory policy,
   and task template.
 - `.maintain/docs/ai-collaboration/ARCHITECTURE.md` — current repository and
-  exact-five runtime boundary.
+  exact-one runtime boundary.
 - `.maintain/docs/ai-collaboration/SKILL_NAVIGATION.md` — current navigation for
-  the five runtime Skills.
+  the single public runtime Skill and its internal references.
 - `.maintain/docs/ai-collaboration/candidate-skills/README.md` — current archive
   and candidate disposition procedure.
 - `.maintain/docs/ai-collaboration/decisions/` — durable policy decisions.

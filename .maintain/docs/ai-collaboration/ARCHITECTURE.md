@@ -3,15 +3,19 @@
 ## Repository purpose
 
 Hercules is a skill-first Hermes package with one public initializer and
-exactly five runtime Skills. Repository tooling and governance history stay
-behind the maintainer boundary.
+exactly one runtime Skill. The four internal workflows live under
+`skills/hercules/references/` and are not discovered as slash commands.
+Repository tooling and governance history stay behind the maintainer boundary.
 
 ## Current layout
 
 ```text
 .
 ├── init.sh
-├── skills/                         # exactly five runtime Skills
+├── skills/
+│   └── hercules/                  # exactly one runtime Skill
+│       ├── SKILL.md               # public /hercules router
+│       └── references/            # internal, non-Skill workflows
 └── .maintain/
     ├── scripts/                    # validator, smoke, package gate
     ├── tests/                      # init/runtime/tooling contracts
@@ -24,13 +28,16 @@ Nothing under `.maintain/` is part of the installed runtime Skill surface.
 
 ## Runtime boundary
 
-The only runtime Skill files are:
+The only runtime Skill file is:
 
 - `skills/hercules/SKILL.md`
-- `skills/hercules-capability-discovery/SKILL.md`
-- `skills/hercules-collaborative-workflow/SKILL.md`
-- `skills/hercules-review-workflow/SKILL.md`
-- `skills/hercules-project-init/SKILL.md`
+
+Its internal workflow references are:
+
+- `skills/hercules/references/capability-discovery.md`
+- `skills/hercules/references/collaborative-workflow.md`
+- `skills/hercules/references/review-workflow.md`
+- `skills/hercules/references/project-init.md`
 
 `.maintain/scripts/validate-skill-pack.py` enforces this exact set against both
 Git-tracked files and visible directories. Historical navigation and audit
@@ -40,7 +47,7 @@ records do not define runtime membership.
 
 - `.maintain/docs/ai-collaboration/TASKS.md` contains the live ledger, active
   policy, and task template. Dated task/review evidence remains historical.
-- `.maintain/docs/ai-collaboration/SKILL_NAVIGATION.md` is the current exact-five
+- `.maintain/docs/ai-collaboration/SKILL_NAVIGATION.md` is the current exact-one
   runtime navigation.
 - `.maintain/docs/ai-collaboration/candidate-skills/` preserves candidates
   outside runtime loading.

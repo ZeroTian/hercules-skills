@@ -6,7 +6,7 @@ Runs with Python stdlib only. Checks:
   - description length <= 1024 characters
   - linked file directories are only references/templates/scripts/assets
   - skill-local linked-file references point to existing files
-  - exact five-Skill runtime scope vs git tracked skills and visible skill dirs
+  - exact one-Skill runtime scope vs git tracked skills and visible skill dirs
   - maintainer SKILL_NAVIGATION role/maturity table consistency
   - TASKS archive links, no duplicate task IDs across live/archive ledgers
   - governance files exist
@@ -36,13 +36,8 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SKILLS_DIR = REPO_ROOT / "skills"
 DOCS_COLLAB = REPO_ROOT / ".maintain" / "docs" / "ai-collaboration"
-EXPECTED_RUNTIME_SKILLS = {
-    "hercules",
-    "hercules-capability-discovery",
-    "hercules-collaborative-workflow",
-    "hercules-review-workflow",
-    "hercules-project-init",
-}
+EXPECTED_RUNTIME_SKILLS = {"hercules"}
+EXPECTED_RUNTIME_SKILL_FILES = {"skills/hercules/SKILL.md"}
 
 REQUIRED_FRONTMATTER_FIELDS = ("name", "description", "version")
 ALLOWED_LINKED_DIRS = {"references", "templates", "scripts", "assets"}
@@ -180,6 +175,7 @@ LINKED_FILE_RE = re.compile(
     r"(?<![A-Za-z0-9_./-])"
     r"(?P<path>(?:references|templates|scripts|assets)/[A-Za-z0-9._/@%+=:,~-]+(?:/[A-Za-z0-9._/@%+=:,~-]+)*)"
 )
+MARKDOWN_LINK_RE = re.compile(r"\[[^\]]+\]\((?P<target>[^)]+)\)")
 
 
 def normalize_linked_candidate(raw: str) -> str:
@@ -236,6 +232,33 @@ def check_linked_file_references(report: Report, skill_files: list[Path]) -> Non
                     report.warn(f"{sf.relative_to(REPO_ROOT)}: linked file not found: {rel}")
 
 
+def check_skill_markdown_links(report: Report, skill_files: list[Path]) -> None:
+    """Validate relative Markdown links in a Skill and all of its references."""
+    for sf in skill_files:
+        skill_root = sf.parent
+        for source in sorted(skill_root.rglob("*.md")):
+            for match in MARKDOWN_LINK_RE.finditer(source.read_text(encoding="utf-8")):
+                raw = match.group("target").strip()
+                if raw.startswith("<") and ">" in raw:
+                    raw = raw[1:raw.index(">")]
+                else:
+                    raw = raw.split(maxsplit=1)[0]
+                if (
+                    not raw
+                    or raw.startswith(("#", "/"))
+                    or re.match(r"^[A-Za-z][A-Za-z0-9+.-]*:", raw)
+                ):
+                    continue
+                rel = raw.split("#", 1)[0].split("?", 1)[0]
+                target = source.parent / rel
+                if not target.exists():
+                    try:
+                        source_rel = source.relative_to(REPO_ROOT)
+                    except ValueError:
+                        source_rel = source
+                    report.warn(f"{source_rel}: linked file not found: {rel}")
+
+
 def git_tracked_skills() -> set[str]:
     try:
         out = subprocess.run(
@@ -255,14 +278,41 @@ def git_tracked_skills() -> set[str]:
     return names
 
 
+def git_tracked_skill_files() -> set[str]:
+    try:
+        out = subprocess.run(
+            ["git", "ls-files", "skills/"],
+            cwd=REPO_ROOT,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return set()
+    return {
+        line
+        for line in out.stdout.splitlines()
+        if line == "skills/SKILL.md" or line.endswith("/SKILL.md")
+    }
+
+
 def visible_skill_dirs() -> set[str]:
     if not SKILLS_DIR.exists():
         return set()
     return {p.name for p in SKILLS_DIR.iterdir() if p.is_dir() and (p / "SKILL.md").exists()}
 
 
+def visible_skill_files() -> set[str]:
+    if not SKILLS_DIR.exists():
+        return set()
+    return {
+        str(path.relative_to(REPO_ROOT))
+        for path in SKILLS_DIR.rglob("SKILL.md")
+    }
+
+
 def check_runtime_skill_scope(report: Report) -> None:
-    """Require the product runtime to contain exactly the five public Skills."""
+    """Require the product runtime to contain exactly one public Skill."""
     tracked = git_tracked_skills()
     visible = visible_skill_dirs()
 
@@ -272,6 +322,19 @@ def check_runtime_skill_scope(report: Report) -> None:
                 f"exact runtime skill scope drift ({label}): "
                 f"missing={sorted(EXPECTED_RUNTIME_SKILLS - actual)}, "
                 f"extra={sorted(actual - EXPECTED_RUNTIME_SKILLS)}"
+            )
+
+    tracked_files = git_tracked_skill_files()
+    visible_files = visible_skill_files()
+    for label, actual in (
+        ("git-tracked", tracked_files),
+        ("visible", visible_files),
+    ):
+        if actual != EXPECTED_RUNTIME_SKILL_FILES:
+            report.error(
+                f"exact runtime skill file scope drift ({label}): "
+                f"missing={sorted(EXPECTED_RUNTIME_SKILL_FILES - actual)}, "
+                f"extra={sorted(actual - EXPECTED_RUNTIME_SKILL_FILES)}"
             )
 
 
@@ -322,17 +385,6 @@ def check_skill_navigation(report: Report) -> None:
             "SKILL_NAVIGATION.md: hercules must have exactly one "
             "entry/composite row with core maturity"
         )
-    for skill in sorted(EXPECTED_RUNTIME_SKILLS - {"hercules"}):
-        values = rows.get(skill, [])
-        if (
-            len(values) != 1
-            or values[0][0] not in {"atom", "specialized atom"}
-            or values[0][1] != "core"
-        ):
-            report.error(
-                "SKILL_NAVIGATION.md: internal runtime skill must have exactly "
-                f"one internal row with core maturity: {skill}"
-            )
     duplicated = {skill: len(values) for skill, values in rows.items() if len(values) > 1}
     if duplicated:
         report.warn(
@@ -549,6 +601,7 @@ def run_checks() -> Report:
     skill_files = check_skill_frontmatter(report)
     check_linked_dirs(report)
     check_linked_file_references(report, skill_files)
+    check_skill_markdown_links(report, skill_files)
     check_runtime_skill_scope(report)
     check_skill_navigation(report)
     check_task_archives(report)

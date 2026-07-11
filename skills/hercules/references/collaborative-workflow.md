@@ -1,15 +1,3 @@
----
-name: hercules-collaborative-workflow
-description: "Use when a task needs one or more locally confirmed execution, review, research, or data facilities and routing must respect authority, preferences, and fallbacks."
-version: 1.0.0
-author: Hercules / Hermes Agent
-license: MIT
-metadata:
-  hermes:
-    tags: [hercules, collaboration, capability-aware, routing]
-    related_skills: [hercules, hercules-capability-discovery, hercules-review-workflow]
----
-
 # Hercules Collaborative Workflow
 
 ## Purpose
@@ -40,7 +28,7 @@ Do not request a command, plugin, agent, browser, or data surface absent from th
 
 ## Selection and Fallback
 
-Use this order: explicit user preference, project instructions, confirmed task fit, least sufficient authority, then availability. If invocation fails, follow [invocation-failure.md](references/invocation-failure.md), choose another confirmed suitable facility, narrow the task, or execute directly within current authority. Report a blocker only when no safe fallback can meet the task.
+Use this order: explicit user preference, project instructions, confirmed task fit, least sufficient authority, then availability. If invocation fails, follow [invocation failure](invocation-failure.md), choose another confirmed suitable facility, narrow the task, or execute directly within current authority. Report a blocker only when no safe fallback can meet the task.
 
 ## Verification
 

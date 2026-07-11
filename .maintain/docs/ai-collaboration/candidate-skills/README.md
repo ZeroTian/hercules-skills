@@ -33,13 +33,14 @@ decided per candidate:
 
 ## How to promote a candidate later
 
-The current runtime invariant is exactly five Skills. A candidate must not be
-moved directly into `skills/` as a routine maintenance action.
+The current runtime invariant is exactly one runtime Skill:
+`skills/hercules/SKILL.md`. A candidate must not be moved directly into
+`skills/` as a routine maintenance action.
 
-1. Prefer merging reusable content into one of the five runtime Skills or
+1. Prefer merging reusable content into `skills/hercules/references/` or
    preserving it under `.maintain/skills/`, `.maintain/examples/`, or this
    archive.
-2. Treat adding a sixth runtime Skill as an explicit product-architecture
+2. Treat adding another runtime Skill as an explicit product-architecture
    change. Start with a failing exact-runtime contract test and obtain review.
 3. If that architecture change is approved, update
    `.maintain/scripts/validate-skill-pack.py`,

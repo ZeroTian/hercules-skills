@@ -10,13 +10,7 @@ from unittest import mock
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 VALIDATOR_PATH = REPO_ROOT / ".maintain" / "scripts" / "validate-skill-pack.py"
-EXPECTED_RUNTIME_SKILLS = {
-    "hercules",
-    "hercules-capability-discovery",
-    "hercules-collaborative-workflow",
-    "hercules-review-workflow",
-    "hercules-project-init",
-}
+EXPECTED_RUNTIME_SKILLS = {"hercules"}
 
 
 def load_validator_module():
@@ -60,14 +54,14 @@ class MaintainerBoundaryContractTest(unittest.TestCase):
             REPO_ROOT / ".maintain" / "docs" / "ai-collaboration",
         )
 
-    def test_validator_scope_is_exactly_five_runtime_skills(self) -> None:
+    def test_validator_scope_is_exactly_one_public_skill(self) -> None:
         validator = load_validator_module()
         self.assertEqual(
             getattr(validator, "EXPECTED_RUNTIME_SKILLS", set()),
             EXPECTED_RUNTIME_SKILLS,
         )
 
-    def test_validator_rejects_runtime_scope_outside_exact_five(self) -> None:
+    def test_validator_rejects_extra_runtime_skill(self) -> None:
         validator = load_validator_module()
         check = getattr(validator, "check_runtime_skill_scope", None)
         self.assertIsNotNone(check)
@@ -83,43 +77,63 @@ class MaintainerBoundaryContractTest(unittest.TestCase):
             report.errors,
         )
 
-    def test_validator_rejects_missing_navigation_row(self) -> None:
-        roles = {skill: "atom" for skill in EXPECTED_RUNTIME_SKILLS}
-        roles["hercules"] = "entry/composite"
-        roles.pop("hercules-project-init")
-        report = self.navigation_report(roles)
+    def test_validator_rejects_nested_runtime_skill_file(self) -> None:
+        validator = load_validator_module()
+        expected = {"skills/hercules/SKILL.md"}
+        unexpected = expected | {
+            "skills/hercules/references/rogue/SKILL.md"
+        }
+        report = validator.Report()
+        with (
+            mock.patch.object(
+                validator, "git_tracked_skill_files", return_value=unexpected
+            ),
+            mock.patch.object(
+                validator, "visible_skill_files", return_value=unexpected
+            ),
+        ):
+            validator.check_runtime_skill_scope(report)
         self.assertTrue(
-            any("navigation runtime skill scope drift" in error for error in report.errors),
+            any("exact runtime skill file scope drift" in error for error in report.errors),
+            report.errors,
+        )
+
+    def test_validator_rejects_missing_or_non_entry_navigation(self) -> None:
+        self.assertTrue(self.navigation_report({}).errors)
+        report = self.navigation_report({"hercules": "atom"})
+        self.assertTrue(
+            any("entry/composite" in error for error in report.errors),
             report.errors,
         )
 
     def test_validator_rejects_extra_navigation_row(self) -> None:
-        roles = {skill: "atom" for skill in EXPECTED_RUNTIME_SKILLS}
-        roles["hercules"] = "entry/composite"
-        roles["unexpected-runtime-skill"] = "atom"
-        report = self.navigation_report(roles)
+        report = self.navigation_report({
+            "hercules": "entry/composite",
+            "unexpected-runtime-skill": "atom",
+        })
         self.assertTrue(
             any("navigation runtime skill scope drift" in error for error in report.errors),
             report.errors,
         )
 
-    def test_validator_rejects_wrong_entry_roles(self) -> None:
-        roles = {skill: "atom" for skill in EXPECTED_RUNTIME_SKILLS}
-        roles["hercules-capability-discovery"] = "entry/composite"
-        report = self.navigation_report(roles)
+    def test_validator_rejects_broken_internal_workflow_link(self) -> None:
+        validator = load_validator_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            skill = Path(tmp) / "skills" / "hercules"
+            references = skill / "references"
+            references.mkdir(parents=True)
+            skill_file = skill / "SKILL.md"
+            skill_file.write_text(
+                "[workflow](references/workflow.md)\n", encoding="utf-8"
+            )
+            (references / "workflow.md").write_text(
+                "[missing](missing.md)\n", encoding="utf-8"
+            )
+            report = validator.Report()
+            validator.check_skill_markdown_links(report, [skill_file])
         self.assertTrue(
-            any(
-                "hercules must have exactly one entry/composite row" in error
-                for error in report.errors
-            ),
-            report.errors,
-        )
-        self.assertTrue(
-            any(
-                "internal runtime skill must have exactly one internal row" in error
-                for error in report.errors
-            ),
-            report.errors,
+            any("linked file not found" in warning for warning in report.warnings),
+            report.warnings,
         )
 
     def test_repository_tooling_is_behind_maintainer_boundary(self) -> None:
@@ -196,7 +210,7 @@ class MaintainerDocumentContractTest(unittest.TestCase):
             with self.subTest(pattern=pattern):
                 self.assertIsNone(re.search(pattern, text), pattern)
 
-    def test_current_navigation_matches_exact_five_runtime_skills(self) -> None:
+    def test_current_navigation_matches_exactly_one_runtime_skill(self) -> None:
         validator = load_validator_module()
         navigation = (
             REPO_ROOT
@@ -210,14 +224,38 @@ class MaintainerDocumentContractTest(unittest.TestCase):
             EXPECTED_RUNTIME_SKILLS,
         )
 
-    def test_current_architecture_names_all_five_runtime_skill_paths(self) -> None:
+    def test_current_architecture_names_public_skill_and_internal_references(self) -> None:
         architecture = (
             REPO_ROOT / ".maintain" / "docs" / "ai-collaboration" / "ARCHITECTURE.md"
         ).read_text(encoding="utf-8")
-        self.assertIn("exactly five runtime Skills", architecture)
-        for skill in EXPECTED_RUNTIME_SKILLS:
-            with self.subTest(skill=skill):
-                self.assertIn(f"skills/{skill}/SKILL.md", architecture)
+        self.assertIn("exactly one runtime Skill", architecture)
+        self.assertIn("skills/hercules/SKILL.md", architecture)
+        for reference in (
+            "capability-discovery.md",
+            "collaborative-workflow.md",
+            "review-workflow.md",
+            "project-init.md",
+        ):
+            with self.subTest(reference=reference):
+                self.assertIn(reference, architecture)
+
+    def test_governance_instructions_enforce_exactly_one_runtime_skill(self) -> None:
+        paths = (
+            REPO_ROOT / "AGENTS.md",
+            REPO_ROOT / "CLAUDE.md",
+            REPO_ROOT / "HERMES.md",
+            REPO_ROOT
+            / ".maintain"
+            / "docs"
+            / "ai-collaboration"
+            / "candidate-skills"
+            / "README.md",
+        )
+        for path in paths:
+            with self.subTest(path=path):
+                text = path.read_text(encoding="utf-8")
+                self.assertIn("exactly one runtime Skill", text)
+                self.assertNotIn("exactly five", text)
 
     def test_advertised_current_paths_and_commands_resolve(self) -> None:
         text = self.current_document_text()

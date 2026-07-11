@@ -1,20 +1,19 @@
 ---
 name: hercules
 description: "Single public entry for adaptive Hercules task routing: understand the task, discover only relevant local capabilities, compose internal workflows, and degrade without installing dependencies."
-version: 1.0.0
+version: 1.1.0
 author: Hercules / Hermes Agent
 license: MIT
 metadata:
   hermes:
     tags: [hercules, entry, routing, adaptive-orchestration]
-    related_skills: [hercules-capability-discovery, hercules-collaborative-workflow, hercules-review-workflow, hercules-project-init]
 ---
 
 # Hercules
 
 ## Purpose
 
-This is the single public entry. Translate the user task into task capability roles, use the session capability cache when fresh, and route only to the internal Skills needed for this task.
+This is the single public entry. Translate the user task into task capability roles, use the session capability cache when fresh, and route only to the internal workflows needed for this task.
 
 ## Routing
 
@@ -22,10 +21,12 @@ Use the [runtime routing reference](references/runtime-routing.md) as the role-t
 
 1. Preserve explicit user preferences and project instructions.
 2. Classify task capability roles: implementation, review, browser, research, parallel execution, data access, or project initialization.
-3. Load `hercules-capability-discovery` only for roles whose local capability evidence is missing or stale.
-4. Route execution to `hercules-collaborative-workflow`, review to `hercules-review-workflow`, and project setup to `hercules-project-init`.
-5. Prefer a confirmed local facility; fallback to another confirmed facility or Hermes itself.
-6. Report a blocker only when no safe path can satisfy the task.
+3. When capability evidence is missing, stale, incomplete, permission-mismatched, or invalidated, load [capability discovery](references/capability-discovery.md) and follow its normalized capability-map contract.
+4. For implementation, browser, research, parallel execution, or data access, load [collaborative workflow](references/collaborative-workflow.md).
+5. When scoped or independent review is required, load [review workflow](references/review-workflow.md).
+6. For repository-local AI instructions, load [project initialization](references/project-init.md).
+7. Prefer a confirmed local facility; fallback to another confirmed facility or Hermes itself.
+8. Report a blocker only when no safe path can satisfy the task.
 
 ## Boundaries
 

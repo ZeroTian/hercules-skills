@@ -1,7 +1,7 @@
 # Hercules Single Public Skill Entry Design
 
 Date: 2026-07-11
-Status: approved in conversation; awaiting written-spec review
+Status: approved
 
 ## Problem
 

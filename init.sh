@@ -62,6 +62,7 @@ else
   ln -s "$SOURCE" "$RUNTIME"
 fi
 
-printf 'Hercules Skills are ready.\n'
-printf '1. hermes --tui\n'
-printf '2. /skill hercules\n'
+printf 'Hercules Skill is ready.\n'
+printf '1. Start Hermes: hermes --tui\n'
+printf '2. Existing session after an update: /reload-skills\n'
+printf '3. Run: /hercules <your task>\n'
