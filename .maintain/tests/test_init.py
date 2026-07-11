@@ -122,6 +122,51 @@ class InitScriptTest(unittest.TestCase):
         for forbidden in ("npm ", "pnpm ", "brew ", "apt ", "claude ", "codex ", "login", "plugin install"):
             self.assertNotIn(forbidden, result.stdout + result.stderr)
 
+    def test_init_does_not_write_project_instruction_files(self):
+        project = self.root / "project"
+        project.mkdir()
+        instructions = {
+            "AGENTS.md": "agents-keep\n",
+            "CLAUDE.md": "claude-keep\n",
+            "HERMES.md": "hermes-keep\n",
+        }
+        for name, content in instructions.items():
+            (project / name).write_text(content, encoding="utf-8")
+        metadata = {
+            name: ((project / name).stat().st_ino, (project / name).stat().st_mtime_ns)
+            for name in instructions
+        }
+
+        result = subprocess.run(
+            ["/bin/bash", str(INIT)],
+            cwd=project,
+            env=self.env(),
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        for name, content in instructions.items():
+            self.assertEqual((project / name).read_text(encoding="utf-8"), content)
+            stat = (project / name).stat()
+            self.assertEqual((stat.st_ino, stat.st_mtime_ns), metadata[name])
+
+        empty_project = self.root / "empty-project"
+        empty_project.mkdir()
+        result = subprocess.run(
+            ["/bin/bash", str(INIT)],
+            cwd=empty_project,
+            env=self.env(),
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        for name in instructions:
+            self.assertFalse((empty_project / name).exists())
+
     def test_success_output_uses_real_hermes_command(self):
         result = self.run_init()
         self.assertEqual(result.returncode, 0, result.stderr)

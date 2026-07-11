@@ -61,6 +61,17 @@ class RuntimeSkillContractTest(unittest.TestCase):
     def reference_text(self, name):
         return (PUBLIC_REFERENCES / name).read_text(encoding="utf-8")
 
+    def markdown_section(self, text, heading, level):
+        marker = "#" * level
+        match = re.search(
+            rf"(?m)^{re.escape(marker)} {re.escape(heading)}\s*$",
+            text,
+        )
+        self.assertIsNotNone(match, heading)
+        following = text[match.end():]
+        next_heading = re.search(rf"(?m)^#{{1,{level}}} ", following)
+        return following[:next_heading.start()] if next_heading else following
+
     def test_runtime_contains_exactly_one_discoverable_skill(self):
         skill_files = sorted(SKILLS.rglob("SKILL.md"))
         self.assertEqual(skill_files, [SKILLS / PUBLIC_SKILL / "SKILL.md"])
@@ -128,6 +139,64 @@ class RuntimeSkillContractTest(unittest.TestCase):
         text = self.reference_text("project-init.md")
         self.assertFalse(text.startswith("---"))
         for phrase in ("project-scoped", "do not install", "preserve existing instructions"):
+            self.assertIn(phrase, text)
+
+    def test_project_init_defines_canonical_entry_contract(self):
+        text = self.reference_text("project-init.md")
+        canonical = self.markdown_section(text, "Canonical Shared Contract", 2)
+        shared_rules = (
+            "AGENTS.md",
+            "route non-trivial project work through Hercules",
+            "capability discovery",
+            "invoke only a confirmed facility with sufficient authority",
+            "must not be represented as Claude Code or Codex CLI",
+            "follow Hercules fallback rules",
+            "independently verify actual outputs",
+        )
+        for phrase in shared_rules:
+            self.assertIn(phrase, canonical)
+
+        self.assertIn("Hercules is unavailable", canonical)
+        self.assertIn("report a blocker", canonical)
+        self.assertIn("explicitly approved fallback", canonical)
+        self.assertIn("do not claim that Hercules routing occurred", canonical)
+
+    def test_project_init_uses_minimal_tool_adapters(self):
+        text = self.reference_text("project-init.md")
+        canonical = self.markdown_section(text, "Canonical Shared Contract", 2)
+        claude = self.markdown_section(text, "`CLAUDE.md` adapter", 3)
+        hermes = self.markdown_section(text, "`HERMES.md` adapter", 3)
+        shared_rule_phrases = (
+            "route non-trivial project work through Hercules",
+            "capability discovery",
+            "invoke only a confirmed facility with sufficient authority",
+            "must not be represented as Claude Code or Codex CLI",
+            "follow Hercules fallback rules",
+            "independently verify actual outputs",
+        )
+
+        self.assertIn("Claude-specific implementation boundaries", claude)
+        self.assertIn("canonical shared contract in `AGENTS.md`", claude)
+        self.assertIn("Hermes is the controller", hermes)
+        self.assertIn("load the canonical shared contract and Hercules", hermes)
+        self.assertIn("`delegate_task`", hermes)
+        self.assertNotIn("`delegate_task`", canonical)
+        self.assertNotIn("`delegate_task`", claude)
+        self.assertEqual(text.count("`delegate_task`"), hermes.count("`delegate_task`"))
+        for phrase in shared_rule_phrases:
+            self.assertIn(phrase, canonical)
+            self.assertNotIn(phrase, claude)
+            self.assertNotIn(phrase, hermes)
+            self.assertEqual(text.count(phrase), canonical.count(phrase))
+
+    def test_project_init_requires_approved_idempotent_merge(self):
+        text = self.reference_text("project-init.md")
+        for phrase in (
+            "Preview the exact additions and changed files",
+            "Obtain explicit user approval",
+            "Repeated initialization must be idempotent",
+            "stop and show the conflict",
+        ):
             self.assertIn(phrase, text)
 
     def test_no_plugin_is_declared_required(self):
