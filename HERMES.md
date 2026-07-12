@@ -14,6 +14,10 @@ Hermes is the controller and runtime host for this repository.
 
 The runtime surface is exactly one runtime Skill: `skills/hercules/SKILL.md`. Keep `hercules` as the single public entry, keep internal workflows under `skills/hercules/references/` without Skill frontmatter, and do not add environment-management behavior.
 
+## Hercules adapter
+
+Hermes is the controller: load the canonical routing contract in [AGENTS.md](AGENTS.md) and Hercules before routing non-trivial project work. Do not use `delegate_task` or another Hermes built-in subagent as a substitute for a requested or selected Claude Code or Codex CLI facility.
+
 ## Maintainer guidance
 
 Repository orchestration and collaboration guidance lives under [`.maintain/docs/ai-collaboration/`](.maintain/docs/ai-collaboration/).

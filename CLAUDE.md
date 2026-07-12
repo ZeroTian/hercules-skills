@@ -14,6 +14,10 @@ Claude Code is the scoped implementation worker for this repository.
 
 The runtime surface is exactly one runtime Skill: `skills/hercules/SKILL.md`. Keep `hercules` as the single public entry, keep internal workflows under `skills/hercules/references/` without Skill frontmatter, and do not add environment-management behavior.
 
+## Hercules adapter
+
+Follow the canonical Hercules routing contract in [AGENTS.md](AGENTS.md) while retaining the Claude Code-specific implementation boundaries in this file.
+
 ## Maintainer guidance
 
 Repository implementation and collaboration guidance lives under [`.maintain/docs/ai-collaboration/`](.maintain/docs/ai-collaboration/).
