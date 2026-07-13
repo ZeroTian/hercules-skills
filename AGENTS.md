@@ -17,8 +17,10 @@ The runtime surface is exactly one runtime Skill: `skills/hercules/SKILL.md`. Ke
 ## Hercules routing contract
 
 - Route non-trivial project work through Hercules before selecting an implementation or review facility.
+- Treat Hercules as a Skill workflow and load only the role-relevant references. Do not infer a public `hercules` CLI or synthesize `hercules discover/execute` without confirmed executable and documentation evidence.
 - Read all governing project instructions and perform only the capability discovery relevant to the task before selecting a facility.
 - Invoke only a confirmed facility whose authority is sufficient for the requested scope.
+- Preserve direct Skill/reference loading and direct invocation of confirmed facilities such as Claude Code or Codex CLI; the no-synthetic-command rule must not become a tool block.
 - Identify Hermes built-in subagents accurately; do not represent them as Claude Code or Codex CLI.
 - Classify invocation failures and follow Hercules fallback rules without silently changing facility identity or authority.
 - Independently verify actual outputs before reporting completion.

@@ -16,7 +16,7 @@ The runtime surface is exactly one runtime Skill: `skills/hercules/SKILL.md`. Ke
 
 ## Hercules adapter
 
-Hermes is the controller: load the canonical routing contract in [AGENTS.md](AGENTS.md) and Hercules before routing non-trivial project work. Do not use `delegate_task` or another Hermes built-in subagent as a substitute for a requested or selected Claude Code or Codex CLI facility.
+Hermes is the controller: load the canonical routing contract in [AGENTS.md](AGENTS.md) and Hercules before routing non-trivial project work. Hercules is a Skill workflow, not an assumed CLI: do not synthesize `hercules discover/execute` without confirmed executable and documentation evidence. This restriction does not block Skill/reference loading or direct invocation of confirmed facilities. Do not use `delegate_task` or another Hermes built-in subagent as a substitute for a requested or selected Claude Code or Codex CLI facility.
 
 ## Maintainer guidance
 

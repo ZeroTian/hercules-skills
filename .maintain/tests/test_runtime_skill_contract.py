@@ -85,6 +85,39 @@ class RuntimeSkillContractTest(unittest.TestCase):
         for phrase in ("single public entry", "task capability roles", "session capability cache", "fallback"):
             self.assertIn(phrase, text)
 
+    def test_public_entry_does_not_infer_a_cli_surface(self):
+        text = self.text("hercules")
+        interface = " ".join(
+            self.markdown_section(text, "Interface Contract", 2).split()
+        )
+        self.assertRegex(
+            interface,
+            r"Hercules is exposed as this Skill.*does not imply that a `hercules` executable",
+        )
+        self.assertRegex(
+            interface,
+            r"Never synthesize commands.*`hercules discover`.*`hercules execute`",
+        )
+        self.assertRegex(
+            interface,
+            r"Invoke a same-named command only when.*executable is confirmed.*documentation explicitly defines that command",
+        )
+        self.assertRegex(
+            interface,
+            r"restriction does not block Skill/reference loading.*direct invocation of confirmed facilities",
+        )
+
+    def test_runtime_docs_do_not_advertise_bare_hercules_cli_commands(self):
+        text = "\n".join(
+            path.read_text(encoding="utf-8")
+            for path in [REPO_ROOT / "README.md", *SKILLS.rglob("*.md")]
+        )
+        executable_lines = re.findall(
+            r"(?mi)^\s*(?:[$>]\s*)?hercules\s+(?:discover|execute)\b.*$",
+            text,
+        )
+        self.assertEqual(executable_lines, [])
+
     def test_public_entry_links_runtime_routing_reference(self):
         text = self.text("hercules")
         link = re.search(
@@ -160,6 +193,51 @@ class RuntimeSkillContractTest(unittest.TestCase):
         self.assertIn("report a blocker", canonical)
         self.assertIn("explicitly approved fallback", canonical)
         self.assertIn("do not claim that Hercules routing occurred", canonical)
+
+    def test_project_init_preserves_skill_routing_without_cli_inference(self):
+        text = self.reference_text("project-init.md")
+        canonical = " ".join(
+            self.markdown_section(text, "Canonical Shared Contract", 2).split()
+        )
+        hermes = " ".join(
+            self.markdown_section(text, "`HERMES.md` adapter", 3).split()
+        )
+        self.assertRegex(
+            canonical,
+            r"Hercules as a Skill workflow.*never infer a public `hercules` CLI.*without confirmed executable and documentation evidence",
+        )
+        self.assertRegex(
+            canonical,
+            r"preserve direct Skill/reference loading.*direct invocation of confirmed facilities.*must not become a tool block",
+        )
+        self.assertRegex(
+            hermes,
+            r"Hercules is loaded as a Skill workflow.*synthetic `hercules discover/execute` commands are forbidden.*confirmed executable/documentation evidence",
+        )
+        self.assertRegex(
+            hermes,
+            r"does not block Skill/reference loading.*direct invocation of confirmed facilities",
+        )
+
+    def test_repository_instructions_dogfood_project_init_cli_boundary(self):
+        agents = " ".join((REPO_ROOT / "AGENTS.md").read_text().split())
+        hermes = " ".join((REPO_ROOT / "HERMES.md").read_text().split())
+        self.assertRegex(
+            agents,
+            r"Hercules as a Skill workflow.*Do not infer a public `hercules` CLI.*without confirmed executable and documentation evidence",
+        )
+        self.assertRegex(
+            agents,
+            r"Preserve direct Skill/reference loading.*direct invocation of confirmed facilities.*must not become a tool block",
+        )
+        self.assertRegex(
+            hermes,
+            r"Hercules is a Skill workflow, not an assumed CLI.*do not synthesize `hercules discover/execute`.*confirmed executable and documentation evidence",
+        )
+        self.assertRegex(
+            hermes,
+            r"does not block Skill/reference loading.*direct invocation of confirmed facilities",
+        )
 
     def test_project_init_uses_minimal_tool_adapters(self):
         text = self.reference_text("project-init.md")

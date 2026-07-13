@@ -1,7 +1,7 @@
 ---
 name: hercules
 description: "Single public entry for adaptive Hercules task routing: understand the task, discover only relevant local capabilities, compose internal workflows, and degrade without installing dependencies."
-version: 1.1.0
+version: 1.1.1
 author: Hercules / Hermes Agent
 license: MIT
 metadata:
@@ -14,6 +14,14 @@ metadata:
 ## Purpose
 
 This is the single public entry. Translate the user task into task capability roles, use the session capability cache when fresh, and route only to the internal workflows needed for this task.
+
+## Interface Contract
+
+- Hercules is exposed as this Skill and its linked references; it does not imply that a `hercules` executable, plugin command, or public `discover`/`execute` subcommand exists.
+- Load the Skill and only the references required by the current capability role. Perform shallow facility discovery directly from locally visible executable/version/authority evidence.
+- Never synthesize commands such as `hercules discover` or `hercules execute`. Invoke a same-named command only when its executable is confirmed in the current session and locally inspected Hercules documentation explicitly defines that command.
+- This restriction does not block Skill/reference loading or direct invocation of confirmed facilities such as Claude Code, Codex CLI, browser tools, or Hermes itself.
+- Treat `capability_matrix.py` and the normalized contracts as internal deterministic references, not as proof of a public shell interface.
 
 ## Routing
 

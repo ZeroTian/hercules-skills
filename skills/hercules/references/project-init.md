@@ -21,8 +21,10 @@ Create the smallest project-scoped instruction change that satisfies the user's 
 Keep the canonical shared contract in the repository's applicable general instruction file, normally `AGENTS.md`. Merge rules requiring agents to:
 
 - route non-trivial project work through Hercules before selecting an implementation or review facility;
+- identify Hercules as a Skill workflow, load the role-relevant linked references, and never infer a public `hercules` CLI or synthesize `hercules discover/execute` commands without confirmed executable and documentation evidence;
 - read governing project instructions and perform relevant capability discovery before facility selection;
 - invoke only a confirmed facility with sufficient authority;
+- preserve direct Skill/reference loading and direct invocation of confirmed facilities such as Claude Code or Codex CLI; the no-synthetic-command rule must not become a tool block;
 - identify Hermes built-in subagents accurately: they must not be represented as Claude Code or Codex CLI;
 - classify invocation failures and follow Hercules fallback rules without silently changing identity or authority;
 - independently verify actual outputs before reporting completion.
@@ -39,7 +41,7 @@ Retain Claude-specific implementation boundaries and add only a short instructio
 
 ### `HERMES.md` adapter
 
-State that Hermes is the controller, must load the canonical shared contract and Hercules before routing project work, and must not use `delegate_task` or another built-in subagent as a substitute for a requested or selected Claude Code or Codex CLI facility. Do not duplicate the canonical shared contract.
+State that Hermes is the controller, must load the canonical shared contract and Hercules before routing project work, and must not use `delegate_task` or another built-in subagent as a substitute for a requested or selected Claude Code or Codex CLI facility. Clarify that Hercules is loaded as a Skill workflow rather than assumed to be a CLI, that synthetic `hercules discover/execute` commands are forbidden without confirmed executable/documentation evidence, and that this does not block Skill/reference loading or direct invocation of confirmed facilities. Do not duplicate the rest of the canonical shared contract.
 
 Update only instruction filenames supported by the applicable tool. If a supported file is absent, create it only when its exact content appeared in the approved preview. If an existing rule conflicts with this contract, stop and show the conflict instead of silently overriding either rule.
 
@@ -58,6 +60,8 @@ The final report must list changed files, summarize the project-scoped rules add
 
 ## Common Mistakes
 
+- Treating the Hercules Skill or `capability_matrix.py` reference as proof that a public `hercules` executable/subcommand exists.
+- Writing a no-synthetic-command rule so broadly that it suppresses Hercules Skill loading or confirmed Claude Code/Codex CLI invocation.
 - Replacing an existing instruction file with a generic template.
 - Copying personal preferences or machine setup into a repository.
 - Creating parallel rule files with overlapping scope.
