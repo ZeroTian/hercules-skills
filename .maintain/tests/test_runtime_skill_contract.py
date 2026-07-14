@@ -373,6 +373,136 @@ class RuntimeSkillContractTest(unittest.TestCase):
         self.assertEqual(public_root_executables, {"init.sh"})
 
 
+class InvocationLifecycleContractTest(unittest.TestCase):
+    """Regression tests for the facility invocation lifecycle contract.
+
+    The lifecycle decides *how* a confirmed facility is driven
+    (foreground/background scheduling, PTY/non-PTY terminal mode) as a
+    concern orthogonal to *which* facility is selected.
+    """
+
+    REFERENCE = "invocation-lifecycle.md"
+
+    def setUp(self):
+        self.reference = (PUBLIC_REFERENCES / self.REFERENCE).read_text(encoding="utf-8")
+        self.skill = (SKILLS / PUBLIC_SKILL / "SKILL.md").read_text(encoding="utf-8")
+        self.collaborative = (
+            PUBLIC_REFERENCES / "collaborative-workflow.md"
+        ).read_text(encoding="utf-8")
+
+    def test_lifecycle_reference_exists_without_skill_frontmatter(self):
+        self.assertTrue((PUBLIC_REFERENCES / self.REFERENCE).is_file())
+        self.assertFalse(self.reference.startswith("---"))
+
+    def test_public_skill_links_lifecycle_reference(self):
+        self.assertRegex(
+            self.skill,
+            r"\[[^\]]+\]\(references/invocation-lifecycle\.md\)",
+        )
+
+    def test_collaborative_workflow_links_lifecycle_reference(self):
+        self.assertRegex(
+            self.collaborative,
+            r"\[[^\]]+\]\(invocation-lifecycle\.md\)",
+        )
+
+    def test_scheduling_and_terminal_mode_are_orthogonal_decisions(self):
+        for phrase in ("foreground", "background", "PTY", "non-PTY"):
+            self.assertIn(phrase, self.reference)
+        # Orthogonality must be stated, not merely implied by co-occurrence.
+        self.assertRegex(self.reference, r"(?i)orthogonal")
+
+    def test_foreground_default_is_narrow_and_background_defaults_for_risky_work(self):
+        for phrase in ("read-only", "non-interactive", "duration-stable"):
+            self.assertIn(phrase, self.reference)
+        for phrase in (
+            "code mutation", "tests", "builds", "multi-step",
+            "network", "browser", "uncertain duration",
+        ):
+            self.assertIn(phrase, self.reference)
+        self.assertRegex(self.reference, r"(?i)tracked background process")
+
+    def test_foreground_safety_margin_and_unknown_completion_on_overrun(self):
+        for phrase in (
+            "safety margin", "unknown", "exit status", "remaining processes",
+            "artifact", "diff", "tests",
+        ):
+            self.assertIn(phrase, self.reference)
+        self.assertIn("Never blindly replay a mutating brief", self.reference)
+
+    def test_pty_rules_encode_confirmed_facility_examples(self):
+        for phrase in ("terminal semantics", "interactive input", "structured output"):
+            self.assertIn(phrase, self.reference)
+        # Confirmed examples, overridable by locally inspected documentation.
+        self.assertRegex(self.reference, r"Claude print mode.*`-p`")
+        self.assertIn("Codex CLI", self.reference)
+        self.assertRegex(self.reference, r"(?i)locally inspected facility documentation")
+
+    def test_background_execution_remains_observable(self):
+        for phrase in (
+            "process handle", "completion notification", "poll",
+            "serial blocking", "exit status", "clean up",
+        ):
+            self.assertIn(phrase, self.reference)
+
+    def test_hermes_adapter_maps_terminal_and_process_lifecycle(self):
+        for phrase in (
+            "terminal(command=<bounded command>, background=true, notify_on_complete=true, pty=<independent terminal-mode decision>)",
+            'process(action="poll", session_id=<id>)',
+            'process(action="log", session_id=<id>)',
+            'process(action="wait", session_id=<id>, timeout=<bounded seconds>)',
+            'process(action="submit", session_id=<id>, data=<input>)',
+            'process(action="write", session_id=<id>, data=<input>)',
+            'process(action="close", session_id=<id>)',
+            'process(action="kill", session_id=<id>)',
+        ):
+            self.assertIn(phrase, self.reference)
+
+    def test_background_unsupported_has_an_explicit_safe_fallback(self):
+        self.assertIn("background unsupported", self.reference)
+        for phrase in (
+            "bounded foreground",
+            "another confirmed facility",
+            "controller authority",
+            "report a blocker",
+        ):
+            self.assertIn(phrase, self.reference)
+
+    def test_facility_drift_does_not_authorize_skill_self_modification(self):
+        self.assertIn("report the contract drift", self.reference)
+        self.assertIn(
+            "Do not modify this Skill or reference unless the current task explicitly authorizes",
+            self.reference,
+        )
+
+    def test_least_sufficient_authority_and_independent_verification_preserved(self):
+        self.assertIn("least-sufficient authority", self.reference)
+        self.assertIn("post-run verification", self.reference)
+        self.assertRegex(self.reference, r"\[[^\]]+\]\(invocation-failure\.md\)")
+
+    def test_lifecycle_reference_respects_non_destructive_boundary(self):
+        for forbidden in (
+            "npm install", "pnpm add", "brew install", "apt-get install",
+            "claude plugins install", "marketplace add", "claude auth", "codex login",
+            "configure provider",
+        ):
+            self.assertNotIn(forbidden, self.reference)
+        self.assertNotIn("hercules discover", self.reference)
+        self.assertNotIn("hercules execute", self.reference)
+        self.assertNotIn("/Users/", self.reference)
+        self.assertNotIn("~/.claude", self.reference)
+
+    def test_readme_internal_reference_table_lists_lifecycle(self):
+        readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
+        self.assertIn("invocation-lifecycle.md", readme)
+
+    def test_lifecycle_release_declares_version_1_1_2(self):
+        match = re.search(r"(?m)^version:\s*(\d+)\.(\d+)\.(\d+)", self.skill)
+        self.assertIsNotNone(match, "SKILL.md frontmatter must declare a semver version")
+        version = tuple(int(match.group(i)) for i in (1, 2, 3))
+        self.assertEqual(version, (1, 1, 2))
+
+
 class CapabilityMatrixBehaviorTest(unittest.TestCase):
     def load_contract(self):
         self.assertTrue(CAPABILITY_CONTRACT.is_file(), CAPABILITY_CONTRACT)

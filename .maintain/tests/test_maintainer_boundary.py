@@ -233,6 +233,7 @@ class MaintainerDocumentContractTest(unittest.TestCase):
         for reference in (
             "capability-discovery.md",
             "collaborative-workflow.md",
+            "invocation-lifecycle.md",
             "review-workflow.md",
             "project-init.md",
         ):

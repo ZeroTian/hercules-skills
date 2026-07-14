@@ -1,7 +1,7 @@
 ---
 name: hercules
 description: "Single public entry for adaptive Hercules task routing: understand the task, discover only relevant local capabilities, compose internal workflows, and degrade without installing dependencies."
-version: 1.1.1
+version: 1.1.2
 author: Hercules / Hermes Agent
 license: MIT
 metadata:
@@ -31,10 +31,11 @@ Use the [runtime routing reference](references/runtime-routing.md) as the role-t
 2. Classify task capability roles: implementation, review, browser, research, parallel execution, data access, or project initialization.
 3. When capability evidence is missing, stale, incomplete, permission-mismatched, or invalidated, load [capability discovery](references/capability-discovery.md) and follow its normalized capability-map contract.
 4. For implementation, browser, research, parallel execution, or data access, load [collaborative workflow](references/collaborative-workflow.md).
-5. When scoped or independent review is required, load [review workflow](references/review-workflow.md).
-6. For repository-local AI instructions, load [project initialization](references/project-init.md).
-7. Prefer a confirmed local facility; fallback to another confirmed facility or Hermes itself.
-8. Report a blocker only when no safe path can satisfy the task.
+5. When invoking a confirmed facility, load [invocation lifecycle](references/invocation-lifecycle.md): choose foreground/background scheduling and PTY/non-PTY as independent decisions, and keep the work observable.
+6. When scoped or independent review is required, load [review workflow](references/review-workflow.md).
+7. For repository-local AI instructions, load [project initialization](references/project-init.md).
+8. Prefer a confirmed local facility; fallback to another confirmed facility or Hermes itself.
+9. Report a blocker only when no safe path can satisfy the task.
 
 ## Boundaries
 

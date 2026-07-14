@@ -21,6 +21,7 @@ under `.maintain/docs/ai-collaboration/SKILL_GROUP_AUDIT.md` and
 |---|---|---|
 | `capability-discovery.md` | Demand-led local capability discovery | `skills/hercules/references/capability-discovery.md` |
 | `collaborative-workflow.md` | Capability-aware implementation workflow | `skills/hercules/references/collaborative-workflow.md` |
+| `invocation-lifecycle.md` | Foreground/background and PTY invocation lifecycle | `skills/hercules/references/invocation-lifecycle.md` |
 | `review-workflow.md` | Scoped review workflow | `skills/hercules/references/review-workflow.md` |
 | `project-init.md` | Project-scoped initialization | `skills/hercules/references/project-init.md` |
 

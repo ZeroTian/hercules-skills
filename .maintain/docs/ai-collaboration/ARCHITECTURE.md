@@ -3,8 +3,9 @@
 ## Repository purpose
 
 Hercules is a skill-first Hermes package with one public initializer and
-exactly one runtime Skill. The four internal workflows live under
-`skills/hercules/references/` and are not discovered as slash commands.
+exactly one runtime Skill. Four role workflows plus the invocation lifecycle
+contract live under `skills/hercules/references/` and are not discovered as
+slash commands.
 Repository tooling and governance history stay behind the maintainer boundary.
 
 ## Current layout
@@ -36,6 +37,7 @@ Its internal workflow references are:
 
 - `skills/hercules/references/capability-discovery.md`
 - `skills/hercules/references/collaborative-workflow.md`
+- `skills/hercules/references/invocation-lifecycle.md`
 - `skills/hercules/references/review-workflow.md`
 - `skills/hercules/references/project-init.md`
 

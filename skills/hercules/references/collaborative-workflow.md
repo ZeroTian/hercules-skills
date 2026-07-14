@@ -10,7 +10,7 @@ This internal workflow turns task capability roles and a confirmed capability ma
 2. apply user and project preference;
 3. classify read-only versus write-capable authority;
 4. write a capability-aware brief without naming unavailable surfaces;
-5. invoke the selected facility;
+5. invoke the selected facility, applying the [invocation lifecycle](invocation-lifecycle.md) for scheduling and terminal mode;
 6. on failure record a sanitized failure category and choose fallback;
 7. run task-appropriate verification and report evidence.
 
