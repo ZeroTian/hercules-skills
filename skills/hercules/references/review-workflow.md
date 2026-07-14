@@ -16,11 +16,25 @@ review PASS: close only after fresh verification evidence
 
 Determine the independence requirement from the user request, project instructions, risk contract, or acceptance criteria. Do not invent independence for ordinary checks, and do not weaken an explicit independence requirement.
 
+## Invocation Brief
+
+Every selected reviewer receives this already-routed context:
+
+```text
+controller: Hermes
+route_state: selected
+facility: <confirmed facility>
+role: review
+authority: read-only
+```
+
+`route_state: selected` means Hercules routing is complete. The reviewer inspects only the supplied scope and must not load Hercules, must not perform capability discovery, must not select another facility, and must not apply controller fallback. If review cannot complete, return the failure to Hermes without changing identity, authority, or scope.
+
 ## Procedure
 
 1. Read the task criteria, implementation route, confirmed capability map, and independence requirement.
 2. Select an available reviewer with sufficient read-only capability; exclude the implementation actor only when independence is required.
-3. Provide the exact artifact or diff, acceptance criteria, known risks, and existing verification evidence.
+3. Provide the already-routed context, exact artifact or diff, acceptance criteria, known risks, and existing verification evidence.
 4. Require inspection of actual artifacts and task-appropriate checks rather than accepting implementation self-report.
 5. Normalize actionable findings using the [review loop](review-loop.md).
 6. On FAIL, return the stable findings to a confirmed write-capable implementation route and re-review the resulting change.
@@ -39,6 +53,7 @@ A review outcome contains:
 ## Common Mistakes
 
 - Assuming one named facility is always required.
+- Omitting the already-routed context and causing a reviewer to re-enter Hercules.
 - Calling implementation self-review independent.
 - Installing a reviewer to fill an independence gap.
 - Creating a new finding ID for the same unresolved root cause.

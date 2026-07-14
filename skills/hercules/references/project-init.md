@@ -16,39 +16,36 @@ Create the smallest project-scoped instruction change that satisfies the user's 
 8. Verify references, canonical ownership, adapter scope, preservation of existing content, and the final diff.
 9. Report changed files, preserved conflicts, uncovered tools, and verification evidence.
 
-## Canonical Shared Contract
+## Canonical Shared Execution Contract
 
-Keep the canonical shared contract in the repository's applicable general instruction file, normally `AGENTS.md`. Merge rules requiring agents to:
+Keep the canonical shared execution contract in the repository's applicable general instruction file, normally `AGENTS.md`. Merge rules requiring selected execution or review facilities to:
 
-- route non-trivial project work through Hercules before selecting an implementation or review facility;
-- identify Hercules as a Skill workflow, load the role-relevant linked references, and never infer a public `hercules` CLI or synthesize `hercules discover/execute` commands without confirmed executable and documentation evidence;
-- read governing project instructions and perform relevant capability discovery before facility selection;
-- invoke only a confirmed facility with sufficient authority;
-- preserve direct Skill/reference loading and direct invocation of confirmed facilities such as Claude Code or Codex CLI; the no-synthetic-command rule must not become a tool block;
-- identify Hermes built-in subagents accurately: they must not be represented as Claude Code or Codex CLI;
-- classify invocation failures and follow Hercules fallback rules without silently changing identity or authority;
-- independently verify actual outputs before reporting completion.
-
-If Hercules is unavailable, report a blocker or use only an explicitly approved fallback; do not claim that Hercules routing occurred.
+- preserve the declared facility identity, role, and authority from the invocation brief;
+- execute the bounded brief directly within the approved scope;
+- enforce that selected facilities must not load Hercules, must not perform capability discovery, must not select another facility, and must not apply controller fallback;
+- run only permitted self-checks and return concrete result or failure evidence to the controller;
+- return the failure to Hermes without silently changing facility identity, authority, or scope.
 
 Do not copy the complete Hercules Skill or internal workflow references into a project instruction file.
 
 ## Tool-specific Adapters
 
-### `CLAUDE.md` adapter
+### `CLAUDE.md` facility adapter
 
-Retain Claude-specific implementation boundaries and add only a short instruction to follow the canonical shared contract in `AGENTS.md`. Do not duplicate the canonical shared contract.
+Retain Claude-specific implementation boundaries and identify Claude Code as an implementation or review facility. Add only a short instruction to follow the canonical shared execution contract in `AGENTS.md` and execute its bounded brief directly. State that a selected Claude Code facility must not load Hercules or select another facility. Do not duplicate the canonical shared execution contract.
 
-### `HERMES.md` adapter
+### `HERMES.md` controller adapter
 
-State that Hermes is the controller, must load the canonical shared contract and Hercules before routing project work, and must not use `delegate_task` or another built-in subagent as a substitute for a requested or selected Claude Code or Codex CLI facility. Clarify that Hercules is loaded as a Skill workflow rather than assumed to be a CLI, that synthetic `hercules discover/execute` commands are forbidden without confirmed executable/documentation evidence, and that this does not block Skill/reference loading or direct invocation of confirmed facilities. Do not duplicate the rest of the canonical shared contract.
+State that Hermes is the controller: it must load the canonical shared execution contract and Hercules, route non-trivial project work through Hercules, perform relevant capability discovery before selection, and invoke only a confirmed facility with sufficient authority. Hermes built-in subagents must not be represented as Claude Code or Codex CLI, and Hermes must not use `delegate_task` or another built-in subagent as a substitute for a requested or selected external facility. After a real invocation failure, Hermes must follow Hercules fallback rules without silently changing identity, authority, or scope. After execution, Hermes must independently verify actual outputs before reporting completion.
+
+Clarify that Hercules is loaded as a Skill workflow rather than assumed to be a CLI, that synthetic `hercules discover/execute` commands are forbidden without confirmed executable/documentation evidence, and that this does not block Skill/reference loading or direct invocation of confirmed facilities. If Hercules is unavailable, Hermes reports a blocker or uses only an explicitly approved fallback; it must not claim that Hercules routing occurred. Do not duplicate the canonical shared execution contract.
 
 Update only instruction filenames supported by the applicable tool. If a supported file is absent, create it only when its exact content appeared in the approved preview. If an existing rule conflicts with this contract, stop and show the conflict instead of silently overriding either rule.
 
 ## File Selection
 
 - Extend an existing applicable instruction file before creating a duplicate.
-- Keep shared repository facts in the repository's general agent instructions.
+- Keep shared execution facts in the repository's general agent instructions.
 - Keep a tool-specific rule in that tool's existing project file when only that tool consumes it.
 - State an unresolved conflict instead of silently choosing or duplicating both rules.
 - Do not add fixed implementation or reviewer identities when capability roles express the requirement.
@@ -56,7 +53,7 @@ Update only instruction filenames supported by the applicable tool. If a support
 
 ## Change Contract
 
-The final report must list changed files, summarize the project-scoped rules added, identify preserved conflicts or blockers, name unsupported or uncovered instruction surfaces, and provide link/reference plus final-diff verification evidence. Confirm that shared rules have one canonical owner and tool-specific files contain only adapters. If no file change is necessary, say so and show the equivalent rules used as evidence.
+The final report must list changed files, summarize the project-scoped rules added, identify preserved conflicts or blockers, name unsupported or uncovered instruction surfaces, and provide link/reference plus final-diff verification evidence. Confirm that shared execution rules have one canonical owner, controller routing exists only in the Hermes adapter, and facility adapters do not re-enter Hercules. If no file change is necessary, say so and show the equivalent rules used as evidence.
 
 ## Common Mistakes
 
@@ -65,5 +62,6 @@ The final report must list changed files, summarize the project-scoped rules add
 - Replacing an existing instruction file with a generic template.
 - Copying personal preferences or machine setup into a repository.
 - Creating parallel rule files with overlapping scope.
+- Putting controller routing into shared facility instructions and causing recursive Hercules entry.
 - Changing unrelated code or documentation during initialization.
 - Reporting completion without checking links, references, and the actual diff.

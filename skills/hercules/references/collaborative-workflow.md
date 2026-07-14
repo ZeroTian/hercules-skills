@@ -18,11 +18,23 @@ This internal workflow turns task capability roles and a confirmed capability ma
 
 Give the selected facility only what it can use:
 
+- the already-routed execution context in this exact shape:
+
+```text
+controller: Hermes
+route_state: selected
+facility: <confirmed facility>
+role: <capability role>
+authority: read-only | write-capable
+```
+
 - objective and relevant context;
 - allowed scope and authority boundary;
 - acceptance criteria and prohibited mutations;
 - verification commands or observable checks;
 - expected evidence and handoff shape.
+
+`route_state: selected` means Hercules routing is complete. The selected facility must execute the bounded brief directly, must not load Hercules, must not perform capability discovery, must not select another facility, and must not apply controller fallback. If it cannot complete the brief, it must return the failure to Hermes without changing facility identity, authority, or scope.
 
 Do not request a command, plugin, agent, browser, or data surface absent from the confirmed capability map. A read-only facility may inspect and report; only a confirmed write-capable facility may mutate state.
 
@@ -40,4 +52,5 @@ Verification must match the task and be fresh after the final change. Inspect ac
 - Giving write work to a read-only surface.
 - Mentioning unavailable capabilities in a brief.
 - Repeating a failed invocation without classifying and sanitizing the error.
+- Omitting the already-routed context and causing a selected facility to re-enter Hercules.
 - Closing from self-report without task-appropriate evidence.

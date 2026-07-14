@@ -2,7 +2,7 @@
 
 ## Role
 
-Claude Code is the scoped implementation worker for this repository.
+Claude Code is the scoped implementation facility for this repository, not the Hermes controller.
 
 ## Non-destructive boundaries
 
@@ -14,9 +14,9 @@ Claude Code is the scoped implementation worker for this repository.
 
 The runtime surface is exactly one runtime Skill: `skills/hercules/SKILL.md`. Keep `hercules` as the single public entry, keep internal workflows under `skills/hercules/references/` without Skill frontmatter, and do not add environment-management behavior.
 
-## Hercules adapter
+## Facility adapter
 
-Follow the canonical Hercules routing contract in [AGENTS.md](AGENTS.md) while retaining the Claude Code-specific implementation boundaries in this file.
+Follow the canonical shared execution contract in [AGENTS.md](AGENTS.md) while retaining the Claude-specific implementation boundaries in this file. Execute the bounded brief directly; a selected Claude Code facility must not load Hercules, perform capability discovery, select another facility, or apply controller fallback.
 
 ## Maintainer guidance
 

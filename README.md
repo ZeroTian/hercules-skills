@@ -23,6 +23,8 @@ If Hermes was already running during an update, use `/reload-skills` or restart 
 
 Hercules starts from the task, inspects only relevant local capabilities, uses confirmed plugins when helpful, and falls back without changing your environment.
 
+Hermes owns routing. Once it selects Claude Code, Codex CLI, or another facility, that facility executes the bounded brief directly without re-entering Hercules.
+
 ## 中文
 
 Hercules 是一个自适应的 Hermes Skill。它会发现机器上已有的能力，并根据当前任务进行组合。它不会安装、配置或执行认证，也不要求预先具备 Claude、Codex、MCP Server 或插件。
@@ -43,6 +45,8 @@ hermes --tui
 如果更新时 Hermes 已在运行，请先执行 `/reload-skills` 或重启 Hermes。
 
 Hercules 从任务出发，只检查相关的本地能力；确认插件有帮助时才使用，并在不可用时回退，全程不改变你的环境。
+
+路由只由 Hermes 负责。Claude Code、Codex CLI 或其他设施一旦被选中，就直接执行限定任务，不再进入 Hercules。
 
 ## Public Skill / 公开 Skill
 

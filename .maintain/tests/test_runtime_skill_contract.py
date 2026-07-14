@@ -85,6 +85,17 @@ class RuntimeSkillContractTest(unittest.TestCase):
         for phrase in ("single public entry", "task capability roles", "session capability cache", "fallback"):
             self.assertIn(phrase, text)
 
+    def test_public_entry_is_hermes_controller_owned(self):
+        text = self.text("hercules")
+        for phrase in (
+            "Hermes controller owns Hercules routing",
+            "the route is complete",
+            "must not load Hercules",
+            "must not perform capability discovery",
+            "must not select another facility",
+        ):
+            self.assertIn(phrase, text)
+
     def test_public_entry_does_not_infer_a_cli_surface(self):
         text = self.text("hercules")
         interface = " ".join(
@@ -161,6 +172,22 @@ class RuntimeSkillContractTest(unittest.TestCase):
         for phrase in ("confirmed capability map", "user and project preference", "sanitized failure category", "fallback"):
             self.assertIn(phrase, text)
 
+    def test_collaboration_brief_marks_the_facility_as_already_routed(self):
+        text = self.reference_text("collaborative-workflow.md")
+        brief = self.markdown_section(text, "Invocation Brief", 2)
+        for phrase in (
+            "controller: Hermes",
+            "route_state: selected",
+            "facility: <confirmed facility>",
+            "role: <capability role>",
+            "authority: read-only | write-capable",
+            "must not load Hercules",
+            "must not perform capability discovery",
+            "must not select another facility",
+            "return the failure to Hermes",
+        ):
+            self.assertIn(phrase, brief)
+
     def test_review_requires_independence_only_when_task_requires_it(self):
         text = self.reference_text("review-workflow.md")
         self.assertFalse(text.startswith("---"))
@@ -168,47 +195,59 @@ class RuntimeSkillContractTest(unittest.TestCase):
         self.assertIn("available reviewer", text)
         self.assertNotIn("Codex is always required", text)
 
+    def test_review_brief_marks_the_reviewer_as_already_routed(self):
+        text = self.reference_text("review-workflow.md")
+        brief = self.markdown_section(text, "Invocation Brief", 2)
+        for phrase in (
+            "controller: Hermes",
+            "route_state: selected",
+            "facility: <confirmed facility>",
+            "role: review",
+            "authority: read-only",
+            "must not load Hercules",
+            "must not perform capability discovery",
+            "must not select another facility",
+            "return the failure to Hermes",
+        ):
+            self.assertIn(phrase, brief)
+
     def test_project_init_is_project_scoped(self):
         text = self.reference_text("project-init.md")
         self.assertFalse(text.startswith("---"))
         for phrase in ("project-scoped", "do not install", "preserve existing instructions"):
             self.assertIn(phrase, text)
 
-    def test_project_init_defines_canonical_entry_contract(self):
+    def test_project_init_separates_shared_execution_from_controller_routing(self):
         text = self.reference_text("project-init.md")
-        canonical = self.markdown_section(text, "Canonical Shared Contract", 2)
-        shared_rules = (
+        shared = self.markdown_section(
+            text, "Canonical Shared Execution Contract", 2
+        )
+        hermes = self.markdown_section(text, "`HERMES.md` controller adapter", 3)
+
+        for phrase in (
             "AGENTS.md",
+            "execute the bounded brief directly",
+            "must not load Hercules",
+            "must not perform capability discovery",
+            "must not select another facility",
+            "return the failure to Hermes",
+        ):
+            self.assertIn(phrase, shared)
+        for phrase in (
             "route non-trivial project work through Hercules",
-            "capability discovery",
-            "invoke only a confirmed facility with sufficient authority",
-            "must not be represented as Claude Code or Codex CLI",
+            "perform relevant capability discovery",
             "follow Hercules fallback rules",
             "independently verify actual outputs",
-        )
-        for phrase in shared_rules:
-            self.assertIn(phrase, canonical)
+        ):
+            self.assertNotIn(phrase, shared)
+            self.assertIn(phrase, hermes)
 
-        self.assertIn("Hercules is unavailable", canonical)
-        self.assertIn("report a blocker", canonical)
-        self.assertIn("explicitly approved fallback", canonical)
-        self.assertIn("do not claim that Hercules routing occurred", canonical)
-
-    def test_project_init_preserves_skill_routing_without_cli_inference(self):
+    def test_project_init_keeps_cli_boundary_in_controller_adapter(self):
         text = self.reference_text("project-init.md")
-        canonical = " ".join(
-            self.markdown_section(text, "Canonical Shared Contract", 2).split()
-        )
         hermes = " ".join(
-            self.markdown_section(text, "`HERMES.md` adapter", 3).split()
-        )
-        self.assertRegex(
-            canonical,
-            r"Hercules as a Skill workflow.*never infer a public `hercules` CLI.*without confirmed executable and documentation evidence",
-        )
-        self.assertRegex(
-            canonical,
-            r"preserve direct Skill/reference loading.*direct invocation of confirmed facilities.*must not become a tool block",
+            self.markdown_section(
+                text, "`HERMES.md` controller adapter", 3
+            ).split()
         )
         self.assertRegex(
             hermes,
@@ -219,17 +258,18 @@ class RuntimeSkillContractTest(unittest.TestCase):
             r"does not block Skill/reference loading.*direct invocation of confirmed facilities",
         )
 
-    def test_repository_instructions_dogfood_project_init_cli_boundary(self):
+    def test_repository_instructions_dogfood_controller_facility_boundary(self):
         agents = " ".join((REPO_ROOT / "AGENTS.md").read_text().split())
+        claude = " ".join((REPO_ROOT / "CLAUDE.md").read_text().split())
         hermes = " ".join((REPO_ROOT / "HERMES.md").read_text().split())
-        self.assertRegex(
-            agents,
-            r"Hercules as a Skill workflow.*Do not infer a public `hercules` CLI.*without confirmed executable and documentation evidence",
-        )
-        self.assertRegex(
-            agents,
-            r"Preserve direct Skill/reference loading.*direct invocation of confirmed facilities.*must not become a tool block",
-        )
+        self.assertIn("Codex is the independent reviewer and acceptance gate", agents)
+        self.assertIn("selected review facility, not the Hermes controller", agents)
+        self.assertIn("execute the bounded brief directly", agents)
+        self.assertIn("must not load Hercules", agents)
+        self.assertNotIn("Route non-trivial project work through Hercules", agents)
+        self.assertIn("Claude Code is the scoped implementation facility", claude)
+        self.assertIn("not the Hermes controller", claude)
+        self.assertIn("must not load Hercules", claude)
         self.assertRegex(
             hermes,
             r"Hercules is a Skill workflow, not an assumed CLI.*do not synthesize `hercules discover/execute`.*confirmed executable and documentation evidence",
@@ -241,31 +281,35 @@ class RuntimeSkillContractTest(unittest.TestCase):
 
     def test_project_init_uses_minimal_tool_adapters(self):
         text = self.reference_text("project-init.md")
-        canonical = self.markdown_section(text, "Canonical Shared Contract", 2)
-        claude = self.markdown_section(text, "`CLAUDE.md` adapter", 3)
-        hermes = self.markdown_section(text, "`HERMES.md` adapter", 3)
-        shared_rule_phrases = (
+        shared = self.markdown_section(
+            text, "Canonical Shared Execution Contract", 2
+        )
+        claude = self.markdown_section(
+            text, "`CLAUDE.md` facility adapter", 3
+        )
+        hermes = self.markdown_section(text, "`HERMES.md` controller adapter", 3)
+        controller_rule_phrases = (
             "route non-trivial project work through Hercules",
-            "capability discovery",
-            "invoke only a confirmed facility with sufficient authority",
+            "perform relevant capability discovery",
             "must not be represented as Claude Code or Codex CLI",
             "follow Hercules fallback rules",
             "independently verify actual outputs",
         )
 
         self.assertIn("Claude-specific implementation boundaries", claude)
-        self.assertIn("canonical shared contract in `AGENTS.md`", claude)
+        self.assertIn("canonical shared execution contract in `AGENTS.md`", claude)
+        self.assertIn("must not load Hercules", claude)
         self.assertIn("Hermes is the controller", hermes)
-        self.assertIn("load the canonical shared contract and Hercules", hermes)
+        self.assertIn("load the canonical shared execution contract and Hercules", hermes)
         self.assertIn("`delegate_task`", hermes)
-        self.assertNotIn("`delegate_task`", canonical)
+        self.assertNotIn("`delegate_task`", shared)
         self.assertNotIn("`delegate_task`", claude)
         self.assertEqual(text.count("`delegate_task`"), hermes.count("`delegate_task`"))
-        for phrase in shared_rule_phrases:
-            self.assertIn(phrase, canonical)
+        for phrase in controller_rule_phrases:
+            self.assertNotIn(phrase, shared)
             self.assertNotIn(phrase, claude)
-            self.assertNotIn(phrase, hermes)
-            self.assertEqual(text.count(phrase), canonical.count(phrase))
+            self.assertIn(phrase, hermes)
+            self.assertEqual(text.count(phrase), hermes.count(phrase))
 
     def test_project_init_requires_approved_idempotent_merge(self):
         text = self.reference_text("project-init.md")
@@ -496,11 +540,11 @@ class InvocationLifecycleContractTest(unittest.TestCase):
         readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
         self.assertIn("invocation-lifecycle.md", readme)
 
-    def test_lifecycle_release_declares_version_1_1_2(self):
+    def test_controller_owned_routing_release_declares_version_1_1_3(self):
         match = re.search(r"(?m)^version:\s*(\d+)\.(\d+)\.(\d+)", self.skill)
         self.assertIsNotNone(match, "SKILL.md frontmatter must declare a semver version")
         version = tuple(int(match.group(i)) for i in (1, 2, 3))
-        self.assertEqual(version, (1, 1, 2))
+        self.assertEqual(version, (1, 1, 3))
 
 
 class CapabilityMatrixBehaviorTest(unittest.TestCase):
