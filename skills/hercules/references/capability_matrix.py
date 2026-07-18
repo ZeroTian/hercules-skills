@@ -16,30 +16,60 @@ SANITIZED_FAILURES = {
     "runtime failure",
 }
 
+VALID_AUTHORITIES = {"read-only", "write-capable"}
+CONCRETE_SURFACE_EVIDENCE_TOKENS = {
+    "definition",
+    "docs",
+    "documentation",
+    "help",
+    "instructions",
+    "manifest",
+    "metadata",
+    "schema",
+}
+
 
 def _authority_fits(required, offered):
     if required == "write-capable":
         return offered == "write-capable"
-    return offered in {"read-only", "write-capable"}
+    return offered in VALID_AUTHORITIES
 
 
 def _unique_strings(values):
+    if isinstance(values, str):
+        values = [values]
     return list(dict.fromkeys(value for value in values or [] if isinstance(value, str)))
 
 
-def _normalize_surface(surface, *, default_authority):
+def _is_concrete_surface_evidence(evidence):
+    if not isinstance(evidence, str) or not evidence.strip():
+        return False
+    normalized = evidence.lower()
+    for separator in ("_", "/", " ", "."):
+        normalized = normalized.replace(separator, "-")
+    tokens = {token for token in normalized.split("-") if token}
+    return bool(tokens & CONCRETE_SURFACE_EVIDENCE_TOKENS)
+
+
+def _normalize_surface(surface):
     if not isinstance(surface, dict):
         return None
     name = surface.get("name")
     family = surface.get("family")
     evidence = surface.get("evidence")
-    if not name or not family or not evidence:
+    authority = surface.get("authority")
+    if (
+        not name
+        or not family
+        or authority not in VALID_AUTHORITIES
+        or not _is_concrete_surface_evidence(evidence)
+    ):
         return None
     return {
         "family": family,
         "name": name,
         "capabilities": _unique_strings(surface.get("capabilities")),
-        "authority": surface.get("authority", default_authority),
+        "authority": authority,
         "evidence": evidence,
     }
 
@@ -50,6 +80,21 @@ def _surface_coverage(surfaces, *, required_authority):
         if _authority_fits(required_authority, surface["authority"]):
             covered.update(surface["capabilities"])
     return covered
+
+
+def _focus_surfaces(surfaces, *, required_capabilities, required_authority):
+    focused = []
+    for surface in surfaces:
+        if not _authority_fits(required_authority, surface["authority"]):
+            continue
+        capabilities = [
+            capability
+            for capability in surface["capabilities"]
+            if capability in required_capabilities
+        ]
+        if capabilities:
+            focused.append({**surface, "capabilities": capabilities})
+    return focused
 
 
 def _normalize_cached_route(
@@ -67,7 +112,7 @@ def _normalize_cached_route(
         "facility": cached.get("facility"),
         "kind": cached.get("kind", "cached"),
         "confirmed_surface": list(cached.get("confirmed_surface", [])),
-        "authority": cached.get("authority", "read-only"),
+        "authority": cached.get("authority"),
         "evidence": cached.get("evidence"),
         "fingerprint": cached.get("fingerprint"),
     }
@@ -75,28 +120,35 @@ def _normalize_cached_route(
         record["role"] != role
         or not record["facility"]
         or role not in record["confirmed_surface"]
+        or record["authority"] not in VALID_AUTHORITIES
         or not _authority_fits(required_authority, record["authority"])
-        or not record["evidence"]
+        or not isinstance(record["evidence"], str)
+        or not record["evidence"].strip()
         or record["fingerprint"] != fingerprint
     ):
         return None
 
+    required = set(required_capabilities)
+    proved = set(_unique_strings(cached.get("required_capabilities")))
+    if proved != required:
+        return None
+
     if required_capabilities:
-        proved = set(_unique_strings(cached.get("required_capabilities")))
         surfaces = []
         for surface in cached.get("confirmed_surfaces", []):
-            normalized = _normalize_surface(
-                surface,
-                default_authority=record["authority"],
-            )
+            normalized = _normalize_surface(surface)
             if normalized is not None:
                 surfaces.append(normalized)
+        surfaces = _focus_surfaces(
+            surfaces,
+            required_capabilities=required,
+            required_authority=required_authority,
+        )
         covered = _surface_coverage(
             surfaces,
             required_authority=required_authority,
         )
-        required = set(required_capabilities)
-        if not required <= proved or not required <= covered:
+        if not required <= covered:
             return None
         record["required_capabilities"] = list(required_capabilities)
         record["confirmed_surfaces"] = surfaces
@@ -148,8 +200,8 @@ def decide_route(*, demand, facilities, cache=None, invocation=None, evidence=No
         capability_records.append(cached_record)
     else:
         for facility in facilities:
-            declared = list(facility.get("capabilities", []))
-            deep = list(facility.get("deep_capabilities", []))
+            declared = _unique_strings(facility.get("capabilities"))
+            deep = _unique_strings(facility.get("deep_capabilities"))
             relevant = role in declared or (
                 facility.get("kind") == "plugin"
                 and facility.get("relevant") is True
@@ -162,19 +214,28 @@ def decide_route(*, demand, facilities, cache=None, invocation=None, evidence=No
             if role not in confirmed:
                 deep_inspection.append(facility["name"])
                 confirmed = deep
-            if role not in confirmed or not _authority_fits(
-                required_authority, facility.get("authority", "read-only")
+
+            facility_authority = facility.get("authority")
+            facility_evidence = facility.get("evidence")
+            if (
+                role not in confirmed
+                or facility_authority not in VALID_AUTHORITIES
+                or not isinstance(facility_evidence, str)
+                or not facility_evidence.strip()
+                or not _authority_fits(required_authority, facility_authority)
             ):
                 continue
 
             surfaces = []
             for surface in facility.get("surfaces", []):
-                normalized = _normalize_surface(
-                    surface,
-                    default_authority=facility.get("authority", "read-only"),
-                )
+                normalized = _normalize_surface(surface)
                 if normalized is not None:
                     surfaces.append(normalized)
+            surfaces = _focus_surfaces(
+                surfaces,
+                required_capabilities=required_set,
+                required_authority=required_authority,
+            )
             covered = _surface_coverage(
                 surfaces,
                 required_authority=required_authority,
@@ -184,10 +245,7 @@ def decide_route(*, demand, facilities, cache=None, invocation=None, evidence=No
             if missing:
                 deep_surfaces = []
                 for surface in facility.get("deep_surfaces", []):
-                    normalized = _normalize_surface(
-                        surface,
-                        default_authority=facility.get("authority", "read-only"),
-                    )
+                    normalized = _normalize_surface(surface)
                     if normalized is not None and missing.intersection(
                         normalized["capabilities"]
                     ):
@@ -195,7 +253,11 @@ def decide_route(*, demand, facilities, cache=None, invocation=None, evidence=No
                 if deep_surfaces:
                     if facility["name"] not in deep_inspection:
                         deep_inspection.append(facility["name"])
-                    surfaces.extend(deep_surfaces)
+                    surfaces.extend(_focus_surfaces(
+                        deep_surfaces,
+                        required_capabilities=required_set,
+                        required_authority=required_authority,
+                    ))
                     covered = _surface_coverage(
                         surfaces,
                         required_authority=required_authority,
@@ -212,18 +274,13 @@ def decide_route(*, demand, facilities, cache=None, invocation=None, evidence=No
                 "facility": facility["name"],
                 "kind": facility.get("kind", "unknown"),
                 "confirmed_surface": list(confirmed),
-                "authority": facility.get("authority", "read-only"),
-                "evidence": facility.get("evidence", "local-metadata"),
+                "authority": facility_authority,
+                "evidence": facility_evidence,
                 "fingerprint": fingerprint,
             }
             if required_capabilities:
                 record["required_capabilities"] = list(required_capabilities)
-                record["confirmed_surfaces"] = [
-                    surface
-                    for surface in surfaces
-                    if required_set.intersection(surface["capabilities"])
-                    and _authority_fits(required_authority, surface["authority"])
-                ]
+                record["confirmed_surfaces"] = list(surfaces)
             capability_records.append(record)
 
     preferred = demand.get("user_preference") or demand.get("project_preference")

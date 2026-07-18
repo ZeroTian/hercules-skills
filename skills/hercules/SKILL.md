@@ -1,7 +1,7 @@
 ---
 name: hercules
 description: "Single public entry for adaptive Hercules task routing: understand the task, discover only relevant local capabilities, compose internal workflows, and degrade without installing dependencies."
-version: 1.1.4
+version: 1.1.5
 author: Hercules / Hermes Agent
 license: MIT
 metadata:
@@ -45,6 +45,7 @@ Use the [runtime routing reference](references/runtime-routing.md) as the role-t
 - Missing optional facilities are silent unless the current task needs them.
 - Re-scan after a relevant config change or capability-related invocation failure.
 - User or project preference may rank only facilities that already cover every concrete requirement with current evidence; it never bypasses the preflight completion gate.
+- Broad-role evidence, authority, and specialized-surface evidence must be explicit; never default missing evidence or treat executable/version-only evidence as proof of a specialized surface. Reuse cache records only for an exact concrete-requirement match and return only task-relevant surfaces.
 
 ## Completion
 
