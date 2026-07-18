@@ -192,6 +192,28 @@ class RuntimeSkillContractTest(unittest.TestCase):
         ):
             self.assertIn(phrase, text)
 
+    def test_selected_facility_failure_requires_immediate_user_notice(self):
+        failure = self.reference_text("invocation-failure.md")
+        for phrase in (
+            "notify the user immediately",
+            "before invoking the fallback",
+            "selected facility",
+            "sanitized failure category",
+            "assurance",
+            "user action",
+            "same-facility retry",
+        ):
+            self.assertIn(phrase, failure)
+
+        review = self.reference_text("review-workflow.md")
+        for phrase in (
+            "designated review gate",
+            "notify the user immediately",
+            "before selecting or invoking a fallback reviewer",
+            "independence status",
+        ):
+            self.assertIn(phrase, review)
+
     def test_collaboration_consumes_confirmed_capabilities(self):
         text = self.reference_text("collaborative-workflow.md")
         self.assertFalse(text.startswith("---"))
@@ -566,11 +588,11 @@ class InvocationLifecycleContractTest(unittest.TestCase):
         readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
         self.assertIn("invocation-lifecycle.md", readme)
 
-    def test_task_surface_preflight_release_declares_version_1_1_5(self):
+    def test_failure_notification_release_declares_version_1_1_6(self):
         match = re.search(r"(?m)^version:\s*(\d+)\.(\d+)\.(\d+)", self.skill)
         self.assertIsNotNone(match, "SKILL.md frontmatter must declare a semver version")
         version = tuple(int(match.group(i)) for i in (1, 2, 3))
-        self.assertEqual(version, (1, 1, 5))
+        self.assertEqual(version, (1, 1, 6))
 
 
 class CapabilityMatrixBehaviorTest(unittest.TestCase):
@@ -1270,6 +1292,67 @@ class CapabilityMatrixBehaviorTest(unittest.TestCase):
             invalidated=True,
         )
         self.assertEqual(decision["invalidation_reason"], "invocation-failure")
+        self.assertEqual(
+            decision["notification"],
+            {
+                "required": True,
+                "timing": "before-fallback-invocation",
+                "facility": "claude",
+                "category": "provider/access rejection",
+                "fallback": "codex",
+                "status": "fallback-selected",
+                "user_action_required": False,
+            },
+        )
+
+    def test_successful_route_requires_no_failure_notification(self):
+        decision = self.decide(
+            demand={"role": "implementation", "authority": "write-capable"},
+            facilities=[{
+                "name": "hermes",
+                "kind": "agent",
+                "capabilities": ["implementation"],
+                "authority": "write-capable",
+                "evidence": "local-runtime",
+            }],
+        )
+        self.assert_route(decision, route="hermes")
+        self.assertIsNone(decision["notification"])
+
+    def test_provider_failure_without_fallback_requires_blocked_notification(self):
+        decision = self.decide(
+            demand={"role": "independent-review", "authority": "read-only"},
+            facilities=[{
+                "name": "codex",
+                "kind": "cli",
+                "capabilities": ["independent-review"],
+                "authority": "read-only",
+                "evidence": "executable-version",
+            }],
+            invocation={
+                "facility": "codex",
+                "ok": False,
+                "category": "provider/access rejection",
+            },
+        )
+        self.assert_route(
+            decision,
+            route=None,
+            blocker="No confirmed safe capability for independent-review.",
+            invalidated=True,
+        )
+        self.assertEqual(
+            decision["notification"],
+            {
+                "required": True,
+                "timing": "before-fallback-invocation",
+                "facility": "codex",
+                "category": "provider/access rejection",
+                "fallback": None,
+                "status": "blocked",
+                "user_action_required": True,
+            },
+        )
 
     def test_no_viable_capability_returns_concise_blocker(self):
         decision = self.decide(

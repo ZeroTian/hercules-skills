@@ -2,7 +2,7 @@
 
 This demand-led workflow combines shallow discovery, deep plugin exploration, and an ephemeral capability map.
 
-Use [capability-map.md](capability-map.md) for the record shape, [plugin-exploration.md](plugin-exploration.md) for deep inspection, and `capability_matrix.py` for the deterministic decision contract. Feed that contract the current task demand plus facility, cache, and real invocation evidence; consume its route, fallback, blocker, cache invalidation, missing-requirement, and deep-inspection decisions. The contract is a non-executable deterministic reference, not a public command.
+Use [capability-map.md](capability-map.md) for the record shape, [plugin-exploration.md](plugin-exploration.md) for deep inspection, and `capability_matrix.py` for the deterministic decision contract. Feed that contract the current task demand plus facility, cache, and real invocation evidence; consume its route, fallback, user-notification requirement, blocker, cache invalidation, missing-requirement, and deep-inspection decisions. The contract is a non-executable deterministic reference, not a public command.
 
 ## Demand-led discovery
 

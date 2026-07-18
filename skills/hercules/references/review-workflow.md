@@ -16,6 +16,12 @@ review PASS: close only after fresh verification evidence
 
 Determine the independence requirement from the user request, project instructions, risk contract, or acceptance criteria. Do not invent independence for ordinary checks, and do not weaken an explicit independence requirement.
 
+## Designated Gate Failure
+
+When the user or project names a designated review gate, its selected reviewer is materially unavailable if invocation fails for provider/access, capability, authority, sandbox, transport, or equivalent reasons. The controller must notify the user immediately before selecting or invoking a fallback reviewer. Report the selected reviewer, sanitized category, fallback reviewer, whether the independence status and required assurance are preserved, and whether user action is currently required.
+
+Do not hide a designated review gate failure merely because another reviewer is available. A fallback may preserve independent review, but it does not retroactively satisfy the named gate. Mark the named gate unavailable and identify the fallback verdict separately.
+
 ## Invocation Brief
 
 Every selected reviewer receives this already-routed context:
@@ -37,8 +43,9 @@ authority: read-only
 3. Provide the already-routed context, exact artifact or diff, acceptance criteria, known risks, and existing verification evidence.
 4. Require inspection of actual artifacts and task-appropriate checks rather than accepting implementation self-report.
 5. Normalize actionable findings using the [review loop](review-loop.md).
-6. On FAIL, return the stable findings to a confirmed write-capable implementation route and re-review the resulting change.
-7. On PASS, obtain fresh verification evidence and report the reviewer, independence status, scope, checks, and outcome.
+6. If the selected or designated reviewer invocation fails, follow [invocation failure](invocation-failure.md), emit the required user-visible status before fallback, and preserve the gate/independence distinction.
+7. On FAIL, return the stable findings to a confirmed write-capable implementation route and re-review the resulting change.
+8. On PASS, obtain fresh verification evidence and report the reviewer, independence status, scope, checks, and outcome.
 
 ## Review Output
 

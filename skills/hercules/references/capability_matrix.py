@@ -292,6 +292,7 @@ def decide_route(*, demand, facilities, cache=None, invocation=None, evidence=No
         route = candidates[0]["name"] if candidates else None
     fallback = None
     failure = None
+    notification = None
     if invocation_failed:
         attempted = invocation.get("facility")
         raw_category = invocation.get("category", "runtime failure")
@@ -303,6 +304,15 @@ def decide_route(*, demand, facilities, cache=None, invocation=None, evidence=No
         route = alternatives[0]["name"] if alternatives else None
         if route is not None:
             fallback = {"from": attempted, "to": route, "reason": category}
+        notification = {
+            "required": True,
+            "timing": "before-fallback-invocation",
+            "facility": attempted,
+            "category": category,
+            "fallback": route,
+            "status": "fallback-selected" if route is not None else "blocked",
+            "user_action_required": route is None,
+        }
 
     blocker = None
     if route is None:
@@ -322,6 +332,7 @@ def decide_route(*, demand, facilities, cache=None, invocation=None, evidence=No
         "deep_inspection": deep_inspection,
         "fallback": fallback,
         "failure": failure,
+        "notification": notification,
         "blocker": blocker,
         "cache_invalidated": cache_invalidated,
         "invalidation_reason": invalidation_reason,
