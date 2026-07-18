@@ -166,6 +166,23 @@ class RuntimeSkillContractTest(unittest.TestCase):
         ):
             self.assertNotIn(forbidden, text)
 
+    def test_capability_discovery_has_task_relevant_surface_preflight_gate(self):
+        text = self.reference_text("capability-discovery.md")
+        for phrase in (
+            "required_capabilities",
+            "built-in tools",
+            "MCP tool metadata",
+            "enabled plugins",
+            "nested Skills",
+            "agents",
+            "commands",
+            "confirmed absence",
+            "`claude --version`",
+            "`codex --version`",
+        ):
+            self.assertIn(phrase, text)
+        self.assertIn("must not select a route", text)
+
     def test_collaboration_consumes_confirmed_capabilities(self):
         text = self.reference_text("collaborative-workflow.md")
         self.assertFalse(text.startswith("---"))
@@ -540,11 +557,11 @@ class InvocationLifecycleContractTest(unittest.TestCase):
         readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
         self.assertIn("invocation-lifecycle.md", readme)
 
-    def test_controller_owned_routing_release_declares_version_1_1_3(self):
+    def test_task_surface_preflight_release_declares_version_1_1_4(self):
         match = re.search(r"(?m)^version:\s*(\d+)\.(\d+)\.(\d+)", self.skill)
         self.assertIsNotNone(match, "SKILL.md frontmatter must declare a semver version")
         version = tuple(int(match.group(i)) for i in (1, 2, 3))
-        self.assertEqual(version, (1, 1, 3))
+        self.assertEqual(version, (1, 1, 4))
 
 
 class CapabilityMatrixBehaviorTest(unittest.TestCase):
@@ -649,6 +666,119 @@ class CapabilityMatrixBehaviorTest(unittest.TestCase):
             }],
         )
         self.assert_route(decision, route="claude")
+
+    def test_specialized_demand_rejects_executable_only_facility(self):
+        decision = self.decide(
+            demand={
+                "role": "research",
+                "authority": "read-only",
+                "required_capabilities": ["video-transcription"],
+            },
+            facilities=[{
+                "name": "claude",
+                "kind": "cli",
+                "capabilities": ["research"],
+                "authority": "read-only",
+                "evidence": "executable-version",
+            }],
+        )
+        self.assert_route(
+            decision,
+            route=None,
+            blocker="No confirmed safe capability for research.",
+        )
+        self.assertEqual(
+            decision["discovery"]["missing_requirements"],
+            {"claude": ["video-transcription"]},
+        )
+
+    def test_specialized_demand_routes_confirmed_mcp_surface(self):
+        decision = self.decide(
+            demand={
+                "role": "research",
+                "authority": "read-only",
+                "required_capabilities": ["video-transcription"],
+            },
+            facilities=[{
+                "name": "claude",
+                "kind": "cli",
+                "capabilities": ["research"],
+                "authority": "read-only",
+                "evidence": "executable-version",
+                "surfaces": [{
+                    "family": "mcp",
+                    "name": "video-watcher",
+                    "capabilities": ["video-transcription"],
+                    "authority": "read-only",
+                    "evidence": "mcp-tool-metadata-and-local-server-docs",
+                }],
+            }],
+        )
+        self.assert_route(decision, route="claude")
+        record = decision["capability_map"]["research"][0]
+        self.assertEqual(record["required_capabilities"], ["video-transcription"])
+        self.assertEqual(
+            record["confirmed_surfaces"],
+            [{
+                "family": "mcp",
+                "name": "video-watcher",
+                "capabilities": ["video-transcription"],
+                "authority": "read-only",
+                "evidence": "mcp-tool-metadata-and-local-server-docs",
+            }],
+        )
+
+    def test_explicit_preference_cannot_bypass_specialized_evidence(self):
+        decision = self.decide(
+            demand={
+                "role": "research",
+                "authority": "read-only",
+                "required_capabilities": ["video-transcription"],
+                "user_preference": "claude",
+            },
+            facilities=[{
+                "name": "claude",
+                "kind": "cli",
+                "capabilities": ["research"],
+                "authority": "read-only",
+                "evidence": "executable-version",
+            }],
+        )
+        self.assert_route(
+            decision,
+            route=None,
+            blocker="No confirmed safe capability for research.",
+        )
+
+    def test_broad_cached_route_is_invalid_for_specialized_demand(self):
+        cached_record = {
+            "role": "research",
+            "facility": "claude",
+            "kind": "cli",
+            "confirmed_surface": ["research"],
+            "authority": "read-only",
+            "evidence": "executable-version",
+            "fingerprint": "v1",
+        }
+        decision = self.decide(
+            demand={
+                "role": "research",
+                "authority": "read-only",
+                "required_capabilities": ["video-transcription"],
+            },
+            facilities=[],
+            cache={
+                "fingerprint": "v1",
+                "routes": {"research": cached_record},
+            },
+        )
+        self.assert_route(
+            decision,
+            route=None,
+            blocker="No confirmed safe capability for research.",
+            invalidated=True,
+        )
+        self.assertEqual(decision["invalidation_reason"], "invalid-cache-record")
 
     def test_codex_only_routes_to_codex(self):
         decision = self.decide(

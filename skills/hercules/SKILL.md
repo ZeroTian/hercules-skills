@@ -1,7 +1,7 @@
 ---
 name: hercules
 description: "Single public entry for adaptive Hercules task routing: understand the task, discover only relevant local capabilities, compose internal workflows, and degrade without installing dependencies."
-version: 1.1.3
+version: 1.1.4
 author: Hercules / Hermes Agent
 license: MIT
 metadata:
@@ -18,7 +18,7 @@ This is the single public entry. Translate the user task into task capability ro
 ## Interface Contract
 
 - Hercules is exposed as this Skill and its linked references; it does not imply that a `hercules` executable, plugin command, or public `discover`/`execute` subcommand exists.
-- Load the Skill and only the references required by the current capability role. Perform shallow facility discovery directly from locally visible executable/version/authority evidence.
+- Load the Skill and only the references required by the current capability role. Perform shallow facility discovery directly from locally visible executable/version/authority evidence, but treat that as container evidence only; it cannot satisfy an implied or explicit specialized requirement without task-relevant surface preflight.
 - Never synthesize commands such as `hercules discover` or `hercules execute`. Invoke a same-named command only when its executable is confirmed in the current session and locally inspected Hercules documentation explicitly defines that command.
 - This restriction does not block Skill/reference loading or direct invocation of confirmed facilities such as Claude Code, Codex CLI, browser tools, or Hermes itself.
 - Treat `capability_matrix.py` and the normalized contracts as internal deterministic references, not as proof of a public shell interface.
@@ -29,8 +29,8 @@ This is the single public entry. Translate the user task into task capability ro
 Use the [runtime routing reference](references/runtime-routing.md) as the role-to-destination navigation table for this decision.
 
 1. Preserve explicit user preferences and project instructions.
-2. Classify task capability roles: implementation, review, browser, research, parallel execution, data access, or project initialization.
-3. When capability evidence is missing, stale, incomplete, permission-mismatched, or invalidated, load [capability discovery](references/capability-discovery.md) and follow its normalized capability-map contract.
+2. Classify both broad task capability roles and any concrete `required_capabilities` implied by the task, such as video transcription, browser automation, or a specific data operation.
+3. When broad-role or concrete-surface evidence is missing, stale, incomplete, permission-mismatched, or invalidated, load [capability discovery](references/capability-discovery.md) and follow its normalized capability-map contract. Before selecting Claude, Codex, or another extensible facility, complete the task-relevant preflight across plausible built-ins, MCP tools, enabled plugins, nested Skills, agents, teams, and commands; executable/version evidence alone cannot prove a specialized requirement.
 4. For implementation, browser, research, parallel execution, or data access, load [collaborative workflow](references/collaborative-workflow.md).
 5. When invoking a confirmed facility, load [invocation lifecycle](references/invocation-lifecycle.md): choose foreground/background scheduling and PTY/non-PTY as independent decisions, and keep the work observable.
 6. When scoped or independent review is required, load [review workflow](references/review-workflow.md).
@@ -44,6 +44,7 @@ Use the [runtime routing reference](references/runtime-routing.md) as the role-t
 - Never inspect credentials or proactively test provider access.
 - Missing optional facilities are silent unless the current task needs them.
 - Re-scan after a relevant config change or capability-related invocation failure.
+- User or project preference may rank only facilities that already cover every concrete requirement with current evidence; it never bypasses the preflight completion gate.
 
 ## Completion
 
